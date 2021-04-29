@@ -1,0 +1,15 @@
+TARGETS=mapTypeTable.o
+
+CFLAGS=-I. `net-snmp-config --cflags`
+BUILDLIBS=`net-snmp-config --libs net-snmp-config --external-libs`
+BUILDAGENTLIBS=`net-snmp-config --agent-libs`
+
+# shared library flags (assumes gcc)
+DLFLAGS=-fPIC -shared
+
+all: $(TARGETS)
+
+
+mapTypeTable.o: mapTypeTable.c Makefile
+		$(CC) $(CFLAGS) $(DLFLAGS) -c -o mapTypeTable.o mapTypeTable.c
+#		$(CC) $(CFLAGS) $(DLFLAGS) -o mapTypeTable.so mapTypeTable.o

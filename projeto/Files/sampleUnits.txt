@@ -1,0 +1,22 @@
+Km
+Meters
+g/(kW h)
+Km/l
+l/100 Km
+g
+m/s
+m/s^2
+Psi
+Bar
+Pascal
+dB
+Nm
+kW
+%
+mm
+ms
+s
+h
+kg/(kgf h)
+g(kN s)
+kg(kW h)
