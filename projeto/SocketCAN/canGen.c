@@ -13,10 +13,10 @@
 #include <linux/can.h>
 #include <linux/can/raw.h>
 typedef struct can{
-	float timestamp;
+	double timestamp;
 	unsigned char* id;
 	int dlc;
-	unsigned char data[16];
+	unsigned char data[128];
 }can;
 typedef struct canlist{
 	int capacity;
@@ -24,6 +24,16 @@ typedef struct canlist{
 	can* list;
 }canlist;
 
+void printEscolha(){
+	printf("****************\n");
+	printf("*  Choose log  *\n");
+	printf("*1-Log 00002081*\n");
+	printf("*2-Log 00002082*\n");
+	printf("*3-Log 00002083*\n");
+	printf("*4-Log 00002084*\n");
+	printf("****************\n");
+
+}
 canlist* readDump(char* file){
 	canlist* canList = (canlist *)malloc(sizeof(canlist));
     canList->capacity = 1;
@@ -37,9 +47,11 @@ canlist* readDump(char* file){
     if (fp == NULL)
         exit(EXIT_FAILURE);
 
-    int i = 0;
+	int lineF=0;
     while ((read = getline(&line, &len, fp)) != -1)
     {
+		lineF++;
+		if(lineF<4) continue;
         can *aux = (can *)malloc(sizeof(can));
 		aux->id=malloc(sizeof(char)*30);
 		strcpy(aux->data,"");
@@ -50,14 +62,21 @@ canlist* readDump(char* file){
 			char s[6];
 			switch(j){
 				case 0:
-					strcpy(s,token);
-					s[2]='.';
-					aux->timestamp=atof(s);
 					break;
 				case 1:
-					strcpy(aux->id,token);
+					strcpy(s,token);
+					aux->timestamp=atof(s);
 					break;
 				case 2:
+					break;
+				case 3:
+					break;
+				case 4:
+					strcpy(aux->id,token);
+					break;
+				case 5:
+					break;
+				case 6:
 					aux->dlc=atoi(token);
 					break;
 				default:
@@ -67,7 +86,6 @@ canlist* readDump(char* file){
 			token=strtok(NULL," ");
 			j++;
 		}
-        i++;
         if (canList->capacity == canList->current)
         {
             canlist *canList2 = (canlist *)malloc(sizeof(canlist));
@@ -85,6 +103,7 @@ canlist* readDump(char* file){
         }
         canList->list[canList->current] = *aux;
         canList->current++;
+		free(aux);
     }
     fclose(fp);
     if (line)
@@ -114,23 +133,45 @@ int main(int argc, char **argv)
 		perror("Bind");
 		return 1;
 	}
-	canlist* list=readDump("rostselmash.trc");
+	int choice =-1;
+	canlist* list;
+	while(choice==-1){
+		printEscolha();
+		scanf("%d",&choice);
+		switch(choice){
+			case 1:
+				list=readDump("J1939/00002081_CAN.trc");
+				break;
+			case 2:
+				list=readDump("J1939/00002082_CAN.trc");
+				break;
+			case 3:
+				list=readDump("J1939/00002083_CAN.trc");
+				break;
+			case 4:
+				list=readDump("J1939/00002084_CAN.trc");
+				break;
+			default:
+				choice=-1;
+				printf("Wrong input\n");
+				break;
+		}
+	}
 	for(int i=0;i<list->current;){
 		frame.can_id=strtoul(list->list[i].id,NULL,16);
 		frame.can_dlc = list->list[i].dlc;
 		long unsigned int aux=strtoul(list->list[i].data,NULL,16);
-		printf("%lX\n",aux);
+		//printf("%lX\n",aux);
 		memcpy(frame.data,&aux,sizeof(aux));
 		if (write(s, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame)) {
 			perror("Write");
 			return 1;
 		}
-		i++;
-		usleep(1250);
-		if(i==list->current){
-			i=0;
-			sleep(10);
+		if(i<list->current-1){
+			int sleeptime=(int)((list->list[i+1].timestamp-list->list[i].timestamp)*1000000);
+			usleep(sleeptime);
 		}
+		i++;
 	}
 
 
@@ -138,6 +179,8 @@ int main(int argc, char **argv)
 		perror("Close");
 		return 1;
 	}
-
+	free(list);
+	printf("\n\n\n");
+	printf("Log is over\n");
 	return 0;
 }
