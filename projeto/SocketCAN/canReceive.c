@@ -56,12 +56,12 @@ char* removeChar(char* s,char c){
 	return s;
 }
 char* intToHex(int id){
-	unsigned char* hex=malloc(sizeof(char)*8);
+	unsigned char* hex=malloc(sizeof(char)*8+1);
 	sprintf(hex,"%X",id);
 	return hex;
 }
 int hexToInt(unsigned char* id){
-	long long decimal=0, place=1;
+	long long decimal=0;
 	int i=0,val,len;
 	len=strlen(id);
 	len--;
@@ -77,7 +77,6 @@ int hexToInt(unsigned char* id){
 	return decimal;
 }
 char* unMask(long id){
-	char* idHexOrig=intToHex(id);
 	u_int32_t unOrig=(u_int32_t) id;
 	u_int32_t mask=0x1FFFFFFF;
 	u_int32_t fin=unOrig & mask;
@@ -98,7 +97,7 @@ decodedCAN* decode(unsigned char* id, int dlc,unsigned char* data){
 }
 void scaleBits(SG* signal, char* token){
 	SG res=*signal;
-	char *aux=malloc(sizeof(char)*strlen(token));
+	char *aux=malloc(sizeof(char)*strlen(token)+1);
 	int i;
 
 	strcpy(aux,token);
@@ -114,7 +113,7 @@ void scaleBits(SG* signal, char* token){
 }
 void minMax(SG* signal, char*token){
 	SG res=*signal;
-	char *aux=malloc(sizeof(char)*strlen(token));
+	char *aux=malloc(sizeof(char)*strlen(token)+1);
 	strcpy(aux,token);
 	int i;
 
@@ -130,7 +129,7 @@ void minMax(SG* signal, char*token){
 }
 void signalBits(SG* signal,char* token){
 	SG res=*signal;
-	char *aux=malloc(sizeof(char)*strlen(token));
+	char *aux=malloc(sizeof(char)*strlen(token)+1);
 	strcpy(aux,token);
 	int j;
 
@@ -154,8 +153,9 @@ void signalBits(SG* signal,char* token){
 	else
 		res.signFlag=0;
 }
-BO getBO(char* line){
-	BO res;
+BO* getBO(char* line){
+	BO* res=(BO*)malloc(sizeof(BO));
+	memset(res,0,sizeof(BO*));
 	strtok(line, "\n");
 	char* token=strtok(line," ");
 	int j=0;
@@ -168,16 +168,16 @@ BO getBO(char* line){
 				idLine=atol(token);
 				/*Decode ID*/
 				char *decodedID=unMask(idLine);
-				strcpy(res.id,decodedID);
+				strcpy(res->id,decodedID);
 				break;
 			case 2:
-				strcpy(res.name,token);
+				strcpy(res->name,token);
 				break;
 			case 3:
-				res.length=atoi(token);
+				res->length=atoi(token);
 				break;
 			case 4:
-				strcpy(res.sender,token);
+				strcpy(res->sender,token);
 				break;
 			default:
 				break;
@@ -185,10 +185,10 @@ BO getBO(char* line){
 		token=strtok(NULL," ");
 		j++;
 	}
-	res.signals=(SG_List*)malloc(sizeof(SG_List));
-	res.signals->list=(SG*) malloc(sizeof(SG));
-	res.signals->capacity=1;
-	res.signals->current=0;
+	res->signals=(SG_List*)malloc(sizeof(SG_List));
+	res->signals->list=(SG*) malloc(sizeof(SG));
+	res->signals->capacity=1;
+	res->signals->current=0;
 	return res;
 }
 SG getSignal(char* line){
@@ -199,7 +199,6 @@ SG getSignal(char* line){
 	char s[1000];
 	char s1[1000];
 	char* unit="";
-	char c;
 	while(token!=NULL){
 		switch(j){
 			case 0:
@@ -248,13 +247,11 @@ SG getSignal(char* line){
 	}
 	return res;
 }
-
-
 BO_List* readDBC(char* file){
 	BO_List* boList = (BO_List *)malloc(sizeof(BO_List));
     boList->capacity = 1;
     boList->current = 0;
-    boList->list =malloc(sizeof(BO));
+    boList->list =(BO*)malloc(sizeof(BO));
     FILE *fp;
     char *line = malloc(sizeof(char)*100000);
     size_t len = 0;
@@ -265,10 +262,11 @@ BO_List* readDBC(char* file){
     while ((read = getline(&line, &len, fp)) != -1)
     {
 		if(strlen(line)==0) continue;
-		char bo_[4];
+		char bo_[5]="";
 		strncpy(bo_,line,4);
+		bo_[5]='\0';
 		if(strcmp(bo_,"BO_ ")==0){
-			BO bo=getBO(line);
+			BO* bo=getBO(line);
 			if (boList->capacity == boList->current)
 			{
 				BO_List *boList2 = (BO_List*)malloc(sizeof(BO_List));
@@ -281,13 +279,13 @@ BO_List* readDBC(char* file){
 				}
 				boList->capacity = boList2->capacity;
 				boList->current = boList2->current;
+				boList->list=boList2->list;
 				free(boList2);
 			}
-			boList->list[boList->current] = bo;
-			printf("\n\n\n\nInserted BO: %s in %d\n",boList->list[boList->current].id,boList->current);
+			boList->list[boList->current] = *bo;
 			boList->current++;
+			free(bo);
 		}else if(strcmp(bo_," SG_")==0){ 
-			/*TODO:ta a fazer merda ao duplicar o tamanho da estrutura*/
 			int lastInserted=boList->current-1;
 			int nSignals=boList->list[lastInserted].signals->current;
 			SG signal=getSignal(line);
@@ -295,27 +293,23 @@ BO_List* readDBC(char* file){
 				SG_List sgList;
 				sgList.capacity = boList->list[lastInserted].signals->capacity * 2;
 				sgList.current = boList->list[lastInserted].signals->current;
-				printf("Current:%d || Capacity:%d\n",boList->list[lastInserted].signals->current,boList->list[lastInserted].signals->capacity);
 				sgList.list = malloc(sizeof(SG) * sgList.capacity);
-				printf("CENA\n");
+				
 				for (int j = 0; j < sgList.current; j++)
 				{
-					printf("%d->%s\n",j,boList->list[lastInserted].signals->list[j].name);
 					sgList.list[j]=boList->list[lastInserted].signals->list[j];
 				}
-				printf("\n\n\n\n");
 				boList->list[lastInserted].signals->capacity = sgList.capacity;
 				boList->list[lastInserted].signals->current = sgList.current;
+				boList->list[lastInserted].signals->list = sgList.list;
 			}
 			boList->list[lastInserted].signals->list[nSignals]=signal;
-			//printf("NAME:%s Position:%d\n",boList->list[lastInserted].signals->list[nSignals].name,nSignals);
 			boList->list[lastInserted].signals->current++;
-			//printf("Capacity: %d out of %d\n",boList->list[lastInserted].signals->current,boList->list[lastInserted].signals->capacity);
+			
 		}
     }
     fclose(fp);
-    if (line)
-        free(line);
+    free(line);
     return boList;
 }
 

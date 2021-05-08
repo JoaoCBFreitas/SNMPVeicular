@@ -3,6 +3,6 @@ all: generator receiver
 generator: 
 		$(CC) $(CFLAGS) -o generator canGen.c
 receiver:
-		$(CC) -o receiver canReceive.c -lm
+		$(CC) -o receiver canReceive.c -lm -ggdb3
 clean:
 	rm generator receiver
