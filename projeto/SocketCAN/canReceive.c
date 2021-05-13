@@ -42,9 +42,11 @@ typedef struct BO_List{
 }BO_List;
 
 typedef struct decodedCAN{
-	char *id;
-	int *value;
-	char* unit;
+	char name[128];
+	int signals;
+	char **signalname;
+	double *value;
+	char **unit;
 }decodedCAN;
 char* removeChar(char* s,char c){
 	int tam=strlen(s);
@@ -57,19 +59,21 @@ char* removeChar(char* s,char c){
 }
 char* intToHex(int id){
 	unsigned char* hex=malloc(sizeof(char)*8+1);
-	sprintf(hex,"%X",id);
+	sprintf(hex,"%08X",id);
 	return hex;
 }
 int hexToInt(unsigned char* id){
 	long long decimal=0;
+	char* aux=malloc(2*sizeof(char));
+	sprintf(aux,"%X",id[0]);
 	int i=0,val,len;
-	len=strlen(id);
+	len=strlen(aux);
 	len--;
-	for(i=0;id[i]!='\0';i++){
-		if(id[i]>='0'&& id[i]<='9'){
-			val=id[i]-48;
-		}else if(id[i]>='A'&& id[i]<='F'){
-			val=id[i]-65+10;
+	for(i=0;aux[i]!='\0';i++){
+		if(aux[i]>='0'&& aux[i]<='9'){
+			val=aux[i]-48;
+		}else if(aux[i]>='A'&& aux[i]<='F'){
+			val=aux[i]-65+10;
 		}
 		decimal+=val*pow(16,len);
 		len--;
@@ -83,20 +87,128 @@ char* unMask(long id){
 	char *res=intToHex((int)fin);
 	return res;
 }
-decodedCAN* decode(unsigned char* id, int dlc,unsigned char* data){
-	decodedCAN* dc=(decodedCAN*)malloc(sizeof(decodedCAN));
+int* decToBinary(int n){
+    int *binaryNum=malloc(sizeof(int)*4);
+    int i=7;
+	if(n==0){
+		for(int j=0;j<8;j++){
+			binaryNum[j]=0;
+		}
+	}else{
+		while(n>0){
+			binaryNum[i]=n%2;
+			n=n/2;
+			i--;
+    	}
+	}
+    return binaryNum;
+}
+int binaryToDec(int* list,int n){
+	int res=0;
+	int multiplier=1;
+	for(int i=0;i<n;i++){
+		res+=(multiplier*list[n-1-i]);
+		multiplier*=2;
+	}	
+	return res;
+}
+int decodeData(unsigned char* data,int start,int length,int endian){
+    int binData[64];
+    int cont=0;
+    //Convert from char* Hex to int* bit array
+    for(int i=0;i<8;i++){
+        unsigned char *aux=malloc(sizeof(char));
+        *aux=data[i];
+        int a=hexToInt(aux);
+        free(aux);
+        int* b=decToBinary(a);
+        for(int j=0;j<8;j++){
+            binData[cont]=b[j];
+            cont++;
+        }
+        free(b);
+    }
+    int binRes[length];
+    //Get relevant bits
+    for(int i=0;i<length;i++){
+        binRes[i]=binData[start+i];
+    }
+    int decFinal=binaryToDec(binRes,length);
+    char* hexFinal=intToHex(decFinal);
+    //Remove less significative bits 00056=56
+    for(int i=0;i<strlen(hexFinal);i++){
+        if(hexFinal[i]=='0'){
+            hexFinal++;
+            i--;
+        }else{
+            break;
+        }
+    }
+    if(endian==1){
+        char*aux=malloc(sizeof(char)*strlen(hexFinal));
+        for(int i=strlen(hexFinal)-1,k=0;i>=0;i-=2,k+=2){
+            aux[k]=hexFinal[i-1];
+            aux[k+1]=hexFinal[i];
+        }
+        strcpy(hexFinal,aux);
+        free(aux);
+    }
+	return hexToInt(hexFinal);
+}
+decodedCAN* decode(unsigned char* id, int dlc,unsigned char data[],BO_List* boList,decodedCAN* dc){
+	dc->signals=0;
+	//printf("%s\n",id);
 	if(strlen(id)==3){
 		/*11-bit identifier*/
 		/*char*res=searchID(hexToInt(id));*/
 		//strcpy(dc->id,res);
 	}else{
 		/*29-bit identifier*/
-		/**/
+		for(int i=0;i<boList->current;i++){
+			if(strcmp(boList->list[i].id,id)==0){
+				printf("Encontrou %s ",id);
+				for(int j=0;j<8;j++){
+					printf("%02X ",data[j]);
+				}
+				printf("\n");
+				strcpy(dc->name,boList->list[i].name);
+				dc->name[strlen(boList->list[i].name)]='\0';
+				dc->signalname=malloc(sizeof(*dc->signalname)*boList->list[i].signals->current);
+				dc->value=malloc(sizeof(int)*boList->list[i].signals->current);
+				dc->unit=malloc(sizeof(*dc->unit)*boList->list[i].signals->current);
+				dc->signals=boList->list[i].signals->current;
+				printf("%s\n",dc->name);
+
+				for(int k=0;k<boList->list[i].signals->current;k++){
+					dc->signalname[k]=(char*)malloc(sizeof(char)*strlen(boList->list[i].signals->list[k].name));
+					strcpy(dc->signalname[k],boList->list[i].signals->list[k].name);
+					
+					/*based of start bit and bit length, obtain relevant data from data PDU*/
+					int value=decodeData(data,boList->list[i].signals->list[k].bitStart,boList->list[i].signals->list[k].length,boList->list[i].signals->list[k].endian);
+					double decodedValue=boList->list[i].signals->list[k].offset+boList->list[i].signals->list[k].scale*value;
+					if(decodedValue>boList->list[i].signals->list[k].max)
+						decodedValue-=boList->list[i].signals->list[k].min;
+					if(decodedValue<boList->list[i].signals->list[k].min)
+						decodedValue+=boList->list[i].signals->list[k].max;
+					dc->value[k]=decodedValue;
+					
+					dc->unit[k]=(char*)malloc(sizeof(char)*strlen(boList->list[i].signals->list[k].unit));
+					strcpy(dc->unit[k],boList->list[i].signals->list[k].unit);
+					
+					//printf("%d %s %.3f %s\n",k,dc->signalname[k],dc->value[k],dc->unit[k]);
+					printf("TESTE K:%d Total:%d %s %f %s\n",k,boList->list[i].signals->current,dc->signalname[0],dc->value[0],dc->unit[0]);
+				}
+				break;
+			}
+		}
 	}
+	/*
+	if(dc->signals!=0)
+		printf("TESTE %s %f %s\n",dc->signalname[7],dc->value[7],dc->unit[7]);
+	*/	
 	return dc;
 }
-void scaleBits(SG* signal, char* token){
-	SG res=*signal;
+SG scaleBits(SG signal, char* token){
 	char *aux=malloc(sizeof(char)*strlen(token)+1);
 	int i;
 
@@ -107,51 +219,50 @@ void scaleBits(SG* signal, char* token){
 	char s[128];
 	strncpy(s,aux,i);
 	s[i]='\0';
-	res.scale=atof(s);
+	signal.scale=atof(s);
 	aux+=i+1;
-	res.offset=atof(aux);
+	signal.offset=atof(aux);
+	return signal;
 }
-void minMax(SG* signal, char*token){
-	SG res=*signal;
+SG minMax(SG signal, char*token){
 	char *aux=malloc(sizeof(char)*strlen(token)+1);
 	strcpy(aux,token);
 	int i;
-
 	aux++;
 	aux[strlen(aux)-1]='\0';
 	for(i=0;aux[i]!='|';i++);
 	char s[128];
 	strncpy(s,aux,i);
 	s[i]='\0';
-	res.min=atof(s);
+	signal.min=atof(s);
 	aux+=i+1;
-	res.max=atof(aux);
+	signal.max=atof(aux);
+	return signal;
 }
-void signalBits(SG* signal,char* token){
-	SG res=*signal;
+SG signalBits(SG signal,char* token){
 	char *aux=malloc(sizeof(char)*strlen(token)+1);
 	strcpy(aux,token);
 	int j;
-
 	for(j=0;aux[j]!='|';j++);
 	char bitS[j+1];
 	strncpy(bitS,aux,j);
 	bitS[j]='\0';
-	res.bitStart=atoi(bitS);
+	signal.bitStart=atoi(bitS);
 	aux+=j+1;
 	/*String after the | character*/
 	for(j=0;aux[j]!='@';j++);
 	char len[j+1];
 	strncpy(len,aux,j);
 	len[j]='\0';
-	res.length=atoi(len);
+	signal.length=atoi(len);
 	aux+=j+1;
 	/*String after the @*/
-	res.endian=aux[0]-'0';
+	signal.endian=aux[0]-'0';
 	if(aux[1]=='+')
-		res.signFlag=1;
+		signal.signFlag=1;
 	else
-		res.signFlag=0;
+		signal.signFlag=0;
+	return signal;
 }
 BO* getBO(char* line){
 	BO* res=(BO*)malloc(sizeof(BO));
@@ -166,6 +277,8 @@ BO* getBO(char* line){
 				break;
 			case 1:
 				idLine=atol(token);
+				/*Ids in dbc file appear to be offset by 254*/
+				idLine-=254;
 				/*Decode ID*/
 				char *decodedID=unMask(idLine);
 				strcpy(res->id,decodedID);
@@ -219,15 +332,15 @@ SG getSignal(char* line){
 				break;
 			case 3:
 				//22|2@1+
-				signalBits(&res,token);
+				res=signalBits(res,token);
 				break;
 			case 4:
 				//(1,0)
-				scaleBits(&res,token);
+				res=scaleBits(res,token);
 				break;
 			case 5:
 				//[0|3]
-				minMax(&res,token);
+				res=minMax(res,token);
 				break;
 			case 6:
 				//"ms"
@@ -277,9 +390,7 @@ BO_List* readDBC(char* file){
 				{
 					boList2->list[j] = boList->list[j];
 				}
-				boList->capacity = boList2->capacity;
-				boList->current = boList2->current;
-				boList->list=boList2->list;
+				memcpy(boList,boList2,sizeof(BO_List));
 				free(boList2);
 			}
 			boList->list[boList->current] = *bo;
@@ -299,17 +410,15 @@ BO_List* readDBC(char* file){
 				{
 					sgList.list[j]=boList->list[lastInserted].signals->list[j];
 				}
-				boList->list[lastInserted].signals->capacity = sgList.capacity;
-				boList->list[lastInserted].signals->current = sgList.current;
-				boList->list[lastInserted].signals->list = sgList.list;
+				memcpy(boList->list[lastInserted].signals,&sgList,sizeof(SG_List));
 			}
 			boList->list[lastInserted].signals->list[nSignals]=signal;
 			boList->list[lastInserted].signals->current++;
-			
 		}
     }
     fclose(fp);
-    free(line);
+	if(line)
+    	free(line);
     return boList;
 }
 
@@ -346,17 +455,28 @@ int main(int argc, char **argv)
             perror("Read");
             return 1;
         }
-        printf("0x%08X [%d] ",frame.can_id, frame.can_dlc);
-		unsigned char data[frame.can_dlc*2];
+		unsigned char data[frame.can_dlc];
 		/*frame.data is inverted for some reason*/
 		for (int j=0,i = frame.can_dlc-1; i >=0; i--,j++){
 			data[j]=frame.data[i];
 		}
-		//decodedCAN *dc=decode(frame.can_id,frame.can_dlc,data);
-	    for (i = 0;i<frame.can_dlc-1; i++)
-		    printf("%02X ",data[i]);
-
-	    printf("\r\n");
+		decodedCAN* dc=(decodedCAN*)malloc(sizeof(decodedCAN));
+		dc=decode(intToHex(frame.can_id),frame.can_dlc,data,boList,dc);
+		
+		if(dc->signals!=0){
+			printf("Sensor-> %s\n",dc->name);
+			
+			for(int i=0;i<dc->signals;i++){
+				
+				//printf("  %s:",dc->signalname[i]);
+				//printf(" %f",dc->value[i]);
+				//printf(" %s\n",dc->unit[i]);
+				
+			}
+			
+		}
+		
+		free(dc);
     }
 
 	if (close(s) < 0) {
