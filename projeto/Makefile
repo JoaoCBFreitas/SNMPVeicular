@@ -42,6 +42,7 @@ all: $(TARGETS)
 
 agent:
 	mkdir obj
+	$(CC) -o $(OBJ)/auxFunc.o -c auxFunc.c -lm
 	cd $(sampleUnitsTable) && $(MAKE) all && mv sampleUnitsTable.o ../../obj/
 	cd $(capabilitiesTable) && $(MAKE) all && mv capabilitiesTable.o ../../obj/
 	cd $(genericTypesTable) && $(MAKE) all && mv genericTypesTable.o ../../obj/

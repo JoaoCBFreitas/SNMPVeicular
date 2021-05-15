@@ -177,6 +177,7 @@ int main(int argc, char **argv)
     sampleUnitsList *sampleunitsList = readSampleUnits(sampleunitsList);
     genericTypeList *typesList = readGenericTypes(typesList);
     errorDescrList *errorList = readErrorDescr(errorList);
+
     init_sampleUnitsTable(sampleunitsList);
     init_genericTypesTable(typesList);
     init_errorDescriptionTable(errorList);
@@ -191,7 +192,9 @@ int main(int argc, char **argv)
     init_sampledValuesTable();
     init_errorTable();
     init_snmp("veicular-daemon");
-
+    /*Initializing structs that contain dbc decoding rules*/
+    BO_List* boList=readDBC("SocketCAN/J1939/J1939.dbc");
+    
     /* If we're going to be a snmp master agent, initial the ports */
     if (!agentx_subagent)
         init_master_agent(); /* open the port to listen on 

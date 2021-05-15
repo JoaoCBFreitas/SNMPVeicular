@@ -20,18 +20,12 @@
 #endif
 #include <signal.h>
 #include <stdio.h>
-#include <Tables/genericTypesTable/genericTypesTable.h>
-#include <Tables/mapTypeTable/mapTypeTable.h>
-#include <Tables/capabilitiesTable/capabilitiesTable.h>
-#include <Tables/sampleUnitsTable/sampleUnitsTable.h>
-#include <Tables/requestControlDataTable/requestControlDataTable.h>
 #include <Tables/requestMonitoringDataTable/requestMonitoringDataTable.h>
-#include <Tables/requestStatisticsDataTable/requestStatisticsDataTable.h>
-#include <Tables/samplesTable/samplesTable.h>
-#include <Tables/sampledValuesTable/sampledValuesTable.h>
 #include <Tables/errorTable/errorTable.h>
 #include <Tables/errorDescriptionTable/errorDescriptionTable.h>
 #include <Tables/errorSensorTable/errorSensorTable.h>
+#include <auxFunc.h>
+
 #define DEMO_USE_SNMP_VERSION_3
 
 #ifdef DEMO_USE_SNMP_VERSION_3

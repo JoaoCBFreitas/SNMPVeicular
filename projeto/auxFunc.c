@@ -1,53 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <math.h>
+#include "auxFunc.h"
 
-#include <net/if.h>
-#include <sys/ioctl.h>
-#include <sys/socket.h>
-
-#include <linux/can.h>
-#include <linux/can/raw.h>
-typedef struct SG{
-	char name[32];
-	int bitStart;
-	int length;
-	int endian;
-	int signFlag;
-	double scale;
-	int offset;
-	double min;
-	double max;
-	char unit[10];
-	char receiver[128];
-}SG;
-typedef struct SG_List{
-	int capacity;
-	int current;
-	SG* list;
-}SG_List;
-typedef struct BO{
-	char id[32];
-	char name[128];
-	int length;
-	char sender[128];
-	SG_List* signals;
-}BO;
-typedef struct BO_List{
-	int current;
-	int capacity;
-	BO* list;
-}BO_List;
-
-typedef struct decodedCAN{
-	char name[128];
-	int signals;
-	char signalname[100][32];
-	double *value;
-	char unit[100][32];
-}decodedCAN;
 char* removeChar(char* s,char c){
 	int tam=strlen(s);
 	int j;
@@ -407,11 +359,9 @@ BO_List* readDBC(char* file){
     	free(line);
     return boList;
 }
-
-int main(int argc, char **argv)
+decodedCAN* parseCAN(char *sensor,BO_List* boList)
 {
-	/*Read dbc file and populate the structs above*/
-	BO_List* boList=readDBC("J1939/J1939.dbc");
+	decodedCAN* dc=(decodedCAN*)malloc(sizeof(decodedCAN));
 	int s, i; 
 	int nbytes;
 	struct sockaddr_can addr;
@@ -420,7 +370,7 @@ int main(int argc, char **argv)
 
 	if ((s = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0) {
 		perror("Socket");
-		return 1;
+		return NULL;
 	}
 
 	strcpy(ifr.ifr_name, "vcan0" );
@@ -432,21 +382,20 @@ int main(int argc, char **argv)
 
 	if (bind(s, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
 		perror("Bind");
-		return 1;
+		return NULL;
 	}
     while(1){
         nbytes = read(s, &frame, sizeof(struct can_frame));
 
         if (nbytes < 0) {
             perror("Read");
-            return 1;
+            return NULL;
         }
 		unsigned char data[frame.can_dlc];
 		/*frame.data is inverted for some reason*/
 		for (int j=0,i = frame.can_dlc-1; i >=0; i--,j++){
 			data[j]=frame.data[i];
 		}
-		decodedCAN* dc=(decodedCAN*)malloc(sizeof(decodedCAN));
 		dc=decode(intToHex(frame.can_id),frame.can_dlc,data,boList,dc);
 		
 		if(dc->signals!=0){
@@ -461,14 +410,12 @@ int main(int argc, char **argv)
 			}
 			
 		}
-		
-		free(dc);
     }
 
 	if (close(s) < 0) {
 		perror("Close");
-		return 1;
+		return NULL;
 	}
 
-	return 0;
+	return dc;
 }

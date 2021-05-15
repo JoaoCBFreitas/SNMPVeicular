@@ -16,6 +16,15 @@ extern "C"
 #include <net-snmp/net-snmp-config.h>
 #include <net-snmp/library/container.h>
 #include <net-snmp/agent/table_array.h>
+#include "../genericTypesTable/genericTypesTable.h"
+#include "../mapTypeTable/mapTypeTable.h"
+#include "../capabilitiesTable/capabilitiesTable.h"
+#include "../sampleUnitsTable/sampleUnitsTable.h"
+#include "../requestControlDataTable/requestControlDataTable.h"
+#include "../requestStatisticsDataTable/requestStatisticsDataTable.h"
+#include "../samplesTable/samplesTable.h"
+#include "../sampledValuesTable/sampledValuesTable.h"
+
     typedef struct requestMonitoringStruct
     {
         int reqID;
