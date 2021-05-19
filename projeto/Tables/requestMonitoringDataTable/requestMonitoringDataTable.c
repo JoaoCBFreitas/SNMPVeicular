@@ -127,7 +127,6 @@ requestMonitoringDataTable_get(const char *name, int len)
      */
 }
 #endif
-
 /************************************************************
  * Initializes the requestMonitoringDataTable module
  */
@@ -307,6 +306,7 @@ netsnmp_index *requestMonitoringDataTable_delete_row(requestMonitoringDataTable_
  */
 void requestMonitoringDataTable_set_reserve1(netsnmp_request_group *rg)
 {
+    printf("RESERVE1\n");
     requestMonitoringDataTable_context *row_ctx =
         (requestMonitoringDataTable_context *)rg->existing_row;
     requestMonitoringDataTable_context *undo_ctx =
@@ -367,15 +367,17 @@ void requestMonitoringDataTable_set_reserve1(netsnmp_request_group *rg)
             break;
 
         case COLUMN_STARTTIME:
-            /**  =  */
+            /** OBUDateandTime = ASN_OCTET_STR */
             /* or possibly 'netsnmp_check_vb_int_range' */
-            rc = netsnmp_check_vb_int(var);
+            rc = netsnmp_check_vb_type_and_max_size(var, ASN_OCTET_STR,
+                                                    sizeof(row_ctx->startTime));
             break;
 
         case COLUMN_ENDTIME:
-            /**  =  */
+            /** OBUDateandTime = ASN_OCTET_STR */
             /* or possibly 'netsnmp_check_vb_int_range' */
-            rc = netsnmp_check_vb_int(var);
+            rc = netsnmp_check_vb_type_and_max_size(var, ASN_OCTET_STR,
+                                                    sizeof(row_ctx->endTime));
             break;
 
         case COLUMN_DURATIONTIME:
@@ -409,7 +411,6 @@ void requestMonitoringDataTable_set_reserve1(netsnmp_request_group *rg)
             /* or possibly 'netsnmp_check_vb_int_range' */
             rc = netsnmp_check_vb_int(var);
             break;
-
         case COLUMN_STATUS:
             /** INTEGER = ASN_INTEGER */
             /* or possibly 'netsnmp_check_vb_int_range' */
@@ -435,6 +436,7 @@ void requestMonitoringDataTable_set_reserve1(netsnmp_request_group *rg)
 
 void requestMonitoringDataTable_set_reserve2(netsnmp_request_group *rg)
 {
+    printf("RESERVE2\n");
     requestMonitoringDataTable_context *row_ctx = (requestMonitoringDataTable_context *)rg->existing_row;
     requestMonitoringDataTable_context *undo_ctx = (requestMonitoringDataTable_context *)rg->undo_info;
     netsnmp_request_group_item *current;
@@ -637,7 +639,6 @@ void requestMonitoringDataTable_set_reserve2(netsnmp_request_group *rg)
                 * }
                 */
             break;
-
         case COLUMN_STATUS:
             /** INTEGER = ASN_INTEGER */
             /*
@@ -679,6 +680,7 @@ void requestMonitoringDataTable_set_reserve2(netsnmp_request_group *rg)
  */
 void requestMonitoringDataTable_set_action(netsnmp_request_group *rg)
 {
+    printf("ACTION\n");
     netsnmp_variable_list *var;
     requestMonitoringDataTable_context *row_ctx = (requestMonitoringDataTable_context *)rg->existing_row;
     requestMonitoringDataTable_context *undo_ctx = (requestMonitoringDataTable_context *)rg->undo_info;
@@ -764,7 +766,6 @@ void requestMonitoringDataTable_set_action(netsnmp_request_group *rg)
             /** INTEGER = ASN_INTEGER */
             row_ctx->loopMode = *var->val.integer;
             break;
-
         case COLUMN_STATUS:
             /** INTEGER = ASN_INTEGER */
             row_ctx->status = *var->val.integer;
@@ -804,6 +805,7 @@ void requestMonitoringDataTable_set_action(netsnmp_request_group *rg)
  */
 void requestMonitoringDataTable_set_commit(netsnmp_request_group *rg)
 {
+    printf("COMMIT\n");
     netsnmp_variable_list *var;
     requestMonitoringDataTable_context *row_ctx = (requestMonitoringDataTable_context *)rg->existing_row;
     requestMonitoringDataTable_context *undo_ctx = (requestMonitoringDataTable_context *)rg->undo_info;
@@ -871,7 +873,6 @@ void requestMonitoringDataTable_set_commit(netsnmp_request_group *rg)
         case COLUMN_LOOPMODE:
             /** INTEGER = ASN_INTEGER */
             break;
-
         case COLUMN_STATUS:
             /** INTEGER = ASN_INTEGER */
             break;
@@ -897,6 +898,7 @@ void requestMonitoringDataTable_set_commit(netsnmp_request_group *rg)
  */
 void requestMonitoringDataTable_set_free(netsnmp_request_group *rg)
 {
+    printf("FREE\n");
     netsnmp_variable_list *var;
     requestMonitoringDataTable_context *row_ctx = (requestMonitoringDataTable_context *)rg->existing_row;
     requestMonitoringDataTable_context *undo_ctx = (requestMonitoringDataTable_context *)rg->undo_info;
@@ -964,11 +966,9 @@ void requestMonitoringDataTable_set_free(netsnmp_request_group *rg)
         case COLUMN_LOOPMODE:
             /** INTEGER = ASN_INTEGER */
             break;
-
         case COLUMN_STATUS:
             /** INTEGER = ASN_INTEGER */
             break;
-
         default: /** We shouldn't get here */
             break;
             /** should have been logged in reserve1 */
@@ -996,6 +996,7 @@ void requestMonitoringDataTable_set_free(netsnmp_request_group *rg)
  */
 void requestMonitoringDataTable_set_undo(netsnmp_request_group *rg)
 {
+    printf("UNDO\n");
     netsnmp_variable_list *var;
     requestMonitoringDataTable_context *row_ctx = (requestMonitoringDataTable_context *)rg->existing_row;
     requestMonitoringDataTable_context *undo_ctx = (requestMonitoringDataTable_context *)rg->undo_info;
@@ -1063,7 +1064,6 @@ void requestMonitoringDataTable_set_undo(netsnmp_request_group *rg)
         case COLUMN_LOOPMODE:
             /** INTEGER = ASN_INTEGER */
             break;
-
         case COLUMN_STATUS:
             /** INTEGER = ASN_INTEGER */
             break;
@@ -1078,7 +1078,24 @@ void requestMonitoringDataTable_set_undo(netsnmp_request_group *rg)
      * requirements here.
      */
 }
-
+requestMonitoringDataTable_context *requestMonitoringDataTable_create_row_default(netsnmp_index *hdr)
+{
+    printf("COISA\n");
+    requestMonitoringDataTable_context *ctx = SNMP_MALLOC_TYPEDEF(requestMonitoringDataTable_context);
+    if (!ctx)
+        return NULL;
+    if (requestMonitoringDataTable_extract_index(ctx, hdr))
+    {
+        free(ctx->index.oids);
+        free(ctx);
+        return NULL;
+    }
+    ctx->startTime_len=0;
+    ctx->endTime_len=0;
+    ctx->expireTime_len=0;
+    ctx->durationTime_len=0;
+    return ctx;
+}
 /************************************************************
  *
  * Initialize the requestMonitoringDataTable table by defining its contents and how it's structured
@@ -1146,7 +1163,7 @@ void initialize_table_requestMonitoringDataTable(void)
     cb.delete_row = (UserRowMethod *)requestMonitoringDataTable_delete_row;
     cb.row_copy = (Netsnmp_User_Row_Operation *)requestMonitoringDataTable_row_copy;
     cb.can_delete = (Netsnmp_User_Row_Action *)requestMonitoringDataTable_can_delete;
-
+    cb.create_row=(UserRowMethod *)requestMonitoringDataTable_create_row_default;
     cb.set_reserve1 = requestMonitoringDataTable_set_reserve1;
     cb.set_reserve2 = requestMonitoringDataTable_set_reserve2;
     cb.set_action = requestMonitoringDataTable_set_action;
@@ -1158,6 +1175,7 @@ void initialize_table_requestMonitoringDataTable(void)
                 "as a table array\n"));
     netsnmp_table_container_register(my_handler, table_info, &cb,
                                      cb.container, 1);
+    
 }
 
 /************************************************************

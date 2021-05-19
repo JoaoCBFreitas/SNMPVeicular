@@ -146,6 +146,8 @@ extern "C"
                                               netsnmp_request_group *rg);
 
 #ifdef requestMonitoringDataTable_ROW_CREATION
+    requestMonitoringDataTable_context *requestMonitoringDataTable_create_row_default(netsnmp_index *);
+
     requestMonitoringDataTable_context *requestMonitoringDataTable_create_row(netsnmp_index *, requestMonitoringStruct *);
 #endif
 #endif

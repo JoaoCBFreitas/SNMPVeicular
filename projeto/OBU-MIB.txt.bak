@@ -129,7 +129,7 @@ sampleValueID OBJECT-TYPE
 
 endTime OBJECT-TYPE
 	SYNTAX  OBUDateandTime
-	MAX-ACCESS read-create
+	MAX-ACCESS read-write
 	STATUS  current
 	DESCRIPTION
 		"This object will store the end time of a certain request"
@@ -139,7 +139,7 @@ endTime OBJECT-TYPE
 
 startTime OBJECT-TYPE
 	SYNTAX  OBUDateandTime
-	MAX-ACCESS read-create
+	MAX-ACCESS read-write
 	STATUS  current
 	DESCRIPTION
 		"This object will store the start time of a certain request"
@@ -149,7 +149,7 @@ startTime OBJECT-TYPE
 
 samplingFrequency OBJECT-TYPE
 	SYNTAX  Unsigned32
-	MAX-ACCESS read-create
+	MAX-ACCESS read-write
 	STATUS  current
 	DESCRIPTION
 		"This object will store the sampling frequency"
@@ -161,7 +161,7 @@ savingMode OBJECT-TYPE
 	SYNTAX  INTEGER {
 			permanent(0),
 			volatile(1) }
-	MAX-ACCESS read-create
+	MAX-ACCESS read-write
 	STATUS  current
 	DESCRIPTION
 		"This object will identify the mode in which a specific request will be saved"
@@ -684,7 +684,7 @@ RequestMonitoringDataEntry ::= SEQUENCE {
 
 maxDelay OBJECT-TYPE
 	SYNTAX  INTEGER
-	MAX-ACCESS read-create
+	MAX-ACCESS read-write
 	STATUS  current
 	DESCRIPTION
 		"This object will store the maximum delay allowed"
@@ -1154,7 +1154,7 @@ status OBJECT-TYPE
 			off(0),
 			on(1),
 			set(2) }
-	MAX-ACCESS read-create
+	MAX-ACCESS read-write
 	STATUS  current
 	DESCRIPTION
 		"This object will identify the current status of a request"
@@ -1176,7 +1176,7 @@ loopMode OBJECT-TYPE
 	SYNTAX  INTEGER {
 			no(0),
 			yes(1) }
-	MAX-ACCESS read-create
+	MAX-ACCESS read-write
 	STATUS  current
 	DESCRIPTION
 		"This object will identify whether or not the request will loop"
@@ -1186,7 +1186,7 @@ loopMode OBJECT-TYPE
 
 lastSampleID OBJECT-TYPE
 	SYNTAX  Unsigned32
-	MAX-ACCESS read-create
+	MAX-ACCESS read-write
 	STATUS  current
 	DESCRIPTION
 		"This object will store the ID of the last sample to be recorded"
@@ -1196,7 +1196,7 @@ lastSampleID OBJECT-TYPE
 
 maxNOfSamples OBJECT-TYPE
 	SYNTAX  Unsigned32
-	MAX-ACCESS read-create
+	MAX-ACCESS read-write
 	STATUS  current
 	DESCRIPTION
 		"This object will store the maximum number of samples to be recorded"
@@ -1206,7 +1206,7 @@ maxNOfSamples OBJECT-TYPE
 
 expireTime OBJECT-TYPE
 	SYNTAX  OBUDateandTime
-	MAX-ACCESS read-create
+	MAX-ACCESS read-write
 	STATUS  current
 	DESCRIPTION
 		"This object will store the expire time of a certain request"
@@ -1216,7 +1216,7 @@ expireTime OBJECT-TYPE
 
 durationTime OBJECT-TYPE
 	SYNTAX  OBUDateandTime
-	MAX-ACCESS read-create
+	MAX-ACCESS read-write
 	STATUS  current
 	DESCRIPTION
 		"This object will store the duration time of a certain request"
@@ -1226,7 +1226,7 @@ durationTime OBJECT-TYPE
 
 requestStatisticsID OBJECT-TYPE
 	SYNTAX  Unsigned32
-	MAX-ACCESS read-create
+	MAX-ACCESS read-write
 	STATUS  current
 	DESCRIPTION
 		"This object will identify the requestStatisticsDataTable related to a certain request"
@@ -1236,7 +1236,7 @@ requestStatisticsID OBJECT-TYPE
 
 genericRequestTypeID OBJECT-TYPE
 	SYNTAX  Unsigned32
-	MAX-ACCESS read-create
+	MAX-ACCESS read-write
 	STATUS  current
 	DESCRIPTION
 		"This object will identify the genericTypeTable related to a certain request"
@@ -1246,7 +1246,7 @@ genericRequestTypeID OBJECT-TYPE
 
 requestID OBJECT-TYPE
 	SYNTAX  Unsigned32 (1..99999999)
-	MAX-ACCESS read-create
+	MAX-ACCESS read-write
 	STATUS  current
 	DESCRIPTION
 		"This object will identify a certain request"

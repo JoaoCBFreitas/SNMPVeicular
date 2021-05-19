@@ -11,21 +11,26 @@ int set(netsnmp_session session, netsnmp_session *ss, oid *root, size_t rootlen,
     int count;
     int exitval = 0;
     netsnmp_variable_list *vars;
+    
     if (!snmp_parse_oid(oidString, root, &rootlen))
     {
         snmp_perror(oidString);
         SOCK_CLEANUP;
         exit(1);
     }
+    
 #if OTHER_METHODS
     /*
      *  These are alternatives to the 'snmp_parse_oid' call above,
      *    e.g. specifying the OID by name rather than numerically.
      */
+    /*
     read_objid(".1.3.6.1.2.1.1.1.0", root, rootlen);
     get_node("sysDescr.0", root, rootlen);
     read_objid("system.sysDescr.0", root, rootlen);
+    */
 #endif
+
     snmp_add_var(pdu, root, rootlen, type, value);
 
     /*
@@ -303,6 +308,7 @@ void printMenu()
     printf("*ModuleTable                -13*TODO\n");
     printf("*ModuleDescriptionTable     -14*TODO\n");
     printf("*ComponentTable             -15*TODO\n");
+    printf("*Set Teste                  -16*TODO\n");
     printf("*Sair                       -0 *\n");
     printf("********************************\n");
 }
@@ -388,6 +394,8 @@ int main(int argc, char **argv)
         printMenu();
         int aux = scanf("%d", &escolha);
         int res;
+        char* modOidString;
+        oid* modOidList;
         switch (escolha)
         {
         case 0:
@@ -468,6 +476,25 @@ int main(int argc, char **argv)
             res = bulkget(session, ss, componentTableOid, OID_LENGTH(componentTableOid));
             printf("\n\n");
             break;
+        case 16:
+            modOidString=malloc(sizeof(char)*strlen(requestMonitoringDataTable)+7);
+            strcpy(modOidString,requestMonitoringDataTable);
+            modOidString[strlen(requestMonitoringDataTable)]='.';
+            modOidString[strlen(requestMonitoringDataTable)+1]='1';
+            modOidString[strlen(requestMonitoringDataTable)+2]='.';
+            modOidString[strlen(requestMonitoringDataTable)+3]='4';
+            modOidString[strlen(requestMonitoringDataTable)+4]='.';
+            modOidString[strlen(requestMonitoringDataTable)+5]='0';
+            modOidString[strlen(requestMonitoringDataTable)+6]='\0';
+            oid* modOidList=malloc(sizeof(oid)*OID_LENGTH(requestMonitoringDataTableOid)+3);
+            for(int j=0;j<OID_LENGTH(requestMonitoringDataTableOid);j++){
+                modOidList[j]=requestMonitoringDataTableOid[j];
+            }
+            modOidList[OID_LENGTH(requestMonitoringDataTableOid)]=1;
+            modOidList[OID_LENGTH(requestMonitoringDataTableOid)+1]=4;
+            modOidList[OID_LENGTH(requestMonitoringDataTableOid)+2]=0;
+            res=set(session,ss,modOidList,OID_LENGTH(modOidList),modOidString,'i',"1");
+            printf("\n\n");
         default:
             printf("\nInput Inválido\n");
             continue;
