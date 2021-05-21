@@ -42,6 +42,77 @@ static netsnmp_table_array_callbacks cb;
 const oid requestMonitoringDataTable_oid[] = {requestMonitoringDataTable_TABLE_OID};
 const size_t requestMonitoringDataTable_oid_len = OID_LENGTH(requestMonitoringDataTable_oid);
 requestMonitoringList *reqList;
+
+/*This function will add a row to requestControlDataTable if this table has no equivalent in requestMonitoringDataTable*/
+int insertRowControl_Monitor(requestMonitoringDataTable_context *reqMonitoring){
+    /*
+        TODO: Fix req->valuesTable
+              Fix req->waitTime
+    */
+    requestStruct *req = (requestStruct *)malloc(sizeof(requestStruct));
+    req->reqID=reqMonitoring->requestID;
+    req->genericID=reqMonitoring->genericRequestTypeID;
+    req->settingMode=reqMonitoring->savingMode;
+    req->commitTime=malloc(sizeof(char)*reqMonitoring->startTime_len+1);
+    strcpy(req->commitTime,reqMonitoring->startTime);
+    req->endTime=malloc(sizeof(char)*reqMonitoring->endTime_len+1);
+    strcpy(req->endTime,reqMonitoring->endTime);
+    req->waitTime=malloc(sizeof(char)*strlen("00:10:00")+1);
+    strcpy(req->waitTime,"00:10:00");
+    req->duration=malloc(sizeof(char)*reqMonitoring->durationTime_len+1);
+    strcpy(req->duration,reqMonitoring->durationTime);
+    req->expireTime=malloc(sizeof(char)*reqMonitoring->expireTime_len+1);
+    strcpy(req->expireTime,reqMonitoring->expireTime);
+    req->status=reqMonitoring->status;
+    req->valueID=reqMonitoring->lastSampleID;
+    req->valuesTable=0;
+    int insert=insertControlRow(req);
+    free(req);
+    return insert;
+}
+
+/**
+ * This Function will compare requestMonitoringDataTable with requestControlDataTable, to identify if and when modifications are made (sets/deletes).
+ * Based on those results it will change the other tables.
+ */
+void checkTables(void){
+    netsnmp_iterator *it;
+    void* data;
+    it=CONTAINER_ITERATOR(cb.container);
+    if(NULL==it){
+        exit;
+    }
+    for(data=ITERATOR_FIRST(it);data;data=ITERATOR_NEXT(it)){
+        requestMonitoringDataTable_context *reqMonitoring =data;
+        //requestID e requestControlID têm de ser iguais
+        requestControlDataTable_context *reqControl=getControlTableID(reqMonitoring->requestID);
+        if(reqControl==NULL){
+            /*TODO req->valuesTable e req->waitTime*/
+            int insertControl=insertRowControl_Monitor(reqMonitoring);
+            if(insertControl==1)
+                exit;
+            else
+                printf("Control inserted\n");
+            /*TODO Insert no resto das tabelas*/
+            exit;
+        }else{
+            if(reqMonitoring->genericRequestTypeID==reqControl->genericRequestControlTypeID && strcmp(reqMonitoring->startTime,reqControl->commitTime)==0){
+                printf("Encontrou %s %s\n",reqControl->commitTime,reqControl->waitTime);
+            }else{
+                //If requestControlID matches requestID but their contents differ, this will update the row in requestControlDataTable
+                int insertControl=insertRowControl_Monitor(reqMonitoring);
+                if(insertControl==1)
+                    exit;
+                else
+                    printf("Control updated");
+            }
+        }
+
+    }
+    ITERATOR_RELEASE(it);
+}
+
+
 #ifdef requestMonitoringDataTable_CUSTOM_SORT
 /************************************************************
  * keep binary tree to find context by name
@@ -170,6 +241,7 @@ void init_requestMonitoringDataTable(void)
         ctx = requestMonitoringDataTable_create_row(&index, req);
         CONTAINER_INSERT(cb.container, ctx);
     }
+    free(req);
 }
 
 /**
@@ -306,7 +378,6 @@ netsnmp_index *requestMonitoringDataTable_delete_row(requestMonitoringDataTable_
  */
 void requestMonitoringDataTable_set_reserve1(netsnmp_request_group *rg)
 {
-    printf("RESERVE1\n");
     requestMonitoringDataTable_context *row_ctx =
         (requestMonitoringDataTable_context *)rg->existing_row;
     requestMonitoringDataTable_context *undo_ctx =
@@ -436,7 +507,6 @@ void requestMonitoringDataTable_set_reserve1(netsnmp_request_group *rg)
 
 void requestMonitoringDataTable_set_reserve2(netsnmp_request_group *rg)
 {
-    printf("RESERVE2\n");
     requestMonitoringDataTable_context *row_ctx = (requestMonitoringDataTable_context *)rg->existing_row;
     requestMonitoringDataTable_context *undo_ctx = (requestMonitoringDataTable_context *)rg->undo_info;
     netsnmp_request_group_item *current;
@@ -680,7 +750,6 @@ void requestMonitoringDataTable_set_reserve2(netsnmp_request_group *rg)
  */
 void requestMonitoringDataTable_set_action(netsnmp_request_group *rg)
 {
-    printf("ACTION\n");
     netsnmp_variable_list *var;
     requestMonitoringDataTable_context *row_ctx = (requestMonitoringDataTable_context *)rg->existing_row;
     requestMonitoringDataTable_context *undo_ctx = (requestMonitoringDataTable_context *)rg->undo_info;
@@ -805,7 +874,6 @@ void requestMonitoringDataTable_set_action(netsnmp_request_group *rg)
  */
 void requestMonitoringDataTable_set_commit(netsnmp_request_group *rg)
 {
-    printf("COMMIT\n");
     netsnmp_variable_list *var;
     requestMonitoringDataTable_context *row_ctx = (requestMonitoringDataTable_context *)rg->existing_row;
     requestMonitoringDataTable_context *undo_ctx = (requestMonitoringDataTable_context *)rg->undo_info;
@@ -898,7 +966,6 @@ void requestMonitoringDataTable_set_commit(netsnmp_request_group *rg)
  */
 void requestMonitoringDataTable_set_free(netsnmp_request_group *rg)
 {
-    printf("FREE\n");
     netsnmp_variable_list *var;
     requestMonitoringDataTable_context *row_ctx = (requestMonitoringDataTable_context *)rg->existing_row;
     requestMonitoringDataTable_context *undo_ctx = (requestMonitoringDataTable_context *)rg->undo_info;
@@ -996,7 +1063,6 @@ void requestMonitoringDataTable_set_free(netsnmp_request_group *rg)
  */
 void requestMonitoringDataTable_set_undo(netsnmp_request_group *rg)
 {
-    printf("UNDO\n");
     netsnmp_variable_list *var;
     requestMonitoringDataTable_context *row_ctx = (requestMonitoringDataTable_context *)rg->existing_row;
     requestMonitoringDataTable_context *undo_ctx = (requestMonitoringDataTable_context *)rg->undo_info;
@@ -1080,7 +1146,6 @@ void requestMonitoringDataTable_set_undo(netsnmp_request_group *rg)
 }
 requestMonitoringDataTable_context *requestMonitoringDataTable_create_row_default(netsnmp_index *hdr)
 {
-    printf("COISA\n");
     requestMonitoringDataTable_context *ctx = SNMP_MALLOC_TYPEDEF(requestMonitoringDataTable_context);
     if (!ctx)
         return NULL;
@@ -1365,7 +1430,6 @@ requestMonitoringDataTable_context *requestMonitoringDataTable_create_row(netsnm
     ctx->loopMode = req->loopmode;
     ctx->nOfSamples = req->nofSamples;
     ctx->status = req->status;
-    printf("RequestMonitoring inserida: %ld\n", ctx->requestID);
     return ctx;
 }
 /************************************************************

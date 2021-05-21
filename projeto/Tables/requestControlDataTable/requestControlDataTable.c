@@ -42,6 +42,39 @@ static netsnmp_table_array_callbacks cb;
 const oid requestControlDataTable_oid[] = {requestControlDataTable_TABLE_OID};
 const size_t requestControlDataTable_oid_len = OID_LENGTH(requestControlDataTable_oid);
 
+/*This function will add a requestStruct to the snmp agent*/
+int insertControlRow(requestStruct *req){
+    requestControlDataTable_context *ctx;
+    netsnmp_index index;
+    oid index_oid[2];
+    int res=0;
+    index_oid[0] = req->reqID;
+    index.oids = (oid *)&index_oid;
+    index.len = 1;
+    ctx = NULL;
+    /* Search for it first. */
+    ctx = CONTAINER_FIND(cb.container, &index);
+    if (!ctx)
+    {
+        // No dice. We add the new row
+        ctx = requestControlDataTable_create_row(&index, req);
+        CONTAINER_INSERT(cb.container, ctx);
+    }else{
+        res=1;
+    }
+    return res;
+}
+
+/*Given an ID, this function will return a row with that ID*/
+void* getControlTableID(long unsigned int id){
+    netsnmp_index index;
+    oid index_oid[2];
+    index_oid[0] = id;
+    index.oids = (oid *)&index_oid;
+    index.len = 1;
+    void *data=CONTAINER_FIND(cb.container,&index);
+    return data;
+}
 #ifdef requestControlDataTable_CUSTOM_SORT
 /************************************************************
  * keep binary tree to find context by name
@@ -133,34 +166,7 @@ requestControlDataTable_get(const char *name, int len)
  */
 void init_requestControlDataTable(void)
 {
-    requestControlDataTable_context *ctx;
-    netsnmp_index index;
-    oid index_oid[2];
     initialize_table_requestControlDataTable();
-    requestStruct *req = (requestStruct *)malloc(sizeof(requestStruct));
-    req->reqID = 0;
-    req->genericID = 1;
-    req->settingMode = 0;
-    req->commitTime = "00:00:00";
-    req->waitTime = "00:10:00";
-    req->endTime = "01:00:00";
-    req->duration = "01:00:00";
-    req->expireTime = "02:00:00";
-    req->valuesTable = 1;
-    req->valueID = 1;
-    req->status = 0;
-    index_oid[0] = 0;
-    index.oids = (oid *)&index_oid;
-    index.len = 1;
-    ctx = NULL;
-    /* Search for it first. */
-    ctx = CONTAINER_FIND(cb.container, &index);
-    if (!ctx)
-    {
-        // No dice. We add the new row
-        ctx = requestControlDataTable_create_row(&index, req);
-        CONTAINER_INSERT(cb.container, ctx);
-    }
 }
 
 /************************************************************
@@ -389,7 +395,6 @@ requestControlDataTable_context *requestControlDataTable_create_row(netsnmp_inde
     ctx->valuesTableID = (long unsigned int)req->valuesTable;
     ctx->valuesID = (long unsigned int)req->valueID;
     ctx->statusControl = req->status;
-    printf("RequestControl inserida: %ld\n", ctx->requestControlID);
     return ctx;
 }
 

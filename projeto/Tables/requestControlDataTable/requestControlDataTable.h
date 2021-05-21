@@ -66,6 +66,8 @@ extern "C"
     const requestControlDataTable_context *requestControlDataTable_get_by_idx_rs(netsnmp_index *,
                                                                                  int row_status);
     int requestControlDataTable_get_value(netsnmp_request_info *, netsnmp_index *, netsnmp_table_request_info *);
+    void* getControlTableID(long unsigned int);
+    int insertControlRow(requestStruct *);
 
     /*************************************************************
  * oid declarations
