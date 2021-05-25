@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <math.h>
+#include <ctype.h>
 
 #include <net/if.h>
 #include <sys/ioctl.h>
@@ -12,7 +13,7 @@
 #include <linux/can/raw.h>
 /*This struct will contain rules to decode a signal*/
 typedef struct SG{
-	char name[32];
+	char name[1024];
 	int bitStart;
 	int length;
 	int endian;
@@ -21,8 +22,9 @@ typedef struct SG{
 	int offset;
 	double min;
 	double max;
-	char unit[10];
+	char unit[1024];
 	char receiver[128];
+	char description[10000];
 }SG;
 /*This struct will contain all signals decoding rules for a certain message*/
 typedef struct SG_List{
@@ -32,10 +34,12 @@ typedef struct SG_List{
 }SG_List;
 /*This struct will contain all information regarding a certain CAN message*/
 typedef struct BO{
+	long messageID;
 	char id[32];
-	char name[128];
+	char name[1024];
 	int length;
 	char sender[128];
+	char description[1024];
 	SG_List* signals;
 }BO;
 /*This struct will contain all messages/signals and rules present in the dbc file*/

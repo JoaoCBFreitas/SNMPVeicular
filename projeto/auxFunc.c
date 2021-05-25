@@ -218,6 +218,7 @@ BO* getBO(char* line){
 				/*Ids in dbc file appear to be offset by 254*/
 				idLine-=254;
 				/*Decode ID*/
+				res->messageID=idLine+254;
 				char *decodedID=unMask(idLine);
 				strcpy(res->id,decodedID);
 				break;
@@ -249,7 +250,7 @@ SG getSignal(char* line){
 	int j=0;
 	char s[1000];
 	char s1[1000];
-	char* unit="";
+	char* unit=malloc(sizeof(char)*1024);
 	while(token!=NULL){
 		switch(j){
 			case 0:
@@ -315,6 +316,8 @@ BO_List* readDBC(char* file){
 		if(strlen(line)==0) continue;
 		char bo_[5]="";
 		strncpy(bo_,line,4);
+		char *lineaux = malloc(sizeof(char)*100000);
+		strcpy(lineaux,line);
 		bo_[5]='\0';
 		if(strcmp(bo_,"BO_ ")==0){
 			BO* bo=getBO(line);
@@ -352,8 +355,99 @@ BO_List* readDBC(char* file){
 			}
 			boList->list[lastInserted].signals->list[nSignals]=signal;
 			boList->list[lastInserted].signals->current++;
+		}else if(strcmp(bo_,"CM_ ")==0){
+			//CM_ BO_ 2566739710 "Class C, Pending";
+			strtok(line, "\n");
+			char* token=strtok(line," ");
+			int j=0;
+			int flag=-1;
+			long messageID;
+			while(token!=NULL && j<3){
+				switch(j){
+					case 0:
+						break;
+					case 1:
+						if(strcmp(token,"BO_")==0){
+							flag=0;
+						}else if(strcmp(token,"SG_")==0){
+							flag=1;
+						}
+						break;
+					case 2:
+						if(flag==0){
+							messageID=atol(token);
+							for(int i=0;i<boList->current && flag==0;i++){
+								if(messageID==boList->list[i].messageID){
+									int k=0,f=0;
+									char aux[1024];
+									for(int k=0,j=0;k<strlen(lineaux) && f>=0 ;k++){
+										if(lineaux[k]!='\"' && f==0)
+											continue;
+										else if(lineaux[k]=='\"' && f==0){
+											f=1;
+										}else if(lineaux[k]!='\"' && f==1){
+											aux[j]=lineaux[k];
+											j++;
+										}else if(lineaux[k]=='\"' && f==1){
+											aux[j]='\0';
+											f=-1;
+										}
+									}
+									free(lineaux);
+									strcpy(boList->list[i].description,aux);
+									flag=-1;
+								}else{
+									continue;
+								}
+							}
+						}
+						if(flag==1){
+							messageID=atol(token);
+							token=strtok(NULL," ");
+							for(int i=0;i<boList->current && flag==1;i++){
+								if(messageID==boList->list[i].messageID){
+									for(int j=0;j<boList->list[i].signals->current && flag==1;j++){	
+										if(token!=NULL){				
+											if(strcmp(token,boList->list[i].signals->list[j].name)==0){
+												int k=0,f=0;
+												char aux[1024];
+												for(int k=0,j=0;k<strlen(lineaux) && f>=0 ;k++){
+													if(lineaux[k]!='\"' && f==0)
+														continue;
+													else if(lineaux[k]=='\"' && f==0){
+														f=1;
+													}else if(lineaux[k]!='\"' && f==1){
+														aux[j]=lineaux[k];
+														j++;
+													}else if(lineaux[k]=='\"' && f==1){
+														aux[j]='\0';
+														f=-1;
+													}
+												}
+												free(lineaux);
+												strcpy(boList->list[i].signals->list[j].description,aux);
+												flag=-1;
+											}else{
+												continue;
+											}
+										}
+									}
+								}
+							}
+						}
+						break;
+					default:
+						break;
+				}
+				token=strtok(NULL," ");
+				j++;
+			}
 		}
     }
+	for(int i=0;i<boList->current;i++)
+		for(int j=0;j<boList->list[i].signals->current;j++)
+			if(strlen(boList->list[i].signals->list[j].description)==0)
+				strcpy(boList->list[i].signals->list[j].description,"N/A");
     fclose(fp);
 	if(line)
     	free(line);

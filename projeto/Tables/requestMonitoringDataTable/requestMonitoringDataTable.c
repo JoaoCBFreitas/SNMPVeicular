@@ -96,9 +96,7 @@ void checkTables(void){
             /*TODO Insert no resto das tabelas*/
             exit;
         }else{
-            if(reqMonitoring->genericRequestTypeID==reqControl->genericRequestControlTypeID && strcmp(reqMonitoring->startTime,reqControl->commitTime)==0){
-                printf("Encontrou %s %s\n",reqControl->commitTime,reqControl->waitTime);
-            }else{
+            if(reqMonitoring->genericRequestTypeID==reqControl->genericRequestControlTypeID && strcmp(reqMonitoring->startTime,reqControl->commitTime)!=0){
                 //If requestControlID matches requestID but their contents differ, this will update the row in requestControlDataTable
                 int insertControl=insertRowControl_Monitor(reqMonitoring);
                 if(insertControl==1)

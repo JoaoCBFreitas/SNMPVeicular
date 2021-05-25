@@ -45,7 +45,7 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ CTIWheelEndElectricalFault : 0|2@1+ (1,0) [0|3] "" Vector__XXX
  SG_ CTITireStatus : 0|2@1+ (1,0) [0|3] "" Vector__XXX
  SG_ CTIWheelSensorStatus : 0|2@1+ (1,0) [0|3] "" Vector__XXX
- SG_ TireTemp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ TireTemp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
  SG_ TirePress : 0|8@1+ (4,0) [0|1000] "kPa" Vector__XXX
 
 BO_ 2297441790 AccelerationSensor: 7 Vector__XXX
@@ -118,7 +118,7 @@ BO_ 2560032510 LVDSOM: 8 Vector__XXX
  SG_ LwVltgDscnnctDsredOperatingMode : 0|4@1+ (1,0) [0|15] "" Vector__XXX
 
 BO_ 2566717950 LVDS: 8 Vector__XXX
- SG_ LowVoltageDisconnectTemp : 24|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
+ SG_ LowVoltageDisconnectTemp : 24|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
  SG_ LwVltgDisconnectVoutOutputState : 20|4@1+ (1,0) [0|15] "" Vector__XXX
  SG_ LwVoltageDisconnectOutput1State : 16|4@1+ (1,0) [0|15] "" Vector__XXX
  SG_ LwVoltageDisconnectOutput2State : 12|4@1+ (1,0) [0|15] "" Vector__XXX
@@ -309,8 +309,8 @@ BO_ 2566714110 EngFelThrottleValveInformation: 8 Vector__XXX
  SG_ EngDesiredThrottleValve1Pos : 0|8@1+ (0.4,0) [0|100] "%" Vector__XXX
 
 BO_ 2566717438 ET5: 8 Vector__XXX
- SG_ EngExhstGsRcrcltn2MxrIntakeTemp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngExhaustGasRecirculation2Temp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ EngExhstGsRcrcltn2MxrIntakeTemp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngExhaustGasRecirculation2Temp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2633828606 EOM: 8 Vector__XXX
  SG_ EngOilRelativeDielectricity : 32|16@1+ (0.0001220703125,0) [0|7.844] "" Vector__XXX
@@ -470,7 +470,7 @@ BO_ 2633826046 EEC10: 8 Vector__XXX
  SG_ EGR2CoolerBypassActuatorPos : 40|8@1+ (0.4,0) [0|100] "%" Vector__XXX
  SG_ EngExhstGsRcrcltn2ClrEfficiency : 32|8@1+ (0.4,0) [0|100] "%" Vector__XXX
  SG_ EngExhstGsRcrcltn2ClrIntkGsAbsPr : 16|16@1+ (0.5,0) [0|32127.5] "kPa" Vector__XXX
- SG_ EngExhstGsRcrcltn2ClrIntakeTemp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ EngExhstGsRcrcltn2ClrIntakeTemp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2566711294 EC3: 8 Vector__XXX
  SG_ EngFrctnPrcntTorqueAtIdlePoint7 : 48|8@1+ (1,-125) [-125|125] "%" Vector__XXX
@@ -599,7 +599,7 @@ BO_ 2566755582 EEC7: 8 Vector__XXX
 
 BO_ 2566746110 EEC8: 8 Vector__XXX
  SG_ EngExhstGsRcrcltn1ClrIntkGsAbsPr : 32|16@1+ (0.5,0) [0|32127.5] "kPa" Vector__XXX
- SG_ EngExhstGsRcrcltn1ClrIntakeTemp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ EngExhstGsRcrcltn1ClrIntakeTemp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
  SG_ EngExhstGsRcrcltn1ClrEfficiency : 48|8@1+ (0.4,0) [0|100] "%" Vector__XXX
  SG_ EngExhstGsRcrclation1Valve2Ctrl : 0|16@1+ (0.0025,0) [0|160.6375] "%" Vector__XXX
 
@@ -700,7 +700,7 @@ BO_ 2566751230 TCI: 8 Vector__XXX
  SG_ TransferCaseStatus : 0|3@1+ (1,0) [0|7] "" Vector__XXX
 
 BO_ 2566755838 TRF2: 8 Vector__XXX
- SG_ TrnsTrqueConverterOilOutletTemp : 8|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ TrnsTrqueConverterOilOutletTemp : 8|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
  SG_ TransOverheatIndicator : 4|2@1+ (1,0) [0|3] "" Vector__XXX
  SG_ TransOilLifeRemaining : 24|8@1+ (0.4,0) [0|100] "%" Vector__XXX
  SG_ TransOilLevelSwitch : 2|2@1+ (1,0) [0|3] "" Vector__XXX
@@ -863,11 +863,11 @@ BO_ 2566839550 IO: 8 Vector__XXX
  SG_ EngTotalIdleFuelUsed : 0|32@1+ (0.5,0) [0|2105540607.5] "L" Vector__XXX
 
 BO_ 2633934334 IMT2: 8 Vector__XXX
- SG_ EngIntakeManifold6Temp : 32|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
- SG_ EngIntakeManifold5Temp : 24|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
- SG_ EngIntakeManifold4Temp : 16|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
- SG_ EngIntakeManifold3Temp : 8|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
- SG_ EngIntakeManifold2Temp : 0|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
+ SG_ EngIntakeManifold6Temp : 32|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
+ SG_ EngIntakeManifold5Temp : 24|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
+ SG_ EngIntakeManifold4Temp : 16|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
+ SG_ EngIntakeManifold3Temp : 8|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
+ SG_ EngIntakeManifold2Temp : 0|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
 
 BO_ 2566825726 IMT1: 8 Vector__XXX
  SG_ EngTurbo4BoostPress : 48|16@1+ (0.125,0) [0|8031.875] "kPa" Vector__XXX
@@ -886,9 +886,9 @@ BO_ 2566770942 IC2: 8 Vector__XXX
 
 BO_ 2566846206 IC1: 8 Vector__XXX
  SG_ EngCoolantFilterDiffPress : 56|8@1+ (0.5,0) [0|125] "kPa" Vector__XXX
- SG_ EngExhaustGasTemp : 40|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ EngExhaustGasTemp : 40|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
  SG_ EngAirFilter1DiffPress : 32|8@1+ (0.05,0) [0|12.5] "kPa" Vector__XXX
- SG_ EngIntakeManifold1Temp : 16|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
+ SG_ EngIntakeManifold1Temp : 16|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
  SG_ EngIntakeManifold1Press : 8|8@1+ (2,0) [0|500] "kPa" Vector__XXX
  SG_ EngDslPrtclateFilterIntakePress : 0|8@1+ (0.5,0) [0|125] "kPa" Vector__XXX
  SG_ EngAirIntakePress : 24|8@1+ (2,0) [0|500] "kPa" Vector__XXX
@@ -899,8 +899,8 @@ BO_ 2566811134 HTR: 8 Vector__XXX
  SG_ CabVentilation : 34|2@1+ (1,0) [0|3] "" Vector__XXX
  SG_ AuxHeaterMode : 24|4@1+ (1,0) [0|15] "" Vector__XXX
  SG_ AuxHeaterOutputPowerPercent : 16|8@1+ (0.4,0) [0|100] "%" Vector__XXX
- SG_ AuxHeaterInputAirTemp : 8|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
- SG_ AuxHeaterOutputCoolantTemp : 0|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
+ SG_ AuxHeaterInputAirTemp : 8|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
+ SG_ AuxHeaterOutputCoolantTemp : 0|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
  SG_ AuxHeaterWaterPumpStatus : 32|2@1+ (1,0) [0|3] "" Vector__XXX
 
 BO_ 2298375934 HRW: 8 Vector__XXX
@@ -1001,7 +1001,7 @@ BO_ 2566759678 PTODE: 8 Vector__XXX
 
 BO_ 2432541438 GFI3: 8 Vector__XXX
  SG_ EngFuelValve2OutletAbsPress : 48|16@1+ (0.1,0) [0|6425.5] "kPa" Vector__XXX
- SG_ EngFuelTemp2 : 32|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
+ SG_ EngFuelTemp2 : 32|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
  SG_ EngGas2MassFlowRate : 16|16@1+ (0.05,0) [0|3212.75] "kg/h" Vector__XXX
  SG_ EngFuelValve2IntakeAbsPress : 0|16@1+ (0.1,0) [0|6425.5] "kPa" Vector__XXX
 
@@ -1061,7 +1061,7 @@ BO_ 2566757374 CRI1: 8 Vector__XXX
  SG_ Aftrtrtmnt1SCRCtlystRgntCndctvty : 16|8@1+ (5,0) [0|1250] "microSiemens/mm" Vector__XXX
  SG_ Aftrtrtmnt1SCRCtlystRgntCncntrtn : 8|8@1+ (0.25,0) [0|62.5] "%" Vector__XXX
  SG_ Aftrtrtmnt1SCRCtlystReagentType : 40|4@1+ (1,0) [0|15] "" Vector__XXX
- SG_ Aftrtrtmnt1SCRCtlystRagentTemp2 : 0|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
+ SG_ Aftrtrtmnt1SCRCtlystRagentTemp2 : 0|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
 
 BO_ 2364546302 RGAAQ: 8 Vector__XXX
  SG_ RqdGnrtrAvrgLneLineACRMSVoltage : 0|32@1+ (0.0078125,0) [0|32899071] "V" Vector__XXX
@@ -1189,7 +1189,7 @@ BO_ 2566833406 EBS22: 8 Vector__XXX
 
 BO_ 2365507326 EBS23: 8 Vector__XXX
  SG_ PneumaticSupplyPressure : 56|8@1+ (5,0) [0|1250] "kPa" Vector__XXX
- SG_ BrakeTemperature : 48|8@1+ (10,0) [0|2500] "deg C" Vector__XXX
+ SG_ BrakeTemperature : 48|8@1+ (10,0) [0|2500] "degC" Vector__XXX
  SG_ BrakeLining : 40|8@1+ (0.4,0) [0|100] "%" Vector__XXX
  SG_ TyrePressure : 32|8@1+ (10,0) [0|2500] "kPa" Vector__XXX
  SG_ TyreWheelIdentTemp2 : 28|4@1+ (1,0) [0|15] "" Vector__XXX
@@ -1228,7 +1228,7 @@ BO_ 2566808062 GPM14: 8 Vector__XXX
  SG_ AccelPedalPosition : 56|8@1+ (0.4,0) [0|100] "%" Vector__XXX
  SG_ AccelPedalLowIdleSwitch : 50|2@1+ (1,0) [0|1] "" Vector__XXX
  SG_ StarterActive : 48|2@1+ (1,0) [0|1] "" Vector__XXX
- SG_ TorqueConvOilTemp : 32|16@1+ (0.03125,-273) [-273|1735] "deg C" Vector__XXX
+ SG_ TorqueConvOilTemp : 32|16@1+ (0.03125,-273) [-273|1735] "degC" Vector__XXX
  SG_ TorqueConvtOilTempWarning : 28|3@1+ (1,0) [0|2] "" Vector__XXX
  SG_ PTOControlAllowed : 26|2@1+ (1,0) [0|1] "" Vector__XXX
  SG_ SecEngineMtdPTOFeedback : 24|2@1+ (1,0) [0|1] "" Vector__XXX
@@ -1244,11 +1244,11 @@ BO_ 2566808574 GPM15: 8 Vector__XXX
  SG_ EngineOilPressureWarning : 35|2@1+ (1,0) [0|1] "" Vector__XXX
  SG_ EngineCoolantTempWarning : 32|3@1+ (1,0) [0|2] "" Vector__XXX
  SG_ EngineOilPressure : 24|8@1+ (4,0) [0|1000] "kPa" Vector__XXX
- SG_ EngineCoolantTemperature : 16|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
- SG_ EngineOilTemperature : 0|16@1+ (0.03125,-273) [-273|1735] "deg C" Vector__XXX
+ SG_ EngineCoolantTemperature : 16|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
+ SG_ EngineOilTemperature : 0|16@1+ (0.03125,-273) [-273|1735] "degC" Vector__XXX
 
 BO_ 2566809086 GPM16: 8 Vector__XXX
- SG_ AmbientAirTemperature : 0|16@1+ (0.03125,-273) [-273|1735] "deg C" Vector__XXX
+ SG_ AmbientAirTemperature : 0|16@1+ (0.03125,-273) [-273|1735] "degC" Vector__XXX
 
 BO_ 2564947710 GPM21: 8 Vector__XXX
  SG_ VehicleType : 0|2@1+ (1,0) [0|3] "" Vector__XXX
@@ -1256,7 +1256,7 @@ BO_ 2564947710 GPM21: 8 Vector__XXX
 BO_ 2566834430 GPM22: 8 Vector__XXX
  SG_ BodyPressure : 48|8@1+ (0.1,0) [0|25] "bar" Vector__XXX
  SG_ BodyFluidLevel : 32|16@1+ (2,0) [0|128510] "L" Vector__XXX
- SG_ ThermalBodyTemperature : 24|8@1+ (1,-125) [-125|125] "deg C" Vector__XXX
+ SG_ ThermalBodyTemperature : 24|8@1+ (1,-125) [-125|125] "degC" Vector__XXX
  SG_ RearObstacleDistance : 16|8@1+ (2,0) [0|500] "cm" Vector__XXX
  SG_ AntiTheftDeviceStatus : 2|2@1+ (1,0) [0|1] "" Vector__XXX
  SG_ ODDStatus : 0|2@1+ (1,0) [0|1] "" Vector__XXX
@@ -1369,7 +1369,7 @@ BO_ 2566806782 RGE22: 8 Vector__XXX
 BO_ 2566807294 RGE23: 8 Vector__XXX
  SG_ TyrePressThresholdDetect : 40|3@1+ (1,0) [0|7] "" Vector__XXX
  SG_ TyreModulePowerSupply : 43|2@1+ (1,0) [0|1] "" Vector__XXX
- SG_ TyreTemperature : 8|16@1+ (0.03125,-273) [-273|1735] "deg C" Vector__XXX
+ SG_ TyreTemperature : 8|16@1+ (0.03125,-273) [-273|1735] "degC" Vector__XXX
  SG_ AirLeakageDetection : 24|16@1+ (0.1,0) [0|6425.5] "Pa/s" Vector__XXX
  SG_ TyreWheelIdentification2 : 4|4@1+ (1,0) [0|15] "" Vector__XXX
  SG_ TyreWheelIdentification1 : 0|4@1+ (1,0) [0|15] "" Vector__XXX
@@ -1467,7 +1467,7 @@ BO_ 2566809854 VF: 8 Vector__XXX
  SG_ WinchOilPressSwitch : 10|2@1+ (1,0) [0|3] "" Vector__XXX
  SG_ HydOilLevel : 16|8@1+ (0.4,0) [0|100] "%" Vector__XXX
  SG_ HydOilFilterRestrictionSwitch : 8|2@1+ (1,0) [0|3] "" Vector__XXX
- SG_ HydTemp : 0|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
+ SG_ HydTemp : 0|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
 
 BO_ 2566842622 VDS: 8 Vector__XXX
  SG_ Altitude : 48|16@1+ (0.125,-2500) [-2500|5531.875] "m" Vector__XXX
@@ -1717,20 +1717,20 @@ BO_ 2566845694 TIRE: 8 Vector__XXX
  SG_ CTITireStatus_11 m17 : 34|2@1+ (1,0) [0|3] "" Vector__XXX
  SG_ CTITireStatus_10 m16 : 34|2@1+ (1,0) [0|3] "" Vector__XXX
  SG_ CTITireStatus_01 m1 : 34|2@1+ (1,0) [0|3] "" Vector__XXX
- SG_ TireTemp_11 m17 : 16|16@1+ (0.03125,-273) [-273|1735] "deg C" Vector__XXX
- SG_ TireTemp_33 m51 : 16|16@1+ (0.03125,-273) [-273|1735] "deg C" Vector__XXX
- SG_ TireTemp_32 m50 : 16|16@1+ (0.03125,-273) [-273|1735] "deg C" Vector__XXX
- SG_ TireTemp_31 m49 : 16|16@1+ (0.03125,-273) [-273|1735] "deg C" Vector__XXX
- SG_ TireTemp_30 m48 : 16|16@1+ (0.03125,-273) [-273|1735] "deg C" Vector__XXX
- SG_ TireTemp_23 m35 : 16|16@1+ (0.03125,-273) [-273|1735] "deg C" Vector__XXX
- SG_ TireTemp_22 m34 : 16|16@1+ (0.03125,-273) [-273|1735] "deg C" Vector__XXX
- SG_ TireTemp_21 m33 : 16|16@1+ (0.03125,-273) [-273|1735] "deg C" Vector__XXX
- SG_ TireTemp_20 m32 : 16|16@1+ (0.03125,-273) [-273|1735] "deg C" Vector__XXX
- SG_ TireTemp_13 m19 : 16|16@1+ (0.03125,-273) [-273|1735] "deg C" Vector__XXX
- SG_ TireTemp_12 m18 : 16|16@1+ (0.03125,-273) [-273|1735] "deg C" Vector__XXX
- SG_ TireTemp_10 m16 : 16|16@1+ (0.03125,-273) [-273|1735] "deg C" Vector__XXX
- SG_ TireTemp_01 m1 : 16|16@1+ (0.03125,-273) [-273|1735] "deg C" Vector__XXX
- SG_ TireTemp_00 m0 : 16|16@1+ (0.03125,-273) [-273|1735] "deg C" Vector__XXX
+ SG_ TireTemp_11 m17 : 16|16@1+ (0.03125,-273) [-273|1735] "degC" Vector__XXX
+ SG_ TireTemp_33 m51 : 16|16@1+ (0.03125,-273) [-273|1735] "degC" Vector__XXX
+ SG_ TireTemp_32 m50 : 16|16@1+ (0.03125,-273) [-273|1735] "degC" Vector__XXX
+ SG_ TireTemp_31 m49 : 16|16@1+ (0.03125,-273) [-273|1735] "degC" Vector__XXX
+ SG_ TireTemp_30 m48 : 16|16@1+ (0.03125,-273) [-273|1735] "degC" Vector__XXX
+ SG_ TireTemp_23 m35 : 16|16@1+ (0.03125,-273) [-273|1735] "degC" Vector__XXX
+ SG_ TireTemp_22 m34 : 16|16@1+ (0.03125,-273) [-273|1735] "degC" Vector__XXX
+ SG_ TireTemp_21 m33 : 16|16@1+ (0.03125,-273) [-273|1735] "degC" Vector__XXX
+ SG_ TireTemp_20 m32 : 16|16@1+ (0.03125,-273) [-273|1735] "degC" Vector__XXX
+ SG_ TireTemp_13 m19 : 16|16@1+ (0.03125,-273) [-273|1735] "degC" Vector__XXX
+ SG_ TireTemp_12 m18 : 16|16@1+ (0.03125,-273) [-273|1735] "degC" Vector__XXX
+ SG_ TireTemp_10 m16 : 16|16@1+ (0.03125,-273) [-273|1735] "degC" Vector__XXX
+ SG_ TireTemp_01 m1 : 16|16@1+ (0.03125,-273) [-273|1735] "degC" Vector__XXX
+ SG_ TireTemp_00 m0 : 16|16@1+ (0.03125,-273) [-273|1735] "degC" Vector__XXX
  SG_ TirePressThresholdDetection_33 m51 : 61|3@1+ (1,0) [0|7] "" Vector__XXX
  SG_ TirePressThresholdDetection_32 m50 : 61|3@1+ (1,0) [0|7] "" Vector__XXX
  SG_ TirePressThresholdDetection_31 m49 : 61|3@1+ (1,0) [0|7] "" Vector__XXX
@@ -1806,22 +1806,22 @@ BO_ 2365484286 TCO1: 8 Vector__XXX
  SG_ Driver1WorkingState : 0|3@1+ (1,0) [0|7] "" Vector__XXX
 
 BO_ 2566771710 TCI6: 8 Vector__XXX
- SG_ EngTurbo4CompressorOutletTemp : 48|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngTurbo3CompressorOutletTemp : 32|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngTurbo2CompressorOutletTemp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngTurbo1CompressorOutletTemp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ EngTurbo4CompressorOutletTemp : 48|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngTurbo3CompressorOutletTemp : 32|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngTurbo2CompressorOutletTemp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngTurbo1CompressorOutletTemp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2566821886 TCI5: 8 Vector__XXX
- SG_ EngTurbo4TurbineOutletTemp : 48|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngTurbo3TurbineOutletTemp : 32|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngTurbo2TurbineOutletTemp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngTurbo1TurbineOutletTemp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ EngTurbo4TurbineOutletTemp : 48|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngTurbo3TurbineOutletTemp : 32|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngTurbo2TurbineOutletTemp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngTurbo1TurbineOutletTemp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2566822142 TCI4: 8 Vector__XXX
- SG_ EngTurbo4TurbineIntakeTemp : 48|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngTurbo3TurbineIntakeTemp : 32|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngTurbo2TurbineIntakeTemp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngTurbo1TurbineIntakeTemp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ EngTurbo4TurbineIntakeTemp : 48|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngTurbo3TurbineIntakeTemp : 32|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngTurbo2TurbineIntakeTemp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngTurbo1TurbineIntakeTemp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2566822398 TCI3: 8 Vector__XXX
  SG_ EngTurbo4CompressorIntakePress : 48|16@1+ (0.0078125,-250) [-250|251.99] "kPa" Vector__XXX
@@ -1830,10 +1830,10 @@ BO_ 2566822398 TCI3: 8 Vector__XXX
  SG_ EngTurbo1CompressorIntakePress : 0|16@1+ (0.0078125,-250) [-250|251.99] "kPa" Vector__XXX
 
 BO_ 2566822654 TCI2: 8 Vector__XXX
- SG_ EngTurbo4CompressorIntakeTemp : 48|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngTurbo3CompressorIntakeTemp : 32|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngTurbo2CompressorIntakeTemp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngTurbo1CompressorIntakeTemp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ EngTurbo4CompressorIntakeTemp : 48|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngTurbo3CompressorIntakeTemp : 32|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngTurbo2CompressorIntakeTemp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngTurbo1CompressorIntakeTemp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2633931774 TCI1: 8 Vector__XXX
  SG_ EngTurbo4Speed : 40|16@1+ (4,0) [0|257020] "rpm" Vector__XXX
@@ -1946,7 +1946,7 @@ BO_ 2566804478 RTC1: 8 Vector__XXX
 
 BO_ 2566847486 RF: 8 Vector__XXX
  SG_ DrvlneRetarderOverheatIndicator : 16|2@1+ (1,0) [0|3] "" Vector__XXX
- SG_ HydRetarderOilTemp : 8|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
+ SG_ HydRetarderOilTemp : 8|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
  SG_ HydRetarderPress : 0|8@1+ (16,0) [0|4000] "kPa" Vector__XXX
 
 BO_ 2631859966 RESET: 8 Vector__XXX
@@ -1979,7 +1979,7 @@ BO_ 2633930238 RBI: 8 Vector__XXX
 BO_ 2566844670 PTO: 8 Vector__XXX
  SG_ PowerTakeoffSetSpeed : 24|16@1+ (0.125,0) [0|8031.875] "rpm" Vector__XXX
  SG_ PowerTakeoffSpeed : 8|16@1+ (0.125,0) [0|8031.875] "rpm" Vector__XXX
- SG_ PowerTakeoffOilTemp : 0|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
+ SG_ PowerTakeoffOilTemp : 0|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
  SG_ OprtrEngPTOGvrnrMmrySlectSwitch : 56|2@1+ (1,0) [0|3] "" Vector__XXX
  SG_ EngRmtPTOGvrnrVrblSpdCtrlSwitch : 44|2@1+ (1,0) [0|3] "" Vector__XXX
  SG_ EngRmtPTOGvrnrPrprgrmmdSpdCtrlSw : 42|2@1+ (1,0) [0|3] "" Vector__XXX
@@ -2057,21 +2057,21 @@ BO_ 2566774014 MCI: 8 Vector__XXX
  SG_ EngThrttlSynchrnztionModeStatus : 0|4@1+ (1,0) [0|15] "" Vector__XXX
 
 BO_ 2566823166 MBT3: 8 Vector__XXX
- SG_ EngMainBearing11Temp : 32|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngMainBearing10Temp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngMainBearing9Temp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ EngMainBearing11Temp : 32|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngMainBearing10Temp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngMainBearing9Temp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2566823422 MBT2: 8 Vector__XXX
- SG_ EngMainBearing8Temp : 48|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngMainBearing7Temp : 32|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngMainBearing6Temp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngMainBearing5Temp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ EngMainBearing8Temp : 48|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngMainBearing7Temp : 32|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngMainBearing6Temp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngMainBearing5Temp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2566823678 MBT1: 8 Vector__XXX
- SG_ EngMainBearing4Temp : 48|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngMainBearing3Temp : 32|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngMainBearing2Temp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngMainBearing1Temp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ EngMainBearing4Temp : 48|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngMainBearing3Temp : 32|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngMainBearing2Temp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngMainBearing1Temp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2432595710 LVDD: 8 Vector__XXX
  SG_ DisplayDeadbands : 20|4@1+ (1,0) [0|15] "" Vector__XXX
@@ -2270,28 +2270,28 @@ BO_ 2364539646 ETC1: 8 Vector__XXX
  SG_ TransDrivelineEngaged : 0|2@1+ (1,0) [0|3] "" Vector__XXX
 
 BO_ 2566810110 ET3: 8 Vector__XXX
- SG_ EngChargeAirCooler1OutletTemp : 48|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngIntkVlvActationSystemOilTemp : 32|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngIntakeManifold1AirTemp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngCoolantTempHiRes : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ EngChargeAirCooler1OutletTemp : 48|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngIntkVlvActationSystemOilTemp : 32|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngIntakeManifold1AirTemp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngCoolantTempHiRes : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2566825214 ET2: 8 Vector__XXX
  SG_ EngExhstGsRcrculation1DiffPress : 32|16@1+ (0.0078125,-250) [-250|251.99] "kPa" Vector__XXX
- SG_ EngExhaustGasRecirculation1Temp : 48|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngECUTemp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngOilTemp2 : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ EngExhaustGasRecirculation1Temp : 48|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngECUTemp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngOilTemp2 : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2566844158 ET1: 8 Vector__XXX
- SG_ EngFuelTemp1 : 8|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
+ SG_ EngFuelTemp1 : 8|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
  SG_ EngIntercoolerThermostatOpening : 56|8@1+ (0.4,0) [0|100] "%" Vector__XXX
- SG_ EngIntercoolerTemp : 48|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
- SG_ EngTurboOilTemp : 32|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngOilTemp1 : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngCoolantTemp : 0|8@1+ (0.03125,-273) [-273|-265.03125] "deg C" Vector__XXX
+ SG_ EngIntercoolerTemp : 48|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
+ SG_ EngTurboOilTemp : 32|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngOilTemp1 : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngCoolantTemp : 0|8@1+ (0.03125,-273) [-273|-265.03125] "degC" Vector__XXX
 
 BO_ 2566785022 ET: 8 Vector__XXX
- SG_ EngExhaustGasTempRightManifold : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngExhaustGasTempLeftManifold : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ EngExhaustGasTempRightManifold : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngExhaustGasTempLeftManifold : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2565868542 ESC1: 8 Vector__XXX
  SG_ SterableLiftAxleLoweringInhibit : 28|2@1+ (1,0) [0|3] "" Vector__XXX
@@ -2321,34 +2321,34 @@ BO_ 2565865726 ERC1: 8 Vector__XXX
  SG_ RetarderTorqueMode : 0|4@1+ (1,0) [0|15] "" Vector__XXX
 
 BO_ 2633932798 EPT5: 8 Vector__XXX
- SG_ EngExhaustGasPort20Temp : 48|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngExhaustGasPort19Temp : 32|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngExhaustGasPort18Temp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngExhaustGasPort17Temp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ EngExhaustGasPort20Temp : 48|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngExhaustGasPort19Temp : 32|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngExhaustGasPort18Temp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngExhaustGasPort17Temp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2566824190 EPT4: 8 Vector__XXX
- SG_ EngExhaustGasPort16Temp : 48|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngExhaustGasPort15Temp : 32|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngExhaustGasPort14Temp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngExhaustGasPort13Temp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ EngExhaustGasPort16Temp : 48|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngExhaustGasPort15Temp : 32|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngExhaustGasPort14Temp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngExhaustGasPort13Temp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2633933310 EPT3: 8 Vector__XXX
- SG_ EngExhaustGasPort12Temp : 48|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngExhaustGasPort11Temp : 32|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngExhaustGasPort10Temp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngExhaustGasPort9Temp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ EngExhaustGasPort12Temp : 48|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngExhaustGasPort11Temp : 32|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngExhaustGasPort10Temp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngExhaustGasPort9Temp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2633933566 EPT2: 8 Vector__XXX
- SG_ EngExhaustGasPort8Temp : 48|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngExhaustGasPort7Temp : 32|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngExhaustGasPort6Temp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngExhaustGasPort5Temp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ EngExhaustGasPort8Temp : 48|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngExhaustGasPort7Temp : 32|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngExhaustGasPort6Temp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngExhaustGasPort5Temp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2633933822 EPT1: 8 Vector__XXX
- SG_ EngExhaustGasPort4Temp : 48|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngExhaustGasPort3Temp : 32|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngExhaustGasPort2Temp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngExhaustGasPort1Temp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ EngExhaustGasPort4Temp : 48|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngExhaustGasPort3Temp : 32|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngExhaustGasPort2Temp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngExhaustGasPort1Temp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2566776062 EPD: 8 Vector__XXX
  SG_ PayloadPercentage : 0|8@1+ (1,0) [0|250] "%" Vector__XXX
@@ -2475,11 +2475,11 @@ BO_ 2633929726 EES: 8 Vector__XXX
 
 BO_ 2566772222 EEC5: 8 Vector__XXX
  SG_ EngVrableGeometryTurbo1CtrlMode : 52|2@1+ (1,0) [0|3] "" Vector__XXX
- SG_ EngTrb1ClcltedTurbineIntakeTemp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ EngTrb1ClcltedTurbineIntakeTemp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
  SG_ EngExhstGsRcrculation1ValveCtrl : 32|16@1+ (0.0025,0) [0|160.6375] "%" Vector__XXX
  SG_ EngVrblGometryTurbo1ActuatorPos : 56|8@1+ (0.4,0) [0|100] "%" Vector__XXX
  SG_ EngVrblGmtryTrbArCtrlShtffValve : 48|2@1+ (1,0) [0|3] "" Vector__XXX
- SG_ EngTrb1ClcltedTurbineOutletTemp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ EngTrb1ClcltedTurbineOutletTemp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2633940734 EEC4: 8 Vector__XXX
  SG_ EngRotationDirection : 32|2@1+ (1,0) [0|3] "" Vector__XXX
@@ -2647,7 +2647,7 @@ BO_ 2565867262 EAC1: 8 Vector__XXX
 
 BO_ 2566821118 EAC: 8 Vector__XXX
  SG_ SeaWaterPumpOutletPress : 16|8@1+ (2,0) [0|500] "kPa" Vector__XXX
- SG_ EngAuxCoolantTemp : 8|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
+ SG_ EngAuxCoolantTemp : 8|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
  SG_ EngAuxCoolantPress : 0|8@1+ (4,0) [0|1000] "kPa" Vector__XXX
 
 BO_ 2566810622 DI: 8 Vector__XXX
@@ -2657,7 +2657,7 @@ BO_ 2566810622 DI: 8 Vector__XXX
 BO_ 2566847742 DD: 8 Vector__XXX
  SG_ FuelLevel2 : 48|8@1+ (0.4,0) [0|100] "%" Vector__XXX
  SG_ FuelLevel1 : 8|8@1+ (0.4,0) [0|100] "%" Vector__XXX
- SG_ CargoAmbientTemp : 32|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ CargoAmbientTemp : 32|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
  SG_ EngOilFilterDiffPress : 24|8@1+ (0.5,0) [0|125] "kPa" Vector__XXX
  SG_ EngFuelFilterDiffPress : 16|8@1+ (2,0) [0|500] "kPa" Vector__XXX
  SG_ WasherFluidLevel : 0|8@1+ (0.4,0) [0|100] "%" Vector__XXX
@@ -2741,7 +2741,7 @@ BO_ 2564882174 CM1: 8 Vector__XXX
  SG_ OperatorSeatDirectionSwitch : 28|2@1+ (1,0) [0|3] "" Vector__XXX
  SG_ BatteryMainSwitchHoldRq : 26|2@1+ (1,0) [0|3] "" Vector__XXX
  SG_ AuxHeaterCoolantPumpRq : 24|2@1+ (1,0) [0|3] "" Vector__XXX
- SG_ CabInteriorTempCmd : 8|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ CabInteriorTempCmd : 8|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
  SG_ RqedPercentFanSpeed : 0|8@1+ (0.4,0) [0|100] "%" Vector__XXX
 
 BO_ 2563833598 CL: 8 Vector__XXX
@@ -2793,8 +2793,8 @@ BO_ 2566775294 CACI: 8 Vector__XXX
  SG_ CbA_CRfrgrntCmprssorOutletPress : 0|8@1+ (16,0) [0|4000] "kPa" Vector__XXX
 
 BO_ 2566803710 BT1: 8 Vector__XXX
- SG_ Battery2Temp : 8|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
- SG_ Battery1Temp : 0|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
+ SG_ Battery2Temp : 8|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
+ SG_ Battery1Temp : 0|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
 
 BO_ 2566719486 DLCC1: 8 Vector__XXX
  SG_ EngFuelFilterRestrictedLampCmd : 22|2@1+ (1,0) [0|3] "" Vector__XXX
@@ -2835,24 +2835,24 @@ BO_ 2163223550 CN: 8 Vector__XXX
 
 BO_ 2566714878 CAC2P: 8 Vector__XXX
  SG_ EngChrgArClr2PrcoolerEfficiency : 32|8@1+ (0.4,0) [0|100] "%" Vector__XXX
- SG_ EngChrgArClr2PrcoolerOutletTemp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngChrgArClr2PrcoolerIntakeTemp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ EngChrgArClr2PrcoolerOutletTemp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngChrgArClr2PrcoolerIntakeTemp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2566714622 CAC2: 8 Vector__XXX
  SG_ EngChargeAirCooler2Efficiency : 48|8@1+ (0.4,0) [0|100] "%" Vector__XXX
- SG_ EngChrgAirCooler2AmbientAirTemp : 32|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngChargeAirCooler2OutletTemp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngChargeAirCooler2IntakeTemp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ EngChrgAirCooler2AmbientAirTemp : 32|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngChargeAirCooler2OutletTemp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngChargeAirCooler2IntakeTemp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2566715390 CAC1P: 8 Vector__XXX
  SG_ EngChrgArClr1PrcoolerEfficiency : 32|8@1+ (0.4,0) [0|100] "%" Vector__XXX
- SG_ EngChrgArClr1PrcoolerOutletTemp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngChrgArClr1PrcoolerIntakeTemp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ EngChrgArClr1PrcoolerOutletTemp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngChrgArClr1PrcoolerIntakeTemp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2566715134 CAC1: 8 Vector__XXX
  SG_ EngChargeAirCooler1Efficiency : 32|8@1+ (0.4,0) [0|100] "%" Vector__XXX
- SG_ EngChrgAirCooler1AmbientAirTemp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngChargeAirCooler1IntakeTemp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ EngChrgAirCooler1AmbientAirTemp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngChargeAirCooler1IntakeTemp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2365400830 BJM9: 8 Vector__XXX
  SG_ Joystick9Button9PressedStatus : 62|2@1+ (1,0) [0|3] "" Vector__XXX
@@ -3048,24 +3048,24 @@ BO_ 2566723070 BCH1: 8 Vector__XXX
  SG_ BatteryCharger1State : 0|4@1+ (1,0) [0|15] "" Vector__XXX
 
 BO_ 2566725118 ATDT2: 8 Vector__XXX
- SG_ Aftrtrtmnt2ThrWyCtlystDffGsTemp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ Aftrtrtmnt1ThrWyCtlystDffGsTemp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ Aftrtrtmnt2ThrWyCtlystDffGsTemp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ Aftrtrtmnt1ThrWyCtlystDffGsTemp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2566725374 ATDT1: 8 Vector__XXX
- SG_ Aftrtrtmnt2GsOxdtnCtlystDffGsTmp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ Aftrtrtmnt1GsOxdtnCtlystDffGsTmp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ Aftrtrtmnt2GsOxdtnCtlystDffGsTmp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ Aftrtrtmnt1GsOxdtnCtlystDffGsTmp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2566712830 AT2WUDOC: 8 Vector__XXX
- SG_ Aftrtrtmnt2WrmUpDslOxdtnCtlystOt : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ Aftrtrtmnt2WrmUpDslOxdtnCtlystIn : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ Aftrtrtmnt2WrmUpDslOxdtnCtlystOt : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ Aftrtrtmnt2WrmUpDslOxdtnCtlystIn : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2566735358 AT2TWCC: 8 Vector__XXX
  SG_ Aftrtrtmnt2ThrWyCtlytcCnvrtrDffP : 58|5@1+ (1,0) [0|31] "" Vector__XXX
  SG_ Aftrtrtmnt2ThrWyCtlytcCnvrtrOtlt : 53|5@1+ (1,0) [0|31] "" Vector__XXX
  SG_ Aftrtrtmnt2ThrWyCtlytcCnvrtrIntk : 48|5@1+ (1,0) [0|31] "" Vector__XXX
  SG_ Aftrtrtmnt2ThrWyCtlytcCnvrt_0000 : 32|16@1+ (0.1,0) [0|6425.5] "kPa" Vector__XXX
- SG_ Aftrtrtmnt2ThrWyCtlytcCnvrt_0001 : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ Aftrtrtmnt2ThrWyCtlytcCnvrt_0002 : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ Aftrtrtmnt2ThrWyCtlytcCnvrt_0001 : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ Aftrtrtmnt2ThrWyCtlytcCnvrt_0002 : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2365393662 AT2OGC2: 8 Vector__XXX
  SG_ Aftrtrtmnt2OtltGsNOxSnsrNH3Crrct : 24|8@1+ (0.5,0) [0|125] "%" Vector__XXX
@@ -3100,16 +3100,16 @@ BO_ 2157313790 AT2DPFSSC: 8 Vector__XXX
  SG_ Aftrtrtmnt2DslPrtcltFltrStMnClbO : 0|16@1+ (0.0025,0) [0|160.6375] "%" Vector__XXX
 
 BO_ 2566724350 AT1WUDOC: 8 Vector__XXX
- SG_ Aftrtrtmnt1WrmUpDslOxdtnCtlystOt : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ Aftrtrtmnt1WrmUpDslOxdtnCtlystIn : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ Aftrtrtmnt1WrmUpDslOxdtnCtlystOt : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ Aftrtrtmnt1WrmUpDslOxdtnCtlystIn : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2566735614 AT1TWCC: 8 Vector__XXX
  SG_ Aftrtrtmnt1ThrWyCtlytcCnvrtrDffP : 58|5@1+ (1,0) [0|31] "" Vector__XXX
  SG_ Aftrtrtmnt1ThrWyCtlytcCnvrtrOtlt : 53|5@1+ (1,0) [0|31] "" Vector__XXX
  SG_ Aftrtrtmnt1ThrWyCtlytcCnvrtrIntk : 48|5@1+ (1,0) [0|31] "" Vector__XXX
  SG_ Aftrtrtmnt1ThrWyCtlytcCnvrt_0000 : 32|16@1+ (0.1,0) [0|6425.5] "kPa" Vector__XXX
- SG_ Aftrtrtmnt1ThrWyCtlytcCnvrt_0001 : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ Aftrtrtmnt1ThrWyCtlytcCnvrt_0002 : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ Aftrtrtmnt1ThrWyCtlytcCnvrt_0001 : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ Aftrtrtmnt1ThrWyCtlytcCnvrt_0002 : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2566805246 AT1T1I: 8 Vector__XXX
  SG_ Aftrtrtmnt1SCRCtlystRgntTnk1HtrP : 56|5@1+ (1,0) [0|31] "" Vector__XXX
@@ -3119,7 +3119,7 @@ BO_ 2566805246 AT1T1I: 8 Vector__XXX
  SG_ Aftrtrtmnt1DEFTnkLwLvlIndicator : 37|3@1+ (1,0) [0|7] "" Vector__XXX
  SG_ Aftrtrtmnt1SCRCtlystTnkLvlPrlmnr : 32|5@1+ (1,0) [0|31] "" Vector__XXX
  SG_ Aftrtrtmnt1SCRCtalystTankLevel2 : 16|16@1+ (0.1,0) [0|6425.5] "mm" Vector__XXX
- SG_ Aftrtrtment1SCRCatalystTankTemp : 8|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
+ SG_ Aftrtrtment1SCRCatalystTankTemp : 8|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
  SG_ Aftrtrtmnt1SCRCatalystTankLevel : 0|8@1+ (0.4,0) [0|100] "%" Vector__XXX
 
 BO_ 2365394686 AT1OGC2: 8 Vector__XXX
@@ -3182,7 +3182,7 @@ BO_ 2566731006 A2SCRRT2I: 8 Vector__XXX
  SG_ Aftrtrtmnt2SCRRgntTnk2TmpPrlmnry : 40|5@1+ (1,0) [0|31] "" Vector__XXX
  SG_ Aftrtrtmnt2SCRCtlystRgntTnk2LvlP : 32|5@1+ (1,0) [0|31] "" Vector__XXX
  SG_ Aftrtrtmnt2SCRCtlystRgntTnk2Lvl2 : 16|16@1+ (0.1,0) [0|6425.5] "mm" Vector__XXX
- SG_ Aftrtrtmnt2SCRCtlystRgntTnk2Tmp : 8|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
+ SG_ Aftrtrtmnt2SCRCtlystRgntTnk2Tmp : 8|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
  SG_ Aftrtrtmnt2SCRCtlystRgntTnk2Lvl : 0|8@1+ (0.4,0) [0|100] "%" Vector__XXX
 
 BO_ 2566731262 A2SCRRT1I: 8 Vector__XXX
@@ -3191,7 +3191,7 @@ BO_ 2566731262 A2SCRRT1I: 8 Vector__XXX
  SG_ Aftrtrtmnt2SCRCtlystRgntTnk1TmpP : 40|5@1+ (1,0) [0|31] "" Vector__XXX
  SG_ Aftrtrtmnt2SCRCtlystTnkLvlPrlmnr : 32|5@1+ (1,0) [0|31] "" Vector__XXX
  SG_ Aftrtrtmnt2SCRCtalystTankLevel2 : 16|16@1+ (0.1,0) [0|6425.5] "mm" Vector__XXX
- SG_ Aftrtrtment2SCRCatalystTankTemp : 8|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
+ SG_ Aftrtrtment2SCRCatalystTankTemp : 8|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
  SG_ Aftrtrtmnt2SCRCatalystTankLevel : 0|8@1+ (0.4,0) [0|100] "%" Vector__XXX
 
 BO_ 2566730750 A2SCRRSI: 8 Vector__XXX
@@ -3208,13 +3208,13 @@ BO_ 2566731518 A2SCRRI: 8 Vector__XXX
  SG_ Aftrtrtmnt2SCRCtlystRgntTmp2Prlm : 24|5@1+ (1,0) [0|31] "" Vector__XXX
  SG_ Aftrtrtmnt2SCRCtlystRgntCndctvty : 16|8@1+ (5,0) [0|1250] "microSiemens/mm" Vector__XXX
  SG_ Aftrtrtmnt2SCRCtlystRgntCncntrtn : 8|8@1+ (0.25,0) [0|62.5] "%" Vector__XXX
- SG_ Aftrtrtmnt2SCRCtlystRagentTemp2 : 0|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
+ SG_ Aftrtrtmnt2SCRCtlystRagentTemp2 : 0|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
 
 BO_ 2566732030 A2SCREGT: 8 Vector__XXX
  SG_ Aftrtrtmnt2SCRCtlystOtltGsTmpPrl : 40|5@1+ (1,0) [0|31] "" Vector__XXX
- SG_ Aftrtrtmnt2SCRCtlystOtltGasTemp : 24|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ Aftrtrtmnt2SCRCtlystOtltGasTemp : 24|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
  SG_ Aftrtrtmnt2SCRCtlystIntkGsTmpPrl : 16|5@1+ (1,0) [0|31] "" Vector__XXX
- SG_ Aftrtrtmnt2SCRCtlystIntkGasTemp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ Aftrtrtmnt2SCRCtlystIntkGasTemp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2566732286 A2SCREGP: 8 Vector__XXX
  SG_ Aftrtrtmnt2SCRCtlystExhstGsDffPr : 16|5@1+ (1,0) [0|31] "" Vector__XXX
@@ -3246,7 +3246,7 @@ BO_ 2566732798 A2SCRDSI2: 8 Vector__XXX
  SG_ Aftrtrtmnt2SCRCtlystRgntLnHtr1St : 32|2@1+ (1,0) [0|3] "" Vector__XXX
  SG_ Aftrtrtmnt2SCRFedbackCtrlStatus : 27|3@1+ (1,0) [0|7] "" Vector__XXX
  SG_ Aftrtrtmnt2SCRDsngVlvExhstTmpRdc : 24|3@1+ (1,0) [0|7] "" Vector__XXX
- SG_ Aftrtrtmnt2SCRDosingReagentTemp : 16|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
+ SG_ Aftrtrtmnt2SCRDosingReagentTemp : 16|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
  SG_ Aftrtrtmnt2SCRDsngArAssistValve : 8|8@1+ (0.4,0) [0|100] "%" Vector__XXX
  SG_ Aftrtrtmnt2SCRDsngArAssstAbsPrss : 0|8@1+ (8,0) [0|2000] "kPa" Vector__XXX
 
@@ -3270,15 +3270,15 @@ BO_ 2566726142 A2GOC: 8 Vector__XXX
  SG_ Aftrtrtmnt2GsOxdtnCtlystOtltGsTm : 53|5@1+ (1,0) [0|31] "" Vector__XXX
  SG_ Aftrtrtmnt2GsOxdtnCtlystIntkGsTm : 48|5@1+ (1,0) [0|31] "" Vector__XXX
  SG_ Aftrtrtmnt2GsOxdtnCtlystDffPrss : 32|16@1+ (0.1,0) [0|6425.5] "kPa" Vector__XXX
- SG_ Aftrtrtmnt2GsOxdtnCtlystOtl_0000 : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ Aftrtrtmnt2GsOxdtnCtlystInt_0000 : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ Aftrtrtmnt2GsOxdtnCtlystOtl_0000 : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ Aftrtrtmnt2GsOxdtnCtlystInt_0000 : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2566725630 A2DOC: 8 Vector__XXX
  SG_ Aftrtrtmnt2DslOxdtnCtlystOtltGsT : 53|5@1+ (1,0) [0|31] "" Vector__XXX
  SG_ Aftrtrtmnt2DslOxdtnCtlystIntkGsT : 48|5@1+ (1,0) [0|31] "" Vector__XXX
  SG_ Aftrtrtmnt2DslOxdtnCtlystDffPrss : 32|16@1+ (0.5,0) [0|32127.5] "kPa" Vector__XXX
- SG_ Aftrtrtmnt2DslOxdtnCtlystOt_0000 : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ Aftrtrtmnt2DslOxdtnCtlystIn_0000 : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ Aftrtrtmnt2DslOxdtnCtlystOt_0000 : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ Aftrtrtmnt2DslOxdtnCtlystIn_0000 : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
  SG_ Aftrtrtmnt2DslOxdtnCtlystDf_0000 : 58|5@1+ (1,0) [0|31] "" Vector__XXX
 
 BO_ 2566733310 A1SCRRT2I: 8 Vector__XXX
@@ -3287,7 +3287,7 @@ BO_ 2566733310 A1SCRRT2I: 8 Vector__XXX
  SG_ Aftrtrtmnt1SCRRgntTnk2TmpPrlmnry : 40|5@1+ (1,0) [0|31] "" Vector__XXX
  SG_ Aftrtrtmnt1SCRCtlystRgntTnk2LvlP : 32|5@1+ (1,0) [0|31] "" Vector__XXX
  SG_ Aftrtrtmnt1SCRCtlystRgntTnk2Lvl2 : 16|16@1+ (0.1,0) [0|6425.5] "mm" Vector__XXX
- SG_ Aftrtrtmnt1SCRCtlystRgntTnk2Tmp : 8|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
+ SG_ Aftrtrtmnt1SCRCtlystRgntTnk2Tmp : 8|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
  SG_ Aftrtrtmnt1SCRCtlystRgntTnk2Lvl : 0|8@1+ (0.4,0) [0|100] "%" Vector__XXX
 
 BO_ 2566733054 A1SCRRSI: 8 Vector__XXX
@@ -3300,9 +3300,9 @@ BO_ 2566733054 A1SCRRSI: 8 Vector__XXX
 
 BO_ 2499624702 A1SCREGT: 8 Vector__XXX
  SG_ Aftrtrtmnt1SCRCtlystOtltGsTmpPrl : 40|5@1+ (1,0) [0|31] "" Vector__XXX
- SG_ Aftrtrtmnt1SCRCtlystOtltGasTemp : 24|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ Aftrtrtmnt1SCRCtlystOtltGasTemp : 24|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
  SG_ Aftrtrtmnt1SCRCtlystIntkGsTmpPrl : 16|5@1+ (1,0) [0|31] "" Vector__XXX
- SG_ Aftrtrtmnt1SCRCtlystIntkGasTemp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ Aftrtrtmnt1SCRCtlystIntkGasTemp : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2566733822 A1SCREGP: 8 Vector__XXX
  SG_ Aftrtrtmnt1SCRCtlystExhstGsDffPr : 16|5@1+ (1,0) [0|31] "" Vector__XXX
@@ -3334,7 +3334,7 @@ BO_ 2566734334 A1SCRDSI2: 8 Vector__XXX
  SG_ Aftrtrtmnt1SCRCtlystRgntLnHtr1St : 32|2@1+ (1,0) [0|3] "" Vector__XXX
  SG_ Aftrtrtmnt1SCRFedbackCtrlStatus : 27|3@1+ (1,0) [0|7] "" Vector__XXX
  SG_ Aftrtrtmnt1SCRDsngVlvExhstTmpRdc : 24|3@1+ (1,0) [0|7] "" Vector__XXX
- SG_ Aftrtrtmnt1SCRDosingReagentTemp : 16|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
+ SG_ Aftrtrtmnt1SCRDosingReagentTemp : 16|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
  SG_ Aftrtrtmnt1SCRDsngArAssistValve : 8|8@1+ (0.4,0) [0|100] "%" Vector__XXX
  SG_ Aftrtrtmnt1SCRDsngArAssstAbsPrss : 0|8@1+ (8,0) [0|2000] "kPa" Vector__XXX
 
@@ -3358,8 +3358,8 @@ BO_ 2566726398 A1GOC: 8 Vector__XXX
  SG_ Aftrtrtmnt1GsOxdtnCtlystOtltGsTm : 53|5@1+ (1,0) [0|31] "" Vector__XXX
  SG_ Aftrtrtmnt1GsOxdtnCtlystIntkGsTm : 48|5@1+ (1,0) [0|31] "" Vector__XXX
  SG_ Aftrtrtmnt1GsOxdtnCtlystDffPrss : 32|16@1+ (0.1,0) [0|6425.5] "kPa" Vector__XXX
- SG_ Aftrtrtmnt1GsOxdtnCtlystOtl_0000 : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ Aftrtrtmnt1GsOxdtnCtlystInt_0000 : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ Aftrtrtmnt1GsOxdtnCtlystOtl_0000 : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ Aftrtrtmnt1GsOxdtnCtlystInt_0000 : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2566742270 DM40: 8 Vector__XXX
  SG_ FailureSpecificB1Counter : 24|16@1+ (0.1,0) [0|6425.5] "hr" Vector__XXX
@@ -3493,8 +3493,8 @@ BO_ 2566725886 A1DOC: 8 Vector__XXX
  SG_ Aftrtrtmnt1DslOxdtnCtlystOtltGsT : 53|5@1+ (1,0) [0|31] "" Vector__XXX
  SG_ Aftrtrtmnt1DslOxdtnCtlystIntkGsT : 48|5@1+ (1,0) [0|31] "" Vector__XXX
  SG_ Aftrtrtmnt1DslOxdtnCtlystDffPrss : 32|16@1+ (0.1,0) [0|6425.5] "kPa" Vector__XXX
- SG_ Aftrtrtmnt1DslOxdtnCtlystOt_0000 : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ Aftrtrtmnt1DslOxdtnCtlystIn_0000 : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ Aftrtrtmnt1DslOxdtnCtlystOt_0000 : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ Aftrtrtmnt1DslOxdtnCtlystIn_0000 : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2560884478 DM31: 8 Vector__XXX
  SG_ DTCWarnLampSupportStatus : 34|2@1+ (1,0) [0|3] "" Vector__XXX
@@ -3533,7 +3533,7 @@ BO_ 2565874174 ESSI: 8 Vector__XXX
 
 BO_ 2432520958 ECCVC: 8 Vector__XXX
  SG_ DsrdEngCoolantThermostatOpening : 16|8@1+ (0.4,0) [0|100] "%" Vector__XXX
- SG_ DesiredEngCoolantPumpOutletTemp : 8|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
+ SG_ DesiredEngCoolantPumpOutletTemp : 8|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
  SG_ EngCoolantThermostatMode : 0|2@1+ (1,0) [0|3] "" Vector__XXX
 
 BO_ 2560425726 AUXIO7: 8 Vector__XXX
@@ -3575,7 +3575,7 @@ BO_ 2566758398 AT1AC1: 8 Vector__XXX
 BO_ 2566745598 AT1AC2: 8 Vector__XXX
  SG_ Aftertreatment1SecondAirPress : 48|16@1+ (0.1,0) [0|6425.5] "kPa" Vector__XXX
  SG_ Aftrtreatment1SecondAirMassFlow : 32|16@1+ (0.2,0) [0|12851] "kg/h" Vector__XXX
- SG_ Aftertreatment1SecondAirTemp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ Aftertreatment1SecondAirTemp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
  SG_ Aftrtratment1SecondAirDiffPress : 0|16@1+ (0.0078125,-250) [-250|251.99] "kPa" Vector__XXX
 
 BO_ 2566758910 AT1FC1: 8 Vector__XXX
@@ -3589,7 +3589,7 @@ BO_ 2566758910 AT1FC1: 8 Vector__XXX
  SG_ Aftertreatment1FuelPress1 : 0|16@1+ (0.1,0) [0|6425.5] "kPa" Vector__XXX
 
 BO_ 2566743550 AT1FC2: 8 Vector__XXX
- SG_ Aftrtrtmnt1HydrcrbnDsrIntkFlTmp : 40|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
+ SG_ Aftrtrtmnt1HydrcrbnDsrIntkFlTmp : 40|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
  SG_ Aftrtrtmnt1FlPress2ActuatorCtrl : 24|16@1+ (0.0025,0) [0|160.6375] "%" Vector__XXX
  SG_ Aftrtrtmnt1FlFlwDvrterValveCtrl : 18|2@1+ (1,0) [0|3] "" Vector__XXX
  SG_ Aftrtreatment1FuelPumpRelayCtrl : 16|2@1+ (1,0) [0|3] "" Vector__XXX
@@ -3625,8 +3625,8 @@ BO_ 2565869310 AT1IG1: 8 Vector__XXX
 BO_ 2566763774 AT1IG2: 8 Vector__XXX
  SG_ Aftrtrtmnt1DslPrtcltFltrIntkGsTm : 40|5@1+ (1,0) [0|31] "" Vector__XXX
  SG_ Aftrtrtmnt1ExhstGsTmp1PrlmnryFMI : 32|5@1+ (1,0) [0|31] "" Vector__XXX
- SG_ Aftertreatment1ExhaustGasTemp1 : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ Aftrtrtmnt1DslPrtcltFltrInt_0000 : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ Aftertreatment1ExhaustGasTemp1 : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ Aftrtrtmnt1DslPrtcltFltrInt_0000 : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2631728894 ATS: 8 Vector__XXX
  SG_ AntitheftRandomNumber : 8|56@1+ (1,0) [0|255] "" Vector__XXX
@@ -3642,11 +3642,11 @@ BO_ 2631794430 ATR: 8 Vector__XXX
  SG_ AntthftEncryptonIndicatorStates : 1|2@1+ (1,0) [0|3] "" Vector__XXX
 
 BO_ 2633934846 AT: 8 Vector__XXX
- SG_ EngAltWinding3Temp : 32|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
- SG_ EngAltWinding2Temp : 24|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
- SG_ EngAltWinding1Temp : 16|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
- SG_ EngAltBearing2Temp : 8|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
- SG_ EngAltBearing1Temp : 0|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
+ SG_ EngAltWinding3Temp : 32|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
+ SG_ EngAltWinding2Temp : 24|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
+ SG_ EngAltWinding1Temp : 16|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
+ SG_ EngAltBearing2Temp : 8|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
+ SG_ EngAltBearing1Temp : 0|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
 
 BO_ 2362572542 ASC6: 8 Vector__XXX
  SG_ LevelPresetRearAxleRight : 48|16@1+ (0.1,-3200) [-3200|3225.5] "mm" Vector__XXX
@@ -3674,11 +3674,11 @@ BO_ 2560950014 DM30: 12 Vector__XXX
 
 BO_ 2566763262 AT1IMG: 8 Vector__XXX
  SG_ Aftrtrtmnt1DslPrtcltFltrIntrmdtG : 58|5@1+ (1,0) [0|31] "" Vector__XXX
- SG_ Aftrtrtmnt1DslPrtcltFltrInt_0001 : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ Aftrtrtmnt1DslPrtcltFltrInt_0001 : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
  SG_ Aftrtrtmnt1DslPrtcltFltrDltPrssP : 53|5@1+ (1,0) [0|31] "" Vector__XXX
  SG_ Aftrtrtmnt1DslPrtcltFltrDffPrss : 32|16@1+ (0.1,0) [0|6425.5] "kPa" Vector__XXX
  SG_ Aftrtrtmnt1ExhstGsTmp2PrlmnryFMI : 48|5@1+ (1,0) [0|31] "" Vector__XXX
- SG_ Aftertreatment1ExhaustGasTemp2 : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ Aftertreatment1ExhaustGasTemp2 : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2565869566 AT1OG1: 8 Vector__XXX
  SG_ Aftrtrtmnt1OtltOxygnSnsrPrlmnryF : 56|5@1+ (1,0) [0|31] "" Vector__XXX
@@ -3693,10 +3693,10 @@ BO_ 2565869566 AT1OG1: 8 Vector__XXX
  SG_ Aftertreatment1OutletNOx : 0|16@1+ (0.05,-200) [-200|3012.75] "ppm" Vector__XXX
 
 BO_ 2566763518 AT1OG2: 8 Vector__XXX
- SG_ Aftrtrtmnt1DslPrtcltFltrOtltGsTm : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ Aftrtrtmnt1DslPrtcltFltrOtltGsTm : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
  SG_ Aftrtrtmnt1DslPrtcltFltrOtltExhs : 40|5@1+ (1,0) [0|31] "" Vector__XXX
  SG_ Aftrtrtmnt1ExhstGsTmp3PrlmnryFMI : 32|5@1+ (1,0) [0|31] "" Vector__XXX
- SG_ Aftertreatment1ExhaustGasTemp3 : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ Aftertreatment1ExhaustGasTemp3 : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2566749182 AT1S: 8 Vector__XXX
  SG_ DslPrtclteFilter1AshLoadPercent : 8|8@1+ (1,0) [0|250] "%" Vector__XXX
@@ -3727,7 +3727,7 @@ BO_ 2566758142 AT2AC1: 8 Vector__XXX
 BO_ 2566745342 AT2AC2: 8 Vector__XXX
  SG_ Aftertreatment2SecondAirPress : 48|16@1+ (0.1,0) [0|6425.5] "kPa" Vector__XXX
  SG_ Aftrtreatment2SecondAirMassFlow : 32|16@1+ (0.2,0) [0|12851] "kg/h" Vector__XXX
- SG_ Aftertreatment2SecondAirTemp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ Aftertreatment2SecondAirTemp : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
  SG_ Aftrtratment2SecondAirDiffPress : 0|16@1+ (0.0078125,-250) [-250|251.99] "kPa" Vector__XXX
 
 BO_ 2566758654 AT2FC1: 8 Vector__XXX
@@ -3770,16 +3770,16 @@ BO_ 2565869822 AT2IG1: 8 Vector__XXX
 BO_ 2566763006 AT2IG2: 8 Vector__XXX
  SG_ Aftrtrtmnt2DslPrtcltFltrIntkGsTm : 40|5@1+ (1,0) [0|31] "" Vector__XXX
  SG_ Aftrtrtmnt2ExhstGsTmp1PrlmnryFMI : 32|5@1+ (1,0) [0|31] "" Vector__XXX
- SG_ Aftertreatment2ExhaustGasTemp1 : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ Aftrtrtmnt2DslPrtcltFltrInt_0000 : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ Aftertreatment2ExhaustGasTemp1 : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ Aftrtrtmnt2DslPrtcltFltrInt_0000 : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2566762494 AT2IMG: 8 Vector__XXX
  SG_ Aftrtrtmnt2DslPrtcltFltrIntrmdtG : 58|5@1+ (1,0) [0|31] "" Vector__XXX
- SG_ Aftrtrtmnt2DslPrtcltFltrInt_0001 : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ Aftrtrtmnt2DslPrtcltFltrInt_0001 : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
  SG_ Aftrtrtmnt2DslPrtcltFltrDltPrssP : 53|5@1+ (1,0) [0|31] "" Vector__XXX
  SG_ Aftrtrtmnt2DslPrtcltFltrDffPrss : 32|16@1+ (0.1,0) [0|6425.5] "kPa" Vector__XXX
  SG_ Aftrtrtmnt2ExhstGsTmp2PrlmnryFMI : 48|5@1+ (1,0) [0|31] "" Vector__XXX
- SG_ Aftertreatment2ExhaustGasTemp2 : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ Aftertreatment2ExhaustGasTemp2 : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2565870078 AT2OG1: 8 Vector__XXX
  SG_ Aftrtrtmnt2OtltOxygnSnsrPrlmnryF : 56|5@1+ (1,0) [0|31] "" Vector__XXX
@@ -3794,10 +3794,10 @@ BO_ 2565870078 AT2OG1: 8 Vector__XXX
  SG_ Aftertreatment2OutletNOx : 0|16@1+ (0.05,-200) [-200|3012.75] "ppm" Vector__XXX
 
 BO_ 2566762750 AT2OG2: 8 Vector__XXX
- SG_ Aftrtrtmnt2DslPrtcltFltrOtltGsTm : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ Aftrtrtmnt2DslPrtcltFltrOtltGsTm : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
  SG_ Aftrtrtmnt2DslPrtcltFltrExhstGsT : 40|5@1+ (1,0) [0|31] "" Vector__XXX
  SG_ Aftrtrtmnt2ExhstGsTmp3PrlmnryFMI : 32|5@1+ (1,0) [0|31] "" Vector__XXX
- SG_ Aftertreatment2ExhaustGasTemp3 : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ Aftertreatment2ExhaustGasTemp3 : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2566748926 AT2S: 8 Vector__XXX
  SG_ DslPrtclteFilter2AshLoadPercent : 8|8@1+ (1,0) [0|250] "%" Vector__XXX
@@ -3833,11 +3833,11 @@ BO_ 2365428478 EOI: 8 Vector__XXX
  SG_ EngOperatingState : 0|4@1+ (1,0) [0|15] "" Vector__XXX
 
 BO_ 2566743806 ET4: 8 Vector__XXX
- SG_ EngExhstVlvActtionSystemOilTemp : 24|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngExhstGsRcrcltn1MxrIntakeTemp : 40|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ EngExhstVlvActtionSystemOilTemp : 24|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngExhstGsRcrcltn1MxrIntakeTemp : 40|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
  SG_ EngCoolantThermostatOpening : 16|8@1+ (0.4,0) [0|100] "%" Vector__XXX
- SG_ EngCoolantPumpOutletTemp : 8|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
- SG_ EngCoolantTemp2 : 0|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
+ SG_ EngCoolantPumpOutletTemp : 8|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
+ SG_ EngCoolantTemp2 : 0|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
 
 BO_ 2499635454 GCVW: 8 Vector__XXX
  SG_ NetVehicleWeightChange : 24|24@1+ (2,-16449535) [-16449535|16449535] "kg" Vector__XXX
@@ -3998,7 +3998,7 @@ BO_ 2566835710 DM4: 13 Vector__XXX
  SG_ EngTorqueMode : 40|4@1+ (1,0) [0|15] "" Vector__XXX
  SG_ WheelBasedVehicleSpeed : 88|16@1+ (0.00390625,0) [0|250.996] "km/h" Vector__XXX
  SG_ EngPercentLoadAtCurrentSpeed : 72|8@1+ (1,0) [0|250] "%" Vector__XXX
- SG_ EngineCoolantTemperature : 80|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
+ SG_ EngineCoolantTemperature : 80|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
  SG_ DTC1 : 8|32@1+ (1,0) [0|4294967295] "" Vector__XXX
 
 BO_ 2566835454 DM3: 0 Vector__XXX
@@ -4358,7 +4358,7 @@ BO_ 2565799678 ACL: 8 Vector__XXX
  SG_ VehicleSystem1 m1 : 49|7@1+ (1,0) [0|127] "" Vector__XXX
 
 BO_ 2563440382 XFER: 8 Vector__XXX
- SG_ ShrtNameOfActualReportingDevice : 32|32@1+ (1,0) [0|0] "(2^32 - 1)" Vector__XXX
+ SG_ ShrtNameOfActualReportingDevice : 32|32@1+ (1,0) [0|0] "(2^32-1)" Vector__XXX
  SG_ LengthOfDataForTheReportedPGN : 24|8@1+ (1,0) [0|255] "" Vector__XXX
  SG_ PGNofRequstedInformation : 0|24@1+ (1,0) [0|16777215] "" Vector__XXX
 
@@ -4396,7 +4396,7 @@ BO_ 2633853438 AGCW: 8 Vector__XXX
  SG_ AxleGroupEmptyWeightCalib : 8|16@1+ (2,0) [0|128510] "kg" Vector__XXX
 
 BO_ 2432520702 ACCVC: 8 Vector__XXX
- SG_ DsrdAftrcoolerCoolantIntakeTemp : 8|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
+ SG_ DsrdAftrcoolerCoolantIntakeTemp : 8|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
  SG_ DsrdAftrclrClntThrmostatOpening : 16|8@1+ (0.4,0) [0|100] "%" Vector__XXX
  SG_ AftrcoolerCoolantThermostatMode : 0|2@1+ (1,0) [0|3] "" Vector__XXX
 
@@ -4615,9 +4615,9 @@ BO_ 2566744062 ZNVW: 8 Vector__XXX
  SG_ ZeroNetVehicleWeightChange : 0|2@1+ (1,0) [0|3] "" Vector__XXX
 
 BO_ 2499630078 EAI: 8 Vector__XXX
- SG_ EngExhaustGasTempAverageBank2 : 32|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngExhaustGasTempAverageBank1 : 16|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ EngExhaustGasTempAverage : 0|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ EngExhaustGasTempAverageBank2 : 32|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngExhaustGasTempAverageBank1 : 16|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ EngExhaustGasTempAverage : 0|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
 
 BO_ 2560556798 DM29: 8 Vector__XXX
  SG_ PermanentDTCs : 32|8@1+ (1,0) [0|255] "" Vector__XXX
@@ -4813,10 +4813,10 @@ BO_ 2566746622 BSA: 8 Vector__XXX
  SG_ TractorBrakeStrokeAxle1Left : 0|3@1+ (1,0) [0|7] "" Vector__XXX
 
 BO_ 2566845950 AMB: 8 Vector__XXX
- SG_ EngAirIntakeTemp : 40|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
- SG_ RoadSurfaceTemp : 48|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ AmbientAirTemp : 24|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
- SG_ CabInteriorTemp : 8|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ EngAirIntakeTemp : 40|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
+ SG_ RoadSurfaceTemp : 48|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ AmbientAirTemp : 24|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
+ SG_ CabInteriorTemp : 8|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
  SG_ BarometricPress : 0|8@1+ (0.5,0) [0|125] "kPa" Vector__XXX
 
 BO_ 2566840062 AIR2: 8 Vector__XXX
@@ -4833,9 +4833,9 @@ BO_ 2566827774 AIR1: 8 Vector__XXX
 
 BO_ 2566846974 AI: 8 Vector__XXX
  SG_ SteerAxleLubePress : 56|8@1+ (4,0) [0|1000] "kPa" Vector__XXX
- SG_ SteerAxleTemp : 0|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
+ SG_ SteerAxleTemp : 0|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
  SG_ DriveAxleLubePress : 32|8@1+ (4,0) [0|1000] "kPa" Vector__XXX
- SG_ DriveAxleTemp : 24|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
+ SG_ DriveAxleTemp : 24|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
  SG_ DriveAxleLiftAirPress : 16|8@1+ (4,0) [0|1000] "kPa" Vector__XXX
  SG_ DriveAxleLocation : 8|8@1+ (1,0) [0|255] "" Vector__XXX
 
@@ -4869,8 +4869,8 @@ BO_ 2633927934 AAI: 8 Vector__XXX
  SG_ AuxLevel : 32|16@1+ (0.1,0) [0|6425.5] "mm" Vector__XXX
  SG_ AuxPress2 : 24|8@1+ (16,0) [0|4000] "kPa" Vector__XXX
  SG_ AuxPress1 : 16|8@1+ (16,0) [0|4000] "kPa" Vector__XXX
- SG_ AuxTemp2 : 8|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
- SG_ AuxTemp1 : 0|8@1+ (1,-40) [-40|210] "deg C" Vector__XXX
+ SG_ AuxTemp2 : 8|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
+ SG_ AuxTemp1 : 0|8@1+ (1,-40) [-40|210] "degC" Vector__XXX
 
 BO_ 2566847998 A1: 8 Vector__XXX
  SG_ EngBlowerBypassValvePos : 0|8@1+ (0.4,0) [0|100] "%" Vector__XXX
@@ -4917,7 +4917,7 @@ BO_ 2566846718 TRF1: 8 Vector__XXX
  SG_ TransOilLevelMeasurementStatus : 60|4@1+ (1,0) [0|15] "" Vector__XXX
  SG_ TransOilLevelCountdownTimer : 56|4@1+ (1,0) [0|15] "" Vector__XXX
  SG_ TransOilLevelHigh_Low : 48|8@1+ (0.5,-62.5) [-62.5|62.5] "L" Vector__XXX
- SG_ TransOilTemp : 32|16@1+ (0.03125,-273) [-273|1734.96875] "deg C" Vector__XXX
+ SG_ TransOilTemp : 32|16@1+ (0.03125,-273) [-273|1734.96875] "degC" Vector__XXX
  SG_ TransOilPress : 24|8@1+ (16,0) [0|4000] "kPa" Vector__XXX
  SG_ TransFilterDiffPress : 16|8@1+ (2,0) [0|500] "kPa" Vector__XXX
  SG_ TransOilLevel : 8|8@1+ (0.4,0) [0|100] "%" Vector__XXX
@@ -4969,8 +4969,7 @@ CM_ SG_ 3221225472 CTITireStatus "Indicates the status of the tire.";
 CM_ SG_ 3221225472 CTIWheelSensorStatus "Indicates whether the wheel is being monitored by the CTI controller.";
 CM_ SG_ 3221225472 TireTemp "Temperature at the surface of the tire sidewall.";
 CM_ SG_ 3221225472 TirePress "Pressure at which air is contained in cavity formed by tire and rim.";
-CM_ BO_ 2297441790 "The acceleration sensor message shall provide a measurement of the vehicle's acceleration in the lateral, longitudinal,
-and vertical axes.";
+CM_ BO_ 2297441790 "The acceleration sensor message shall provide a measurement of the vehicle's acceleration in the lateral, longitudinal,and vertical axes.";
 CM_ SG_ 2297441790 SpprtVrblTrnsRpttnRtFrAcclrtnSns "Indicates which acceleration transmission rate are supported by the ECU in addition to the required 10 ms transmission";
 CM_ SG_ 2297441790 VrtclAcclrtnExRngeFigureOfMerit "Figure of merit for vertical acceleration measurement.";
 CM_ SG_ 2297441790 LngtdnlAcclrtnExRngFgureOfMerit "Figure of merit for longitudinal acceleration measurement.";
@@ -6001,9 +6000,7 @@ CM_ SG_ 2365507326 VehiclePneumSupplySuff "Signal indicating the actual supply p
 CM_ SG_ 2365507326 BrakeTemperatureStatus "Signal which indicates that the brake temperature is higher than a specific level.";
 CM_ SG_ 2365507326 BrakeLiningSufficient "Signal which indicates that the brake lining is sufficient/insufficient.";
 CM_ SG_ 2365507326 TyrePressureSufficient "Signal which indicates that the tyre pressure is insufficient";
-CM_ BO_ 2565013246 "ISO 11992: Towing vehicle message, general purpose message #1/1
-
-GPM 11 replaces GFM 11 in ISO 11992:1998 part 3";
+CM_ BO_ 2565013246 "ISO 11992: Towing vehicle message, general purpose message #1/1 GPM 11 replaces GFM 11 in ISO 11992:1998 part 3";
 CM_ SG_ 2565013246 ODDRequest "Command signal to switch on or off the obstacle detection device (ODD).";
 CM_ SG_ 2565013246 AntiTheftDeviceReq "Command signal to activate the anti-theft device.";
 CM_ SG_ 2565013246 VehicleType "Information to identify a dolly axle within the road train.";
@@ -6014,8 +6011,7 @@ CM_ SG_ 2566807038 EngineSpeedLowerLimit "The minimum engine speed which the eng
 CM_ BO_ 2365480958 "ISO 11992: Towing vehicle message, general purpose message #1/3";
 CM_ SG_ 2365480958 EngineTorqueMode "State signal which indicates which engine torque mode is currently generating, limiting, or controlling the torque";
 CM_ SG_ 2365480958 PercentLoadAtCurrentSpeed "The ratio of actual engine percent torque to maximum indicated torque available at the current engine speed, clipped to zero torque during engine braking.";
-CM_ SG_ 2365480958 EngineSpeed "Actual engine speed which is calculated over a minimum crankshaft angle of 720 degrees divided by
-the number of cylinders.";
+CM_ SG_ 2365480958 EngineSpeed "Actual engine speed which is calculated over a minimum crankshaft angle of 720 degrees divided by the number of cylinders.";
 CM_ SG_ 2365480958 ActualEngine_PercTorque "The calculated output torque of the engine.";
 CM_ SG_ 2365480958 DriversDemandEngine_PercTorque "The torque output of the engine requested by the driver.";
 CM_ SG_ 2365480958 EngineRunning "Signal which indicates whether the engine is running.";
@@ -6043,13 +6039,9 @@ CM_ SG_ 2566808574 EngineOilPressure "Gauge pressure of the oil in the engine lu
 CM_ SG_ 2566808574 EngineOilTemperature "Temperature of the engine lubricant.";
 CM_ BO_ 2566809086 "ISO 11992: Towing vehicle message, general purpose message #1/6";
 CM_ SG_ 2566809086 AmbientAirTemperature "Temperature of air surrounding vehicle.";
-CM_ BO_ 2564947710 "ISO 11992: Towed vehicle message, general purpose message #2/1
-
-GPM 21 replaces GFM 21 in ISO 11992:1998 part 3";
+CM_ BO_ 2564947710 "ISO 11992: Towed vehicle message, general purpose message #2/1 GPM 21 replaces GFM 21 in ISO 11992:1998 part 3";
 CM_ SG_ 2564947710 VehicleType "Information to identify a dolly axle within the road train.";
-CM_ BO_ 2566834430 "ISO 11992: Towed vehicle message, general purpose message #2/2
-
-GPM22 replaces GFM 24 in ISO 11992:1998 part 3";
+CM_ BO_ 2566834430 "ISO 11992: Towed vehicle message, general purpose message #2/2 GPM22 replaces GFM 24 in ISO 11992:1998 part 3";
 CM_ SG_ 2566834430 BodyPressure "The actual pressure in a body on the towed vehicle.";
 CM_ SG_ 2566834430 BodyFluidLevel "The actual fluid level in a body on the towed vehicle.";
 CM_ SG_ 2566834430 ThermalBodyTemperature "The actual temperature in a thermal body on the towed vehicle.";
@@ -6105,9 +6097,7 @@ CM_ BO_ 2565734142 "Used to access network interconnection ECU parametrics and d
 CM_ SG_ 2565734142 FilterMode "Filter mode for Network PG";
 CM_ SG_ 2565734142 ToPort "Destination port for network PG";
 CM_ SG_ 2565734142 FromPort "Source port for Network PG";
-CM_ BO_ 2565144318 "ISO 11992: Towing vehicle message, running gear equipment #1/1
-
-RGE11 replaces GFM 12 in ISO 11992:1998 part 3";
+CM_ BO_ 2565144318 "ISO 11992: Towing vehicle message, running gear equipment #1/1 RGE11 replaces GFM 12 in ISO 11992:1998 part 3";
 CM_ SG_ 2565144318 ParkingAndTrailerAirPress "The pneumatic pressure in the circuit or reservoir for the parking brake and the trailer supply.";
 CM_ SG_ 2565144318 DrivenAxleLoad "Actual static vertical load on driven axle of the commercial vehicle. In case of more than one driven axle the value of the axle with the highest vertical load is transmitted.";
 CM_ SG_ 2565144318 AuxEquipSupplyPressure "The pneumatic pressure in the auxiliary circuit.";
@@ -6122,9 +6112,7 @@ CM_ SG_ 2565144318 TractionHelpReq "Command signal to control the lift axle posi
 CM_ SG_ 2565144318 LevelChangeReqRearAxle "Command signal to control the body height [up (lifting)/down (lowering)] for the rear axle.";
 CM_ SG_ 2565144318 LevelChangeReqFrontAxle "Command signal to control the body height [up (lifting)/down (lowering)] for the front axle.";
 CM_ SG_ 2565144318 RideHeightRequest "Command signal to activate a normal ride body height. The normal levels 1 and 2 are trailer specific body heights.";
-CM_ BO_ 2565209854 "ISO 11992: Towed vehicle message, running gear equipment #2/1
-
-RGE21 replaces GFM 22 in ISO 11992:1998 part 3";
+CM_ BO_ 2565209854 "ISO 11992: Towed vehicle message, running gear equipment #2/1 RGE21 replaces GFM 22 in ISO 11992:1998 part 3";
 CM_ SG_ 2565209854 LevelControl "Signal which indicates that the automatic level control is enabled or disabled.";
 CM_ SG_ 2565209854 NominalVehBodyLevelRearAxle "Actual nominal vehicle body height.";
 CM_ SG_ 2565209854 NominalVehBodyLevelFrontAxle "Actual nominal vehicle body height.";

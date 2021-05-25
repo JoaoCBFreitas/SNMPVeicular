@@ -7,49 +7,46 @@ stop_server(int a)
 {
     keep_running = 0;
 }
-sampleUnitsList *readSampleUnits(sampleUnitsList *samples)
+sampleUnitsList *readSampleUnits(sampleUnitsList *samples,BO_List *boList)
 {
     samples = (sampleUnitsList *)malloc(sizeof(sampleUnitsList));
     samples->capacity = 1;
     samples->current = 0;
-    samples->list = malloc(sizeof(sampleUnitsStruct));
-    FILE *fp;
-    char *line = NULL;
-    size_t len = 0;
-    ssize_t read;
-    fp = fopen("./Files/sampleUnits.txt", "r");
-    if (fp == NULL)
-        exit(EXIT_FAILURE);
-    int i = 0;
-    while ((read = getline(&line, &len, fp)) != -1)
-    {
-        sampleUnitsStruct *aux = (sampleUnitsStruct *)malloc(sizeof(sampleUnitsStruct));
-        aux->id = i;
-        aux->unit = malloc(sizeof(char) * 1024);
-        strtok(line, "\n");
-        strcpy(aux->unit, line);
-        i++;
-        if (samples->capacity == samples->current)
-        {
-            sampleUnitsList *samples2 = (sampleUnitsList *)malloc(sizeof(sampleUnitsList));
-            samples2->capacity = samples->capacity * 2;
-            samples2->current = samples->current;
-            samples2->list = malloc(sizeof(sampleUnitsStruct) * samples2->capacity);
-            for (int j = 0; j < samples->current; j++)
-            {
-                samples2->list[j] = samples->list[j];
+    samples->list = malloc(sizeof(sampleUnitsStruct));    
+    int f = 0,inserted=0;
+    for(int i=0;i<boList->current;i++){
+        for(int j=0;j<boList->list[i].signals->current;j++){
+            for(int k=0;k<samples->current;k++){
+                if(strcmp(samples->list[k].unit,boList->list[i].signals->list[j].unit)==0 || strcmp("",boList->list[i].signals->list[j].unit)==0)
+                    f=1;
             }
-            samples->capacity = samples2->capacity;
-            samples->current = samples2->current;
-            samples->list = samples2->list;
-            free(samples2);
+            if(f==0){
+                sampleUnitsStruct *aux = (sampleUnitsStruct *)malloc(sizeof(sampleUnitsStruct));
+                aux->id=inserted;
+                inserted++;   
+                aux->unit = malloc(sizeof(char) * 1024);
+                strcpy(aux->unit,boList->list[i].signals->list[j].unit);
+                if (samples->capacity == samples->current)
+                {
+                    sampleUnitsList *samples2 = (sampleUnitsList *)malloc(sizeof(sampleUnitsList));
+                    samples2->capacity = samples->capacity * 2;
+                    samples2->current = samples->current;
+                    samples2->list = malloc(sizeof(sampleUnitsStruct) * samples2->capacity);
+                    for (int j = 0; j < samples->current; j++)
+                    {
+                        samples2->list[j] = samples->list[j];
+                    }
+                    samples->capacity = samples2->capacity;
+                    samples->current = samples2->current;
+                    samples->list = samples2->list;
+                    free(samples2);
+                }
+                samples->list[samples->current] = *aux;
+                samples->current++;
+            }
+            f=0;
         }
-        samples->list[samples->current] = *aux;
-        samples->current++;
     }
-    fclose(fp);
-    if (line)
-        free(line);
     return samples;
 }
 errorDescrList *readErrorDescr(errorDescrList *samples)
@@ -173,8 +170,10 @@ int main(int argc, char **argv)
 
     /* initialize mib code here */
 
+    /*Initializing structs that contain dbc decoding rules*/
+    BO_List* boList=readDBC("SocketCAN/J1939/J1939.dbc");
     /* These tables are populated by reading files */
-    sampleUnitsList *sampleunitsList = readSampleUnits(sampleunitsList);
+    sampleUnitsList *sampleunitsList = readSampleUnits(sampleunitsList,boList);
     genericTypeList *typesList = readGenericTypes(typesList);
     errorDescrList *errorList = readErrorDescr(errorList);
 
@@ -192,9 +191,14 @@ int main(int argc, char **argv)
     init_sampledValuesTable();
     init_errorTable();
     init_snmp("veicular-daemon");
-    /*Initializing structs that contain dbc decoding rules*/
-    BO_List* boList=readDBC("SocketCAN/J1939/J1939.dbc");
-    
+    /*
+    for(int i=0;i<boList->current;i++){
+        printf("MessageDescription: %s\n",boList->list[i].description);
+        for(int j=0;j<boList->list[i].signals->current;j++){
+            printf("    SignalDescription: %s\n",boList->list[i].signals->list[j].description);
+        }
+    }
+    */
     /* If we're going to be a snmp master agent, initial the ports */
     if (!agentx_subagent)
         init_master_agent(); /* open the port to listen on 
