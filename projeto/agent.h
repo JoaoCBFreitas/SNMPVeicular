@@ -24,7 +24,6 @@
 #include <Tables/errorTable/errorTable.h>
 #include <Tables/errorDescriptionTable/errorDescriptionTable.h>
 #include <Tables/errorSensorTable/errorSensorTable.h>
-#include <auxFunc.h>
 
 #define DEMO_USE_SNMP_VERSION_3
 

@@ -45,10 +45,6 @@ requestMonitoringList *reqList;
 
 /*This function will add a row to requestControlDataTable if this table has no equivalent in requestMonitoringDataTable*/
 int insertRowControl_Monitor(requestMonitoringDataTable_context *reqMonitoring){
-    /*
-        TODO: Fix req->valuesTable
-              Fix req->waitTime
-    */
     requestStruct *req = (requestStruct *)malloc(sizeof(requestStruct));
     req->reqID=reqMonitoring->requestID;
     req->genericID=reqMonitoring->genericRequestTypeID;
@@ -93,7 +89,7 @@ void checkTables(void){
                 exit;
             else
                 printf("Control inserted\n");
-            /*TODO Insert no resto das tabelas*/
+            /*TODO Insert a afetar o samples Tables*/
             exit;
         }else{
             if(reqMonitoring->genericRequestTypeID==reqControl->genericRequestControlTypeID && strcmp(reqMonitoring->startTime,reqControl->commitTime)!=0){

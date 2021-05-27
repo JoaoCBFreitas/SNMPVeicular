@@ -42,11 +42,9 @@ all: $(TARGETS)
 
 agent:
 	mkdir obj
-	$(CC) -o $(OBJ)/auxFunc.o -c auxFunc.c -lm
 	cd $(sampleUnitsTable) && $(MAKE) all && mv sampleUnitsTable.o ../../obj/
 	cd $(capabilitiesTable) && $(MAKE) all && mv capabilitiesTable.o ../../obj/
 	cd $(genericTypesTable) && $(MAKE) all && mv genericTypesTable.o ../../obj/
-	cd $(mapTypeTable) && $(MAKE) all && mv mapTypeTable.o ../../obj/
 	cd $(requestControlDataTable) && $(MAKE) all && mv requestControlDataTable.o ../../obj/
 	cd $(requestMonitoringDataTable) && $(MAKE) all && mv requestMonitoringDataTable.o ../../obj/
 	cd $(requestStatisticsDataTable) && $(MAKE) all && mv requestStatisticsDataTable.o ../../obj/
@@ -55,6 +53,8 @@ agent:
 	cd $(errorTable) && $(MAKE) all && mv errorTable.o ../../obj/
 	cd $(errorDescriptionTable) && $(MAKE) all && mv errorDescriptionTable.o ../../obj/
 	cd $(errorSensorTable) && $(MAKE) all && mv errorSensorTable.o ../../obj/
+	$(CC) $(CFLAGS) -o $(OBJ)/auxFunc.o $(BUILDAGENTLIBS) -c auxFunc.c -lm
+	cd $(mapTypeTable) && $(MAKE) all && mv mapTypeTable.o ../../obj/
 	$(CC) $(CFLAGS) -o $(OBJ)/progAgent.o $(BUILDAGENTLIBS) -c agent.c
 	$(CC) $(CFLAGS) -o agent $(OBJ)/*.o $(BUILDAGENTLIBS)
 	rm -r obj

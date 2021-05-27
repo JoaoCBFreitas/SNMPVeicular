@@ -16,7 +16,7 @@ extern "C"
 #include <net-snmp/net-snmp-config.h>
 #include <net-snmp/library/container.h>
 #include <net-snmp/agent/table_array.h>
-
+#include "../../auxFunc.h"
     /** Index mapTypeID is internal */
 
     typedef struct mapTypeTable_context_s
@@ -42,7 +42,7 @@ extern "C"
     /*************************************************************
  * function declarations
  */
-    void init_mapTypeTable(void);
+    void init_mapTypeTable(BO_List *);
     void initialize_table_mapTypeTable(void);
     const mapTypeTable_context *mapTypeTable_get_by_idx(netsnmp_index *);
     const mapTypeTable_context *mapTypeTable_get_by_idx_rs(netsnmp_index *,

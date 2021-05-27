@@ -20,6 +20,7 @@ extern "C"
     typedef struct genericTypeStruct
     {
         int genericTypeID;
+        long message;
         char *typeDescription;
     } genericTypeStruct;
     typedef struct genericTypeList

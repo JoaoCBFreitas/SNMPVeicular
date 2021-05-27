@@ -20,6 +20,7 @@ extern "C"
     typedef struct sampleUnitsStruct
     {
         int id;
+        long message;
         char *unit;
     } sampleUnitsStruct;
     typedef struct sampleUnitsList

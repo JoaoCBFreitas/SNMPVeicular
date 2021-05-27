@@ -5,12 +5,21 @@
 #include <math.h>
 #include <ctype.h>
 
+#include <net-snmp/net-snmp-config.h>
+#include <net-snmp/net-snmp-includes.h>
+#include <net-snmp/agent/net-snmp-agent-includes.h>
+#include <net-snmp/agent/snmp_agent.h>
+#include <net-snmp/agent/snmp_vars.h>
+
 #include <net/if.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 
 #include <linux/can.h>
 #include <linux/can/raw.h>
+#include "Tables/errorDescriptionTable/errorDescriptionTable.h"
+#include "Tables/sampleUnitsTable/sampleUnitsTable.h"
+#include "Tables/genericTypesTable/genericTypesTable.h"
 /*This struct will contain rules to decode a signal*/
 typedef struct SG{
 	char name[1024];
@@ -88,3 +97,8 @@ BO_List* readDBC(char* file);
 /*This function will read from the CAN interface and convert/convert CAN messages whose id matches the sensor given as input */
 decodedCAN* parseCAN(char* sensor,BO_List* boList);
 
+//sampleUnitsList *readSampleUnits(sampleUnitsList *,BO_List *);
+int addToSampleUnits(sampleUnitsList *, long , char*);
+errorDescrList *readErrorDescr(errorDescrList *);
+//genericTypeList *readGenericTypes(genericTypeList *,BO_List *);
+int addToGenericTypes(genericTypeList *,long , char*);
