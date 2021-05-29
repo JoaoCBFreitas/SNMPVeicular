@@ -64,8 +64,38 @@ int binaryToDec(int* list,int n){
 	}	
 	return res;
 }
-int decodeData(unsigned char* data,int start,int length,int endian){
-    int binData[64];
+int decodeData(int* binData,int start,int length,int endian){
+    int binRes[length];
+    //Get relevant bits
+    for(int i=0;i<length;i++){
+        binRes[i]=binData[start+i];
+    }
+    int decFinal=binaryToDec(binRes,length);
+    char* hexFinal=intToHex(decFinal);
+    //Remove less significative bits 00056=56
+	int tam=strlen(hexFinal);
+    for(int i=0;i<strlen(hexFinal);i++){
+        if(hexFinal[i]=='0'){
+            hexFinal++;
+            i--;
+			tam--;
+        }else{
+            break;
+        }
+    }
+    if(endian==1){
+        char aux[tam];
+        for(int i=tam-1,k=0;i>=0;i-=2,k+=2){
+            aux[k]=hexFinal[i-1];
+            aux[k+1]=hexFinal[i];
+        }
+        strcpy(hexFinal,aux);
+        
+    }
+	hexFinal[tam]='\0';
+	return (int) strtoul(hexFinal,NULL,16);
+}
+void hexToBinary(int* binData,unsigned char* data){
     int cont=0;
     //Convert from char* Hex to int* bit array
     for(int i=0;i<8;i++){
@@ -80,34 +110,10 @@ int decodeData(unsigned char* data,int start,int length,int endian){
         }
         free(b);
     }
-    int binRes[length];
-    //Get relevant bits
-    for(int i=0;i<length;i++){
-        binRes[i]=binData[start+i];
-    }
-    int decFinal=binaryToDec(binRes,length);
-    char* hexFinal=intToHex(decFinal);
-    //Remove less significative bits 00056=56
-    for(int i=0;i<strlen(hexFinal);i++){
-        if(hexFinal[i]=='0'){
-            hexFinal++;
-            i--;
-        }else{
-            break;
-        }
-    }
-    if(endian==1){
-        char*aux=malloc(sizeof(char)*strlen(hexFinal));
-        for(int i=strlen(hexFinal)-1,k=0;i>=0;i-=2,k+=2){
-            aux[k]=hexFinal[i-1];
-            aux[k+1]=hexFinal[i];
-        }
-        strcpy(hexFinal,aux);
-        free(aux);
-    }
-	return hexToInt(hexFinal);
 }
 decodedCAN* decode(unsigned char* id, int dlc,unsigned char data[],BO_List* boList,decodedCAN* dc){
+	int *binData=malloc(sizeof(int)*64);
+	hexToBinary(binData,data);
 	dc->signals=0;
 	//printf("%s\n",id);
 	if(strlen(id)==3){
@@ -131,7 +137,7 @@ decodedCAN* decode(unsigned char* id, int dlc,unsigned char data[],BO_List* boLi
 					strcpy(dc->signalname[k],boList->list[i].signals->list[k].name);
 					
 					/*based of start bit and bit length, obtain relevant data from data PDU*/
-					int value=decodeData(data,boList->list[i].signals->list[k].bitStart,boList->list[i].signals->list[k].length,boList->list[i].signals->list[k].endian);
+					int value=decodeData(binData,boList->list[i].signals->list[k].bitStart,boList->list[i].signals->list[k].length,boList->list[i].signals->list[k].endian);
 					double decodedValue=boList->list[i].signals->list[k].offset+boList->list[i].signals->list[k].scale*value;
 					if(decodedValue>boList->list[i].signals->list[k].max)
 						decodedValue-=boList->list[i].signals->list[k].min;
@@ -144,6 +150,7 @@ decodedCAN* decode(unsigned char* id, int dlc,unsigned char data[],BO_List* boLi
 			}
 		}
 	}
+	free(binData);
 	return dc;
 }
 SG scaleBits(SG signal, char* token){
@@ -558,55 +565,6 @@ errorDescrList *readErrorDescr(errorDescrList *samples)
         free(line);
     return samples;
 }
-/*
-sampleUnitsList *readSampleUnits(sampleUnitsList *samples,BO_List *boList)
-{
-    samples = (sampleUnitsList *)malloc(sizeof(sampleUnitsList));
-    samples->capacity = 1;
-    samples->current = 0;
-    samples->list = malloc(sizeof(sampleUnitsStruct));    
-    int f = 0,inserted=0;
-    for(int i=0;i<boList->current;i++){
-        for(int j=0;j<boList->list[i].signals->current;j++){
-            for(int k=0;k<samples->current;k++){
-                if(strcmp(samples->list[k].unit,boList->list[i].signals->list[j].unit)==0)
-                    f=1;
-            }
-            if(f==0){
-                sampleUnitsStruct *aux = (sampleUnitsStruct *)malloc(sizeof(sampleUnitsStruct));
-                aux->id=inserted;
-                inserted++;   
-				aux->message=boList->list[i].messageID;
-                aux->unit = malloc(sizeof(char) * 1024);
-				if(strcmp("",boList->list[i].signals->list[j].unit)==0){
-					strcpy(aux->unit,"N/A");
-				}else{
-					strcpy(aux->unit,boList->list[i].signals->list[j].unit);
-				}
-                if (samples->capacity == samples->current)
-                {
-                    sampleUnitsList *samples2 = (sampleUnitsList *)malloc(sizeof(sampleUnitsList));
-                    samples2->capacity = samples->capacity * 2;
-                    samples2->current = samples->current;
-                    samples2->list = malloc(sizeof(sampleUnitsStruct) * samples2->capacity);
-                    for (int j = 0; j < samples->current; j++)
-                    {
-                        samples2->list[j] = samples->list[j];
-                    }
-                    samples->capacity = samples2->capacity;
-                    samples->current = samples2->current;
-                    samples->list = samples2->list;
-                    free(samples2);
-                }
-                samples->list[samples->current] = *aux;
-                samples->current++;
-            }
-            f=0;
-        }
-    }
-    return samples;
-}
-*/
 int addToSampleUnits(sampleUnitsList *samples, long message, char* unit)
 {
     for(int i=0;i<samples->current;i++){
@@ -644,45 +602,6 @@ int addToSampleUnits(sampleUnitsList *samples, long message, char* unit)
     samples->current++;
     return samples->current-1;
 }
-
-/*
-genericTypeList *readGenericTypes(genericTypeList *samples,BO_List *boList)
-{
-	samples = (genericTypeList *)malloc(sizeof(genericTypeList));
-    samples->capacity = 1;
-    samples->current = 0;
-    samples->typesList = malloc(sizeof(genericTypeStruct));    
-    int i = 0;
-    int inserted=0;
-    for(int i=0;i<boList->current;i++){
-        for(int j=0;j<boList->list[i].signals->current;j++){
-			genericTypeStruct *aux = (genericTypeStruct *)malloc(sizeof(genericTypeStruct));
-			aux->genericTypeID = i;
-			aux->message=boList->list[i].messageID;
-			aux->typeDescription = malloc(sizeof(char) * 65535);
-			strcpy(aux->typeDescription, boList->list[i].signals->list[j].description);
-			if (samples->capacity == samples->current)
-			{
-				genericTypeList *samples2 = (genericTypeList *)malloc(sizeof(genericTypeList));
-				samples2->capacity = samples->capacity * 2;
-				samples2->current = samples->current;
-				samples2->genericList = malloc(sizeof(genericTypeStruct) * samples2->capacity);
-				for (int j = 0; j < samples->current; j++)
-				{
-					samples2->genericList[j] = samples->genericList[j];
-				}
-				samples->capacity = samples2->capacity;
-				samples->current = samples2->current;
-				samples->genericList = samples2->genericList;
-				free(samples2);
-		}
-			i++;
-			samples->genericList[samples->current] = *aux;
-			samples->current++;
-		}
-    return samples;
-}
-*/
 int addToGenericTypes(genericTypeList *samples,long message,char* description)
 {
 	for(int i=0;i<samples->current;i++){

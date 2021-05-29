@@ -72,6 +72,8 @@ char* removeChar(char* s,char c);
 char* intToHex(int id);
 /*This function converts from hexadecimal to decimal*/
 int hexToInt(unsigned char* id);
+/*This function converts from hexadecimal to a binary int array*/
+void hexToBinary(int* binData, unsigned char* data);
 /*This function applies the mask 1FFFFFF to the decimal ids present in .dbc files, returning their respective CAN ids*/
 char* unMask(long id);
 /*This function converts from decimal to an binary array*/
@@ -79,7 +81,7 @@ int* decToBinary(int n);
 /*This function converts from a binary array to decimal*/
 int binaryToDec(int* list,int n);
 /*This function decodes the DATA present in a CAN frame according the the signal rules*/
-int decodeData(unsigned char* data,int start,int length,int endian);
+int decodeData(int* binData,int start,int length,int endian);
 /*This function will decode a full CAN message and output a struct containing all relevant info*/
 decodedCAN* decode(unsigned char* id, int dlc,unsigned char data[],BO_List* boList,decodedCAN* dc);
 /*This function reads and adds the scale/offset from the CAN message to the SG struct*/
@@ -96,9 +98,13 @@ SG getSignal(char* line);
 BO_List* readDBC(char* file);
 /*This function will read from the CAN interface and convert/convert CAN messages whose id matches the sensor given as input */
 decodedCAN* parseCAN(char* sensor,BO_List* boList);
-
-//sampleUnitsList *readSampleUnits(sampleUnitsList *,BO_List *);
+/*This function will add a sample unit to a list of sample units, 
+  returning the index in which the sample unit was inserted, 
+  if the sample unit is already in the list it will return its index*/
 int addToSampleUnits(sampleUnitsList *, long , char*);
-errorDescrList *readErrorDescr(errorDescrList *);
-//genericTypeList *readGenericTypes(genericTypeList *,BO_List *);
+/*This function will add a generic type to a list of generic types, 
+  returning the index in which the generic type was inserted, 
+  if the generic type is already in the list it will return its index*/
 int addToGenericTypes(genericTypeList *,long , char*);
+
+errorDescrList *readErrorDescr(errorDescrList *);
