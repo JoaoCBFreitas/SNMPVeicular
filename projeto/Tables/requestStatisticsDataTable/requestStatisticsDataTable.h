@@ -19,16 +19,11 @@ extern "C"
     typedef struct statisticsStruct
     {
         int statID;
-        int savingMode;
-        char *startTime;
-        char *endTime;
         char *duration;
         int nOfSamples;
         int minValue;
         int maxValue;
         int avgValue;
-        int status;
-
     } statisticsStruct;
 
     /** Index statisticsID is internal */
@@ -38,18 +33,12 @@ extern "C"
         netsnmp_index index; /** THIS MUST BE FIRST!!! */
         oid oid_buf[2];
         unsigned long statisticsID;               /** UNSIGNED32 = ASN_UNSIGNED */
-        long savingModeStatistics;                /** INTEGER = ASN_INTEGER */
-        unsigned char startTimeStatistics[65535]; /** OBUDateandTime = ASN_OCTET_STR */
-        long startTimeStatistics_len;
-        unsigned char endTimeStatistics[65535]; /** OBUDateandTime = ASN_OCTET_STR */
-        long endTimeStatistics_len;
         unsigned char durationTimeStatistics[65535]; /** OBUDateandTime = ASN_OCTET_STR */
         long durationTimeStatistics_len;
         unsigned long nOfSamplesStatistics; /** COUNTER = ASN_COUNTER */
         long minValue;                      /** INTEGER = ASN_INTEGER */
         long maxValue;                      /** INTEGER = ASN_INTEGER */
         long avgValue;                      /** INTEGER = ASN_INTEGER */
-        long statusStatistics;              /** INTEGER = ASN_INTEGER */
         void *data;
         int valid;
 
@@ -64,7 +53,7 @@ extern "C"
     const requestStatisticsDataTable_context *requestStatisticsDataTable_get_by_idx_rs(netsnmp_index *,
                                                                                        int row_status);
     int requestStatisticsDataTable_get_value(netsnmp_request_info *, netsnmp_index *, netsnmp_table_request_info *);
-
+    int insertStatisticsRow(statisticsStruct* );
     /*************************************************************
  * oid declarations
  */
@@ -77,17 +66,13 @@ extern "C"
  * column number definitions for table requestStatisticsDataTable
  */
 #define COLUMN_STATISTICSID 1
-#define COLUMN_SAVINGMODESTATISTICS 2
-#define COLUMN_STARTTIMESTATISTICS 3
-#define COLUMN_ENDTIMESTATISTICS 4
-#define COLUMN_DURATIONTIMESTATISTICS 5
-#define COLUMN_NOFSAMPLESSTATISTICS 6
-#define COLUMN_MINVALUE 7
-#define COLUMN_MAXVALUE 8
-#define COLUMN_AVGVALUE 9
-#define COLUMN_STATUSSTATISTICS 10
+#define COLUMN_DURATIONTIMESTATISTICS 2
+#define COLUMN_NOFSAMPLESSTATISTICS 3
+#define COLUMN_MINVALUE 4
+#define COLUMN_MAXVALUE 5
+#define COLUMN_AVGVALUE 6
 #define requestStatisticsDataTable_COL_MIN 1
-#define requestStatisticsDataTable_COL_MAX 10
+#define requestStatisticsDataTable_COL_MAX 6
 
 /* comment out the following line if you don't handle SET-REQUEST for requestStatisticsDataTable */
 #define requestStatisticsDataTable_SET_HANDLING

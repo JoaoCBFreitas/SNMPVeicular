@@ -76,9 +76,9 @@ int main(int argc, char **argv)
         /* if you use select(), see snmp_select_info() in snmp_api(3) */
         /*     --- OR ---  */
         agent_check_and_process(1); /* 0 == don't block */
-        checkTables();
+        checkTables(boList);
     }
-
+    
     /* at shutdown time */
     snmp_shutdown("veicular-daemon");
     SOCK_CLEANUP;

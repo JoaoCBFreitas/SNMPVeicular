@@ -41,7 +41,26 @@ static netsnmp_table_array_callbacks cb;
 
 const oid samplesTable_oid[] = {samplesTable_TABLE_OID};
 const size_t samplesTable_oid_len = OID_LENGTH(samplesTable_oid);
-
+/************************************************************
+ * This function inserts a samplesStruct into the samplesTable
+ */
+int insertSamplesRow(samplesStruct* req){
+    samplesTable_context *ctx;
+    netsnmp_index index;
+    oid index_oid[2];
+    index_oid[0] = req->sampleID;
+    index.oids = (oid *)&index_oid;
+    index.len = 1;
+    ctx = NULL;
+    /* Search for it first. */
+    ctx = CONTAINER_FIND(cb.container, &index);
+    if (!ctx)
+    {
+        // No dice. We add the new row
+        ctx = samplesTable_create_row(&index, req);
+        CONTAINER_INSERT(cb.container, ctx);
+    }
+}
 #ifdef samplesTable_CUSTOM_SORT
 /************************************************************
  * keep binary tree to find context by name
@@ -133,30 +152,7 @@ samplesTable_get(const char *name, int len)
  */
 void init_samplesTable(void)
 {
-    samplesTable_context *ctx;
-    netsnmp_index index;
-    oid index_oid[2];
     initialize_table_samplesTable();
-    samplesStruct *req = (samplesStruct *)malloc(sizeof(samplesStruct));
-    req->sampleID = 0;
-    req->requestSampleID = 0;
-    req->timestamp = "2017-01-23 15:22:60.357000";
-    req->sampleValueID = 1;
-    req->sampleFrequency = 10;
-    req->previousSampleID = 0;
-    req->mapTypeSamplesID = 1;
-    index_oid[0] = 0;
-    index.oids = (oid *)&index_oid;
-    index.len = 1;
-    ctx = NULL;
-    /* Search for it first. */
-    ctx = CONTAINER_FIND(cb.container, &index);
-    if (!ctx)
-    {
-        // No dice. We add the new row
-        ctx = samplesTable_create_row(&index, req);
-        CONTAINER_INSERT(cb.container, ctx);
-    }
 }
 
 /************************************************************
@@ -196,8 +192,6 @@ int samplesTable_row_copy(samplesTable_context *dst,
     dst->sampleFrequency = src->sampleFrequency;
 
     dst->previousSampleID = src->previousSampleID;
-
-    dst->mapTypeSamplesID = src->mapTypeSamplesID;
 
     return 0;
 }
@@ -420,12 +414,6 @@ void samplesTable_set_reserve1(netsnmp_request_group *rg)
             rc = netsnmp_check_vb_int(var);
             break;
 
-        case COLUMN_MAPTYPESAMPLESID:
-            /** UNSIGNED32 = ASN_UNSIGNED */
-            /* or possibly 'netsnmp_check_vb_int_range' */
-            rc = netsnmp_check_vb_int(var);
-            break;
-
         default: /** We shouldn't get here */
             rc = SNMP_ERR_GENERR;
             snmp_log(LOG_ERR, "unknown column in "
@@ -550,20 +538,6 @@ void samplesTable_set_reserve2(netsnmp_request_group *rg)
                 */
             break;
 
-        case COLUMN_MAPTYPESAMPLESID:
-            /** UNSIGNED32 = ASN_UNSIGNED */
-            /*
-                     * TODO: routine to check valid values
-                     *
-                     * EXAMPLE:
-                     *
-                    * if ( *var->val.integer != XXX ) {
-                *    rc = SNMP_ERR_INCONSISTENTVALUE;
-                *    rc = SNMP_ERR_BADVALUE;
-                * }
-                */
-            break;
-
         default:               /** We shouldn't get here */
             netsnmp_assert(0); /** why wasn't this caught in reserve1? */
         }
@@ -637,11 +611,6 @@ void samplesTable_set_action(netsnmp_request_group *rg)
         case COLUMN_PREVIOUSSAMPLEID:
             /** UNSIGNED32 = ASN_UNSIGNED */
             row_ctx->previousSampleID = *var->val.integer;
-            break;
-
-        case COLUMN_MAPTYPESAMPLESID:
-            /** UNSIGNED32 = ASN_UNSIGNED */
-            row_ctx->mapTypeSamplesID = *var->val.integer;
             break;
 
         default:               /** We shouldn't get here */
@@ -718,10 +687,6 @@ void samplesTable_set_commit(netsnmp_request_group *rg)
             /** UNSIGNED32 = ASN_UNSIGNED */
             break;
 
-        case COLUMN_MAPTYPESAMPLESID:
-            /** UNSIGNED32 = ASN_UNSIGNED */
-            break;
-
         default:               /** We shouldn't get here */
             netsnmp_assert(0); /** why wasn't this caught in reserve1? */
         }
@@ -780,10 +745,6 @@ void samplesTable_set_free(netsnmp_request_group *rg)
             break;
 
         case COLUMN_PREVIOUSSAMPLEID:
-            /** UNSIGNED32 = ASN_UNSIGNED */
-            break;
-
-        case COLUMN_MAPTYPESAMPLESID:
             /** UNSIGNED32 = ASN_UNSIGNED */
             break;
 
@@ -856,10 +817,6 @@ void samplesTable_set_undo(netsnmp_request_group *rg)
             break;
 
         case COLUMN_PREVIOUSSAMPLEID:
-            /** UNSIGNED32 = ASN_UNSIGNED */
-            break;
-
-        case COLUMN_MAPTYPESAMPLESID:
             /** UNSIGNED32 = ASN_UNSIGNED */
             break;
 
@@ -1017,13 +974,6 @@ int samplesTable_get_value(
                                  sizeof(context->previousSampleID));
         break;
 
-    case COLUMN_MAPTYPESAMPLESID:
-        /** UNSIGNED32 = ASN_UNSIGNED */
-        snmp_set_var_typed_value(var, ASN_UNSIGNED,
-                                 (char *)&context->mapTypeSamplesID,
-                                 sizeof(context->mapTypeSamplesID));
-        break;
-
     default: /** We shouldn't get here */
         snmp_log(LOG_ERR, "unknown column in "
                           "samplesTable_get_value\n");
@@ -1076,8 +1026,5 @@ samplesTable_context *samplesTable_create_row(netsnmp_index *hdr, samplesStruct 
     ctx->sampleValueID = (long unsigned int)req->sampleValueID;
     ctx->sampleFrequency = (long unsigned int)req->sampleFrequency;
     ctx->previousSampleID = (long unsigned int)req->previousSampleID;
-    ctx->mapTypeSamplesID = (long unsigned int)req->mapTypeSamplesID;
-
-    printf("SampleValue inserida: %ld\n", ctx->sampleID);
     return ctx;
 }

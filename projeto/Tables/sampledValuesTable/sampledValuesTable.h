@@ -25,6 +25,7 @@ extern "C"
         int sampleType;
         int sampleRecordedValue;
         int nOfsampledValues;
+        int mapTypeSamplesID;
     } sampledStruct;
     typedef struct sampledValuesTable_context_s
     {
@@ -35,6 +36,7 @@ extern "C"
         long sampleType;                  /** INTEGER = ASN_INTEGER */
         long sampleRecordedValue;         /** INTEGER = ASN_INTEGER */
         unsigned long nOfSampledValues;   /** UNSIGNED32 = ASN_UNSIGNED */
+        unsigned long mapTypeSamplesID;   /** UNSIGNED32 = ASN_UNSIGNED */
         int valid;
         void *data;
     } sampledValuesTable_context;
@@ -65,8 +67,9 @@ extern "C"
 #define COLUMN_SAMPLETYPE 3
 #define COLUMN_SAMPLERECORDEDVALUE 4
 #define COLUMN_NOFSAMPLEDVALUES 5
+#define COLUMN_MAPTYPESAMPLESID 6
 #define sampledValuesTable_COL_MIN 1
-#define sampledValuesTable_COL_MAX 5
+#define sampledValuesTable_COL_MAX 6
 
 /* comment out the following line if you don't handle SET-REQUEST for sampledValuesTable */
 #define sampledValuesTable_SET_HANDLING

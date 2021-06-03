@@ -145,33 +145,8 @@ void init_mapTypeTable(BO_List* boList)
     genericTypeList typesList;
     typesList.capacity = 1;
     typesList.current = 0;
-    typesList.genericList = malloc(sizeof(genericTypeList));
-    //sampleUnitsList *sampleunitsList = readSampleUnits(sampleunitsList,boList);
-    //genericTypeList *typesList = readGenericTypes(typesList,boList);
-   
+    typesList.genericList = malloc(sizeof(genericTypeList));   
     initialize_table_mapTypeTable();
-    /*
-    int precision[] = {10, 2};
-    int proprietary[] = {128, 23};
-    int maxFreq[] = {20, 100};
-    int maxDelay[] = {-10, -100};
-    char *interfaceSource[] = {"CAN 2", "CAN 2"};
-    char *dataSource[] = {"FMCW Sensor", "Laser Sensor"};
-
-    for (int i = 0; i < sizeof(dataSource) / sizeof(dataSource[0]); i++)
-    {
-        index_oid[0] = i;
-        index.oids = (oid *)&index_oid;
-        index.len = 1;
-        ctx = NULL;
-        ctx = CONTAINER_FIND(cb.container, &index);
-        if (!ctx)
-        {
-            ctx = mapTypeTable_create_row(&index, dataSource[i], interfaceSource[i], i, i, i, proprietary[i], precision[i], maxFreq[i], maxDelay[i]);
-            CONTAINER_INSERT(cb.container, ctx);
-        }
-    }
-    */
     int inserted=0;
     for (int i = 0; i < boList->current; i++){
         for(int j=0;j<boList->list[i].signals->current;j++){
@@ -190,6 +165,21 @@ void init_mapTypeTable(BO_List* boList)
                 CONTAINER_INSERT(cb.container, ctx);
                 inserted++;
             }
+        }
+        int idGenericTypes=addToGenericTypes(&typesList,boList->list[i].messageID,boList->list[i].description);
+        int idSampleUnits=addToSampleUnits(&sampleunitsList,boList->list[i].messageID,"");
+        index_oid[0] = inserted;
+        index.oids = (oid *)&index_oid;
+        index.len = 1;
+        ctx = NULL;
+        /* Search for it first. */
+        ctx = CONTAINER_FIND(cb.container, &index);
+        if (!ctx)
+        {
+            // No dice. We add the new row
+            ctx = mapTypeTable_create_row(&index, boList->list[i].name, "CAN 2.0", inserted, idGenericTypes, idSampleUnits, 0, 0, 0, 0);
+            CONTAINER_INSERT(cb.container, ctx);
+            inserted++;
         }
     }
     errorDescrList *errorList = readErrorDescr(errorList);

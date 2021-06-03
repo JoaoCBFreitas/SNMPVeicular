@@ -24,11 +24,10 @@ extern "C"
 #include "../requestStatisticsDataTable/requestStatisticsDataTable.h"
 #include "../samplesTable/samplesTable.h"
 #include "../sampledValuesTable/sampledValuesTable.h"
-
     typedef struct requestMonitoringStruct
     {
         int reqID;
-        int genericRequestID;
+        int requestMapID;
         int statisticsRequestID;
         int savingMode;
         int sampleFreq;
@@ -57,7 +56,7 @@ extern "C"
         netsnmp_index index; /** THIS MUST BE FIRST!!! */
         oid oid_buf[2];
         unsigned long requestID;            /** UNSIGNED32 = ASN_UNSIGNED */
-        unsigned long genericRequestTypeID; /** UNSIGNED32 = ASN_UNSIGNED */
+        unsigned long requestMapID;         /** UNSIGNED32 = ASN_UNSIGNED */
         unsigned long requestStatisticsID;  /** UNSIGNED32 = ASN_UNSIGNED */
         long savingMode;                    /** INTEGER = ASN_INTEGER */
         unsigned long samplingFrequency;    /** UNSIGNED32 = ASN_UNSIGNED */
@@ -88,7 +87,7 @@ extern "C"
     const requestMonitoringDataTable_context *requestMonitoringDataTable_get_by_idx_rs(netsnmp_index *,
                                                                                        int row_status);
     int requestMonitoringDataTable_get_value(netsnmp_request_info *, netsnmp_index *, netsnmp_table_request_info *);
-    void checkTables(void);
+    void checkTables(BO_List*);
 
     /*************************************************************
  * oid declarations
@@ -102,7 +101,7 @@ extern "C"
  * column number definitions for table requestMonitoringDataTable
  */
 #define COLUMN_REQUESTID 1
-#define COLUMN_GENERICREQUESTTYPEID 2
+#define COLUMN_REQUESTMAPID 2
 #define COLUMN_REQUESTSTATISTICSID 3
 #define COLUMN_SAVINGMODE 4
 #define COLUMN_SAMPLINGFREQUENCY 5

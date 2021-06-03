@@ -143,6 +143,7 @@ void init_sampledValuesTable(void)
     req->sampleType = 1;
     req->sampleRecordedValue = 120;
     req->nOfsampledValues = 1;
+    req->mapTypeSamplesID=1;
     index_oid[0] = 0;
     index.oids = (oid *)&index_oid;
     index.len = 1;
@@ -279,7 +280,12 @@ int sampledValuesTable_get_value(
                                  (char *)&context->nOfSampledValues,
                                  sizeof(context->nOfSampledValues));
         break;
-
+    case COLUMN_MAPTYPESAMPLESID:
+        /** UNSIGNED32 = ASN_UNSIGNED */
+        snmp_set_var_typed_value(var, ASN_UNSIGNED,
+                                 (char *)&context->mapTypeSamplesID,
+                                 sizeof(context->mapTypeSamplesID));
+        break;
     default: /** We shouldn't get here */
         snmp_log(LOG_ERR, "unknown column in "
                           "sampledValuesTable_get_value\n");
@@ -330,7 +336,7 @@ sampledValuesTable_context *sampledValuesTable_create_row(netsnmp_index *hdr, sa
     ctx->sampleType = req->sampleType;
     ctx->sampleRecordedValue = req->sampleRecordedValue;
     ctx->nOfSampledValues = (long unsigned int)req->nOfsampledValues;
-
+    ctx->mapTypeSamplesID=(long unsigned int)req->mapTypeSamplesID;
     printf("SampledValue inserida: %ld\n", ctx->sampledValueID);
     return ctx;
 }

@@ -41,7 +41,29 @@ static netsnmp_table_array_callbacks cb;
 
 const oid requestStatisticsDataTable_oid[] = {requestStatisticsDataTable_TABLE_OID};
 const size_t requestStatisticsDataTable_oid_len = OID_LENGTH(requestStatisticsDataTable_oid);
-
+/************************************************************
+ * This function inserts a statisticsStruct into the requestStatisticsDataTable
+ */
+int insertStatisticsRow(statisticsStruct* req)
+{
+    requestStatisticsDataTable_context *ctx;
+    netsnmp_index index;
+    oid index_oid[2];
+    index_oid[0] = req->statID;
+    index.oids = (oid *)&index_oid;
+    index.len = 1;
+    ctx = NULL;
+    /* Search for it first. */
+    ctx = CONTAINER_FIND(cb.container, &index);
+    if (!ctx)
+    {
+        // No dice. We add the new row
+        ctx = requestStatisticsDataTable_create_row(&index, req);
+        CONTAINER_INSERT(cb.container, ctx);
+        return 0;
+    }
+    return 1;
+}
 #ifdef requestStatisticsDataTable_CUSTOM_SORT
 /************************************************************
  * keep binary tree to find context by name
@@ -133,34 +155,7 @@ requestStatisticsDataTable_get(const char *name, int len)
  */
 void init_requestStatisticsDataTable(void)
 {
-    requestStatisticsDataTable_context *ctx;
-    netsnmp_index index;
-    oid index_oid[2];
     initialize_table_requestStatisticsDataTable();
-
-    statisticsStruct *req = (statisticsStruct *)malloc(sizeof(statisticsStruct));
-    req->statID = 0;
-    req->savingMode = 0;
-    req->startTime = "00:00:00";
-    req->endTime = "00:10:00";
-    req->duration = "00:10:00";
-    req->nOfSamples = 10;
-    req->minValue = 1;
-    req->maxValue = 10;
-    req->avgValue = 5;
-    req->status = 0;
-    index_oid[0] = 0;
-    index.oids = (oid *)&index_oid;
-    index.len = 1;
-    ctx = NULL;
-    /* Search for it first. */
-    ctx = CONTAINER_FIND(cb.container, &index);
-    if (!ctx)
-    {
-        // No dice. We add the new row
-        ctx = requestStatisticsDataTable_create_row(&index, req);
-        CONTAINER_INSERT(cb.container, ctx);
-    }
 }
 
 /************************************************************
@@ -190,14 +185,6 @@ int requestStatisticsDataTable_row_copy(requestStatisticsDataTable_context *dst,
      */
     dst->statisticsID = src->statisticsID;
 
-    dst->savingModeStatistics = src->savingModeStatistics;
-
-    memcpy(dst->startTimeStatistics, src->startTimeStatistics, src->startTimeStatistics_len);
-    dst->startTimeStatistics_len = src->startTimeStatistics_len;
-
-    memcpy(dst->endTimeStatistics, src->endTimeStatistics, src->endTimeStatistics_len);
-    dst->endTimeStatistics_len = src->endTimeStatistics_len;
-
     memcpy(dst->durationTimeStatistics, src->durationTimeStatistics, src->durationTimeStatistics_len);
     dst->durationTimeStatistics_len = src->durationTimeStatistics_len;
 
@@ -208,8 +195,6 @@ int requestStatisticsDataTable_row_copy(requestStatisticsDataTable_context *dst,
     dst->maxValue = src->maxValue;
 
     dst->avgValue = src->avgValue;
-
-    dst->statusStatistics = src->statusStatistics;
 
     return 0;
 }
@@ -401,26 +386,6 @@ void requestStatisticsDataTable_set_reserve1(netsnmp_request_group *rg)
             rc = netsnmp_check_vb_int(var);
             break;
 
-        case COLUMN_SAVINGMODESTATISTICS:
-            /** INTEGER = ASN_INTEGER */
-            /* or possibly 'netsnmp_check_vb_int_range' */
-            rc = netsnmp_check_vb_int(var);
-            break;
-
-        case COLUMN_STARTTIMESTATISTICS:
-            /** OBUDateandTime = ASN_OCTET_STR */
-            /* or possibly 'netsnmp_check_vb_type_and_size' */
-            rc = netsnmp_check_vb_type_and_max_size(var, ASN_OCTET_STR,
-                                                    sizeof(row_ctx->startTimeStatistics));
-            break;
-
-        case COLUMN_ENDTIMESTATISTICS:
-            /** OBUDateandTime = ASN_OCTET_STR */
-            /* or possibly 'netsnmp_check_vb_type_and_size' */
-            rc = netsnmp_check_vb_type_and_max_size(var, ASN_OCTET_STR,
-                                                    sizeof(row_ctx->endTimeStatistics));
-            break;
-
         case COLUMN_DURATIONTIMESTATISTICS:
             /** OBUDateandTime = ASN_OCTET_STR */
             /* or possibly 'netsnmp_check_vb_type_and_size' */
@@ -441,12 +406,6 @@ void requestStatisticsDataTable_set_reserve1(netsnmp_request_group *rg)
             break;
 
         case COLUMN_AVGVALUE:
-            /** INTEGER = ASN_INTEGER */
-            /* or possibly 'netsnmp_check_vb_int_range' */
-            rc = netsnmp_check_vb_int(var);
-            break;
-
-        case COLUMN_STATUSSTATISTICS:
             /** INTEGER = ASN_INTEGER */
             /* or possibly 'netsnmp_check_vb_int_range' */
             rc = netsnmp_check_vb_int(var);
@@ -506,48 +465,6 @@ void requestStatisticsDataTable_set_reserve2(netsnmp_request_group *rg)
                 */
             break;
 
-        case COLUMN_SAVINGMODESTATISTICS:
-            /** INTEGER = ASN_INTEGER */
-            /*
-                     * TODO: routine to check valid values
-                     *
-                     * EXAMPLE:
-                     *
-                    * if ( *var->val.integer != XXX ) {
-                *    rc = SNMP_ERR_INCONSISTENTVALUE;
-                *    rc = SNMP_ERR_BADVALUE;
-                * }
-                */
-            break;
-
-        case COLUMN_STARTTIMESTATISTICS:
-            /** OBUDateandTime = ASN_OCTET_STR */
-            /*
-                     * TODO: routine to check valid values
-                     *
-                     * EXAMPLE:
-                     *
-                    * if ( XXX_check_value( var->val.string, XXX ) ) {
-                *    rc = SNMP_ERR_INCONSISTENTVALUE;
-                *    rc = SNMP_ERR_BADVALUE;
-                * }
-                */
-            break;
-
-        case COLUMN_ENDTIMESTATISTICS:
-            /** OBUDateandTime = ASN_OCTET_STR */
-            /*
-                     * TODO: routine to check valid values
-                     *
-                     * EXAMPLE:
-                     *
-                    * if ( XXX_check_value( var->val.string, XXX ) ) {
-                *    rc = SNMP_ERR_INCONSISTENTVALUE;
-                *    rc = SNMP_ERR_BADVALUE;
-                * }
-                */
-            break;
-
         case COLUMN_DURATIONTIMESTATISTICS:
             /** OBUDateandTime = ASN_OCTET_STR */
             /*
@@ -591,20 +508,6 @@ void requestStatisticsDataTable_set_reserve2(netsnmp_request_group *rg)
             break;
 
         case COLUMN_AVGVALUE:
-            /** INTEGER = ASN_INTEGER */
-            /*
-                     * TODO: routine to check valid values
-                     *
-                     * EXAMPLE:
-                     *
-                    * if ( *var->val.integer != XXX ) {
-                *    rc = SNMP_ERR_INCONSISTENTVALUE;
-                *    rc = SNMP_ERR_BADVALUE;
-                * }
-                */
-            break;
-
-        case COLUMN_STATUSSTATISTICS:
             /** INTEGER = ASN_INTEGER */
             /*
                      * TODO: routine to check valid values
@@ -667,23 +570,6 @@ void requestStatisticsDataTable_set_action(netsnmp_request_group *rg)
             row_ctx->statisticsID = *var->val.integer;
             break;
 
-        case COLUMN_SAVINGMODESTATISTICS:
-            /** INTEGER = ASN_INTEGER */
-            row_ctx->savingModeStatistics = *var->val.integer;
-            break;
-
-        case COLUMN_STARTTIMESTATISTICS:
-            /** OBUDateandTime = ASN_OCTET_STR */
-            memcpy(row_ctx->startTimeStatistics, var->val.string, var->val_len);
-            row_ctx->startTimeStatistics_len = var->val_len;
-            break;
-
-        case COLUMN_ENDTIMESTATISTICS:
-            /** OBUDateandTime = ASN_OCTET_STR */
-            memcpy(row_ctx->endTimeStatistics, var->val.string, var->val_len);
-            row_ctx->endTimeStatistics_len = var->val_len;
-            break;
-
         case COLUMN_DURATIONTIMESTATISTICS:
             /** OBUDateandTime = ASN_OCTET_STR */
             memcpy(row_ctx->durationTimeStatistics, var->val.string, var->val_len);
@@ -703,11 +589,6 @@ void requestStatisticsDataTable_set_action(netsnmp_request_group *rg)
         case COLUMN_AVGVALUE:
             /** INTEGER = ASN_INTEGER */
             row_ctx->avgValue = *var->val.integer;
-            break;
-
-        case COLUMN_STATUSSTATISTICS:
-            /** INTEGER = ASN_INTEGER */
-            row_ctx->statusStatistics = *var->val.integer;
             break;
 
         default:               /** We shouldn't get here */
@@ -764,18 +645,6 @@ void requestStatisticsDataTable_set_commit(netsnmp_request_group *rg)
             /** UNSIGNED32 = ASN_UNSIGNED */
             break;
 
-        case COLUMN_SAVINGMODESTATISTICS:
-            /** INTEGER = ASN_INTEGER */
-            break;
-
-        case COLUMN_STARTTIMESTATISTICS:
-            /** OBUDateandTime = ASN_OCTET_STR */
-            break;
-
-        case COLUMN_ENDTIMESTATISTICS:
-            /** OBUDateandTime = ASN_OCTET_STR */
-            break;
-
         case COLUMN_DURATIONTIMESTATISTICS:
             /** OBUDateandTime = ASN_OCTET_STR */
             break;
@@ -789,10 +658,6 @@ void requestStatisticsDataTable_set_commit(netsnmp_request_group *rg)
             break;
 
         case COLUMN_AVGVALUE:
-            /** INTEGER = ASN_INTEGER */
-            break;
-
-        case COLUMN_STATUSSTATISTICS:
             /** INTEGER = ASN_INTEGER */
             break;
 
@@ -837,18 +702,6 @@ void requestStatisticsDataTable_set_free(netsnmp_request_group *rg)
             /** UNSIGNED32 = ASN_UNSIGNED */
             break;
 
-        case COLUMN_SAVINGMODESTATISTICS:
-            /** INTEGER = ASN_INTEGER */
-            break;
-
-        case COLUMN_STARTTIMESTATISTICS:
-            /** OBUDateandTime = ASN_OCTET_STR */
-            break;
-
-        case COLUMN_ENDTIMESTATISTICS:
-            /** OBUDateandTime = ASN_OCTET_STR */
-            break;
-
         case COLUMN_DURATIONTIMESTATISTICS:
             /** OBUDateandTime = ASN_OCTET_STR */
             break;
@@ -862,10 +715,6 @@ void requestStatisticsDataTable_set_free(netsnmp_request_group *rg)
             break;
 
         case COLUMN_AVGVALUE:
-            /** INTEGER = ASN_INTEGER */
-            break;
-
-        case COLUMN_STATUSSTATISTICS:
             /** INTEGER = ASN_INTEGER */
             break;
 
@@ -921,18 +770,6 @@ void requestStatisticsDataTable_set_undo(netsnmp_request_group *rg)
             /** UNSIGNED32 = ASN_UNSIGNED */
             break;
 
-        case COLUMN_SAVINGMODESTATISTICS:
-            /** INTEGER = ASN_INTEGER */
-            break;
-
-        case COLUMN_STARTTIMESTATISTICS:
-            /** OBUDateandTime = ASN_OCTET_STR */
-            break;
-
-        case COLUMN_ENDTIMESTATISTICS:
-            /** OBUDateandTime = ASN_OCTET_STR */
-            break;
-
         case COLUMN_DURATIONTIMESTATISTICS:
             /** OBUDateandTime = ASN_OCTET_STR */
             break;
@@ -946,10 +783,6 @@ void requestStatisticsDataTable_set_undo(netsnmp_request_group *rg)
             break;
 
         case COLUMN_AVGVALUE:
-            /** INTEGER = ASN_INTEGER */
-            break;
-
-        case COLUMN_STATUSSTATISTICS:
             /** INTEGER = ASN_INTEGER */
             break;
 
@@ -1072,27 +905,6 @@ int requestStatisticsDataTable_get_value(
                                  sizeof(context->statisticsID));
         break;
 
-    case COLUMN_SAVINGMODESTATISTICS:
-        /** INTEGER = ASN_INTEGER */
-        snmp_set_var_typed_value(var, ASN_INTEGER,
-                                 (char *)&context->savingModeStatistics,
-                                 sizeof(context->savingModeStatistics));
-        break;
-
-    case COLUMN_STARTTIMESTATISTICS:
-        /** OBUDateandTime = ASN_OCTET_STR */
-        snmp_set_var_typed_value(var, ASN_OCTET_STR,
-                                 (char *)&context->startTimeStatistics,
-                                 context->startTimeStatistics_len);
-        break;
-
-    case COLUMN_ENDTIMESTATISTICS:
-        /** OBUDateandTime = ASN_OCTET_STR */
-        snmp_set_var_typed_value(var, ASN_OCTET_STR,
-                                 (char *)&context->endTimeStatistics,
-                                 context->endTimeStatistics_len);
-        break;
-
     case COLUMN_DURATIONTIMESTATISTICS:
         /** OBUDateandTime = ASN_OCTET_STR */
         snmp_set_var_typed_value(var, ASN_OCTET_STR,
@@ -1126,13 +938,6 @@ int requestStatisticsDataTable_get_value(
         snmp_set_var_typed_value(var, ASN_INTEGER,
                                  (char *)&context->avgValue,
                                  sizeof(context->avgValue));
-        break;
-
-    case COLUMN_STATUSSTATISTICS:
-        /** INTEGER = ASN_INTEGER */
-        snmp_set_var_typed_value(var, ASN_INTEGER,
-                                 (char *)&context->statusStatistics,
-                                 sizeof(context->statusStatistics));
         break;
 
     default: /** We shouldn't get here */
@@ -1181,18 +986,11 @@ requestStatisticsDataTable_context *requestStatisticsDataTable_create_row(netsnm
     ctx->oid_buf[0] = req->statID;
     ctx->index.len = 1;
     ctx->statisticsID = (long unsigned int)req->statID;
-    ctx->savingModeStatistics = req->savingMode;
-    strcpy(ctx->startTimeStatistics, req->startTime);
-    ctx->startTimeStatistics_len = strlen(req->startTime);
-    strcpy(ctx->endTimeStatistics, req->endTime);
-    ctx->endTimeStatistics_len = strlen(req->endTime);
     strcpy(ctx->durationTimeStatistics, req->duration);
     ctx->durationTimeStatistics_len = strlen(req->duration);
     ctx->nOfSamplesStatistics = req->nOfSamples;
     ctx->minValue = req->minValue;
     ctx->maxValue = req->maxValue;
     ctx->avgValue = req->avgValue;
-    ctx->statusStatistics = req->status;
-    printf("RequestStatistics inserida: %ld\n", ctx->statisticsID);
     return ctx;
 }

@@ -32,8 +32,8 @@ avgValue OBJECT-TYPE
 	STATUS  current
 	DESCRIPTION
 		"Average value recorded by a certain request"
-	-- 1.3.6.1.3.8888.3.1.9
-::= { requestStatisticsDataEntry 9 }
+	-- 1.3.6.1.3.8888.3.1.6
+::= { requestStatisticsDataEntry 6 }
 
 
 maxValue OBJECT-TYPE
@@ -42,8 +42,8 @@ maxValue OBJECT-TYPE
 	STATUS  current
 	DESCRIPTION
 		"Maximum value recorded by a certain request"
-	-- 1.3.6.1.3.8888.3.1.8
-::= { requestStatisticsDataEntry 8 }
+	-- 1.3.6.1.3.8888.3.1.5
+::= { requestStatisticsDataEntry 5 }
 
 
 minValue OBJECT-TYPE
@@ -52,8 +52,8 @@ minValue OBJECT-TYPE
 	STATUS  current
 	DESCRIPTION
 		"Minimum value recorded by a certain request"
-	-- 1.3.6.1.3.8888.3.1.7
-::= { requestStatisticsDataEntry 7 }
+	-- 1.3.6.1.3.8888.3.1.4
+::= { requestStatisticsDataEntry 4 }
 
 
 requestStatisticsDataEntry OBJECT-TYPE
@@ -70,15 +70,11 @@ requestStatisticsDataEntry OBJECT-TYPE
 RequestStatisticsDataEntry ::= SEQUENCE {
 
 	statisticsID           Unsigned32,
-	savingModeStatistics   INTEGER,
-	startTimeStatistics    OBUDateandTime,
-	endTimeStatistics      OBUDateandTime,
 	durationTimeStatistics OBUDateandTime,
 	nOfSamplesStatistics   Counter32,
 	minValue               INTEGER,
 	maxValue               INTEGER,
-	avgValue               INTEGER,
-	statusStatistics       INTEGER }
+	avgValue               INTEGER}
 
 
 requestControlDataEntry OBJECT-TYPE
@@ -277,8 +273,17 @@ SampledValuesEntry ::= SEQUENCE {
 	relatedSampleValue  Unsigned32,
 	sampleType          INTEGER,
 	sampleRecordedValue INTEGER,
-	nOfSampledValues    Unsigned32 }
+	nOfSampledValues    Unsigned32,
+	mapTypeSamplesID	Unsigned32 }
 
+mapTypeSamplesID OBJECT-TYPE
+	SYNTAX  Unsigned32
+	MAX-ACCESS read-only
+	STATUS  current
+	DESCRIPTION
+		"This object will point to the description of a signal."
+	-- 1.3.6.1.3.8888.9.1.6
+::= { sampledValuesEntry 6}
 
 nOfSampledValues OBJECT-TYPE
 	SYNTAX  Unsigned32
@@ -415,8 +420,7 @@ SamplesEntry ::= SEQUENCE {
 	timeStamp        OBUDateandTime,
 	sampleValueID    Unsigned32,
 	sampleFrequency  Unsigned32,
-	previousSampleID Unsigned32,
-	mapTypeSamplesID Unsigned32 }
+	previousSampleID Unsigned32 }
 
 
 requestSampleID OBJECT-TYPE
@@ -457,16 +461,6 @@ previousSampleID OBJECT-TYPE
 		"This object will store the ID of the previously recorded sample from the same request"
 	-- 1.3.6.1.3.8888.5.1.6
 ::= { samplesEntry 6 }
-
-
-mapTypeSamplesID OBJECT-TYPE
-	SYNTAX  Unsigned32
-	MAX-ACCESS read-write
-	STATUS  current
-	DESCRIPTION
-		"This object will identify the respective mapTypeTable"
-	-- 1.3.6.1.3.8888.5.1.7
-::= { samplesEntry 7 }
 
 
 mapTypeTable OBJECT-TYPE
@@ -666,7 +660,7 @@ requestMonitoringDataEntry OBJECT-TYPE
 RequestMonitoringDataEntry ::= SEQUENCE {
 
 	requestID            Unsigned32,
-	genericRequestTypeID Unsigned32,
+	requestMapID         Unsigned32,
 	requestStatisticsID  Unsigned32,
 	savingMode           INTEGER,
 	samplingFrequency    Unsigned32,
@@ -911,7 +905,7 @@ errorDescrID OBJECT-TYPE
 sensorGroup OBJECT-GROUP
 	OBJECTS {
 		requestID,
-		genericRequestTypeID,
+		requestMapID,
 		requestStatisticsID,
 		savingMode,
 		samplingFrequency,
@@ -937,15 +931,11 @@ sensorGroup OBJECT-GROUP
 		valuesID,
 		statusControl,
 		statisticsID,
-		savingModeStatistics,
-		startTimeStatistics,
-		endTimeStatistics,
 		durationTimeStatistics,
 		nOfSamplesStatistics,
 		minValue,
 		maxValue,
 		avgValue,
-		statusStatistics,
 		capabilitiesID,
 		setOfCapabilitiesID,
 		specificCapabilitiesID,
@@ -956,7 +946,6 @@ sensorGroup OBJECT-GROUP
 		sampleValueID,
 		sampleFrequency,
 		previousSampleID,
-		mapTypeSamplesID,
 		mapTypeID,
 		proprietaryTypeID,
 		genericMapTypeID,
@@ -974,12 +963,12 @@ sensorGroup OBJECT-GROUP
 		sampleType,
 		relatedSampleValue,
 		sampledValueID,
-		nOfSampledValues }
+		nOfSampledValues,
+		mapTypeSamplesID }
 	STATUS  current
 	DESCRIPTION
 		"This group includes all objects related to sensor data retrieval"
 	-- 1.3.6.1.3.8888.16 --
-	-- 1.3.6.1.3.8888.16
 	::= { obuMIB 16 }
 
 errorGroup OBJECT-GROUP
@@ -997,7 +986,6 @@ errorGroup OBJECT-GROUP
 	DESCRIPTION
 		"This group includes all objects related to errors"
 	-- 1.3.6.1.3.8888.17 --
-	-- 1.3.6.1.3.8888.17
 	::= { obuMIB 17 }
 
 actuatorGroup OBJECT-GROUP
@@ -1016,7 +1004,6 @@ actuatorGroup OBJECT-GROUP
 	DESCRIPTION
 		"This group includes all objects related to actuators and configuration of modules"
 	-- 1.3.6.1.3.8888.18 --
-	-- 1.3.6.1.3.8888.18
 	::= { obuMIB 18 }
 
 errorDescriptionID OBJECT-TYPE
@@ -1234,12 +1221,12 @@ requestStatisticsID OBJECT-TYPE
 ::= { requestMonitoringDataEntry 3 }
 
 
-genericRequestTypeID OBJECT-TYPE
+requestMapID OBJECT-TYPE
 	SYNTAX  Unsigned32
 	MAX-ACCESS read-create
 	STATUS  current
 	DESCRIPTION
-		"This object will identify the genericTypeTable related to a certain request"
+		"This object will identify the mapTypeTable related to a certain request"
 	-- 1.3.6.1.3.8888.1.1.2
 ::= { requestMonitoringDataEntry 2 }
 
@@ -1399,46 +1386,14 @@ statisticsID OBJECT-TYPE
 ::= { requestStatisticsDataEntry 1 }
 
 
-savingModeStatistics OBJECT-TYPE
-	SYNTAX  INTEGER {
-			permanent(0),
-			volatile(1) }
-	MAX-ACCESS read-write
-	STATUS  current
-	DESCRIPTION
-		"This object will identify the mode in which a specific request will be saved"
-	-- 1.3.6.1.3.8888.3.1.2
-::= { requestStatisticsDataEntry 2 }
-
-
-startTimeStatistics OBJECT-TYPE
-	SYNTAX  OBUDateandTime
-	MAX-ACCESS read-write
-	STATUS  current
-	DESCRIPTION
-		"This object will store the start time of a certain request"
-	-- 1.3.6.1.3.8888.3.1.3
-::= { requestStatisticsDataEntry 3 }
-
-
-endTimeStatistics OBJECT-TYPE
-	SYNTAX  OBUDateandTime
-	MAX-ACCESS read-write
-	STATUS  current
-	DESCRIPTION
-		"This object will store the end time of a certain request"
-	-- 1.3.6.1.3.8888.3.1.4
-::= { requestStatisticsDataEntry 4 }
-
-
 durationTimeStatistics OBJECT-TYPE
 	SYNTAX  OBUDateandTime
 	MAX-ACCESS read-write
 	STATUS  current
 	DESCRIPTION
 		"This object will store the duration time of a certain request"
-	-- 1.3.6.1.3.8888.3.1.5
-::= { requestStatisticsDataEntry 5 }
+	-- 1.3.6.1.3.8888.3.1.2
+::= { requestStatisticsDataEntry 2 }
 
 
 nOfSamplesStatistics OBJECT-TYPE
@@ -1447,21 +1402,8 @@ nOfSamplesStatistics OBJECT-TYPE
 	STATUS  current
 	DESCRIPTION
 		"This object will store the number of samples recorded"
-	-- 1.3.6.1.3.8888.3.1.6
-::= { requestStatisticsDataEntry 6 }
-
-
-statusStatistics OBJECT-TYPE
-	SYNTAX  INTEGER {
-			off(0),
-			on(1),
-			set(2) }
-	MAX-ACCESS read-write
-	STATUS  current
-	DESCRIPTION
-		"This object will identify the current status of a request"
-	-- 1.3.6.1.3.8888.3.1.10
-::= { requestStatisticsDataEntry 10 }
+	-- 1.3.6.1.3.8888.3.1.3
+::= { requestStatisticsDataEntry 3 }
 
 
 requestStatisticsDataTable OBJECT-TYPE

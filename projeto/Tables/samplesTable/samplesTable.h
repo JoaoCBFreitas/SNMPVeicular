@@ -16,7 +16,9 @@ extern "C"
 #include <net-snmp/net-snmp-config.h>
 #include <net-snmp/library/container.h>
 #include <net-snmp/agent/table_array.h>
-
+#include <assert.h>
+#include <stdio.h>
+#include <time.h>
     /** Index sampleID is internal */
     typedef struct samplesStruct
     {
@@ -26,7 +28,6 @@ extern "C"
         int sampleValueID;
         int sampleFrequency;
         int previousSampleID;
-        int mapTypeSamplesID;
     } samplesStruct;
     typedef struct samplesTable_context_s
     {
@@ -39,7 +40,6 @@ extern "C"
         unsigned long sampleValueID;    /** UNSIGNED32 = ASN_UNSIGNED */
         unsigned long sampleFrequency;  /** UNSIGNED32 = ASN_UNSIGNED */
         unsigned long previousSampleID; /** UNSIGNED32 = ASN_UNSIGNED */
-        unsigned long mapTypeSamplesID; /** UNSIGNED32 = ASN_UNSIGNED */
         int valid;
         void *data;
 
@@ -54,7 +54,7 @@ extern "C"
     const samplesTable_context *samplesTable_get_by_idx_rs(netsnmp_index *,
                                                            int row_status);
     int samplesTable_get_value(netsnmp_request_info *, netsnmp_index *, netsnmp_table_request_info *);
-
+    int insertSamplesRow(samplesStruct*);
     /*************************************************************
  * oid declarations
  */
@@ -72,9 +72,8 @@ extern "C"
 #define COLUMN_SAMPLEVALUEID 4
 #define COLUMN_SAMPLEFREQUENCY 5
 #define COLUMN_PREVIOUSSAMPLEID 6
-#define COLUMN_MAPTYPESAMPLESID 7
 #define samplesTable_COL_MIN 1
-#define samplesTable_COL_MAX 7
+#define samplesTable_COL_MAX 6
 
 /* comment out the following line if you don't handle SET-REQUEST for samplesTable */
 #define samplesTable_SET_HANDLING
