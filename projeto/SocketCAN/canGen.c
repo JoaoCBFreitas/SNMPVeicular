@@ -140,16 +140,16 @@ int main(int argc, char **argv)
 		scanf("%d",&choice);
 		switch(choice){
 			case 1:
-				list=readDump("J1939/00002081_CAN.trc");
+				list=readDump("SocketCAN/J1939/00002081_CAN.trc");
 				break;
 			case 2:
-				list=readDump("J1939/00002082_CAN.trc");
+				list=readDump("SocketCAN/J1939/00002082_CAN.trc");
 				break;
 			case 3:
-				list=readDump("J1939/00002083_CAN.trc");
+				list=readDump("SocketCAN/J1939/00002083_CAN.trc");
 				break;
 			case 4:
-				list=readDump("J1939/00002084_CAN.trc");
+				list=readDump("SocketCAN/J1939/00002084_CAN.trc");
 				break;
 			default:
 				choice=-1;

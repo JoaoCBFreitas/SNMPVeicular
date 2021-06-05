@@ -17,6 +17,7 @@ extern "C"
 #include <net-snmp/library/container.h>
 #include <net-snmp/agent/table_array.h>
 #include "../../auxFunc.h"
+#include "../../SocketCAN/canReceive.h"
     /** Index mapTypeID is internal */
 
     typedef struct mapTypeTable_context_s
@@ -48,7 +49,7 @@ extern "C"
     const mapTypeTable_context *mapTypeTable_get_by_idx_rs(netsnmp_index *,
                                                            int row_status);
     int mapTypeTable_get_value(netsnmp_request_info *, netsnmp_index *, netsnmp_table_request_info *);
-
+    mapTypeTable_context* findRow(unsigned long );
     /*************************************************************
  * oid declarations
  */

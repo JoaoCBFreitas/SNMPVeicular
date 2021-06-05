@@ -1,53 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <math.h>
+#include "canReceive.h"
 
-#include <net/if.h>
-#include <sys/ioctl.h>
-#include <sys/socket.h>
-
-#include <linux/can.h>
-#include <linux/can/raw.h>
-typedef struct SG{
-	char name[32];
-	int bitStart;
-	int length;
-	int endian;
-	int signFlag;
-	double scale;
-	int offset;
-	double min;
-	double max;
-	char unit[10];
-	char receiver[128];
-}SG;
-typedef struct SG_List{
-	int capacity;
-	int current;
-	SG* list;
-}SG_List;
-typedef struct BO{
-	char id[32];
-	char name[128];
-	int length;
-	char sender[128];
-	SG_List* signals;
-}BO;
-typedef struct BO_List{
-	int current;
-	int capacity;
-	BO* list;
-}BO_List;
-
-typedef struct decodedCAN{
-	char name[128];
-	int signals;
-	char signalname[100][32];
-	double *value;
-	char unit[100][32];
-}decodedCAN;
 char* removeChar(char* s,char c){
 	int tam=strlen(s);
 	int j;
@@ -64,7 +16,7 @@ char* intToHex(int id){
 }
 int hexToInt(unsigned char* id){
 	long long decimal=0;
-	char* aux=malloc(2*sizeof(char));
+	char* aux=malloc(8*sizeof(char));
 	sprintf(aux,"%X",id[0]);
 	int i=0,val,len;
 	len=strlen(aux);
@@ -112,22 +64,6 @@ int binaryToDec(int* list,int n){
 	}	
 	return res;
 }
-void hexToBinary(int* binData,unsigned char* data){
-    int cont=0;
-    //Convert from char* Hex to int* bit array
-    for(int i=0;i<8;i++){
-        unsigned char *aux=malloc(sizeof(char));
-        *aux=data[i];
-        int a=hexToInt(aux);
-        free(aux);
-        int* b=decToBinary(a);
-        for(int j=0;j<8;j++){
-            binData[cont]=b[j];
-            cont++;
-        }
-        free(b);
-    }
-}
 int decodeData(int* binData,int start,int length,int endian){
     int binRes[length];
     //Get relevant bits
@@ -154,9 +90,26 @@ int decodeData(int* binData,int start,int length,int endian){
             aux[k+1]=hexFinal[i];
         }
         strcpy(hexFinal,aux);
+        
     }
 	hexFinal[tam]='\0';
 	return (int) strtoul(hexFinal,NULL,16);
+}
+void hexToBinary(int* binData,unsigned char* data){
+    int cont=0;
+    //Convert from char* Hex to int* bit array
+    for(int i=0;i<8;i++){
+        unsigned char *aux=malloc(sizeof(char));
+        *aux=data[i];
+        int a=hexToInt(aux);
+        free(aux);
+        int* b=decToBinary(a);
+        for(int j=0;j<8;j++){
+            binData[cont]=b[j];
+            cont++;
+        }
+        free(b);
+    }
 }
 decodedCAN* decode(unsigned char* id, int dlc,unsigned char data[],BO_List* boList,decodedCAN* dc){
 	int *binData=malloc(sizeof(int)*64);
@@ -170,17 +123,13 @@ decodedCAN* decode(unsigned char* id, int dlc,unsigned char data[],BO_List* boLi
 		/*29-bit identifier*/
 		for(int i=0;i<boList->current;i++){
 			if(strcmp(boList->list[i].id,id)==0){
-				printf("Encontrou %s ",id);
-				for(int j=0;j<8;j++){
-					printf("%02X ",data[j]);
-				}
-				printf("\n");
 				strcpy(dc->name,boList->list[i].name);
 				dc->name[strlen(boList->list[i].name)]='\0';
-				dc->value=malloc(sizeof(double)*boList->list[i].signals->current);
+				dc->value=malloc(sizeof(int)*boList->list[i].signals->current);
 				dc->signals=boList->list[i].signals->current;
 				for(int k=0;k<boList->list[i].signals->current;k++){
 					strcpy(dc->signalname[k],boList->list[i].signals->list[k].name);
+					
 					/*based of start bit and bit length, obtain relevant data from data PDU*/
 					int value=decodeData(binData,boList->list[i].signals->list[k].bitStart,boList->list[i].signals->list[k].length,boList->list[i].signals->list[k].endian);
 					double decodedValue=boList->list[i].signals->list[k].offset+boList->list[i].signals->list[k].scale*value;
@@ -270,6 +219,7 @@ BO* getBO(char* line){
 				/*Ids in dbc file appear to be offset by 254*/
 				idLine-=254;
 				/*Decode ID*/
+				res->messageID=idLine+254;
 				char *decodedID=unMask(idLine);
 				strcpy(res->id,decodedID);
 				break;
@@ -301,7 +251,7 @@ SG getSignal(char* line){
 	int j=0;
 	char s[1000];
 	char s1[1000];
-	char* unit="";
+	char* unit=malloc(sizeof(char)*1024);
 	while(token!=NULL){
 		switch(j){
 			case 0:
@@ -367,6 +317,8 @@ BO_List* readDBC(char* file){
 		if(strlen(line)==0) continue;
 		char bo_[5]="";
 		strncpy(bo_,line,4);
+		char *lineaux = malloc(sizeof(char)*100000);
+		strcpy(lineaux,line);
 		bo_[5]='\0';
 		if(strcmp(bo_,"BO_ ")==0){
 			BO* bo=getBO(line);
@@ -404,18 +356,107 @@ BO_List* readDBC(char* file){
 			}
 			boList->list[lastInserted].signals->list[nSignals]=signal;
 			boList->list[lastInserted].signals->current++;
+		}else if(strcmp(bo_,"CM_ ")==0){
+			//CM_ BO_ 2566739710 "Class C, Pending";
+			strtok(line, "\n");
+			char* token=strtok(line," ");
+			int j=0;
+			int flag=-1;
+			long messageID;
+			while(token!=NULL && j<3){
+				switch(j){
+					case 0:
+						break;
+					case 1:
+						if(strcmp(token,"BO_")==0){
+							flag=0;
+						}else if(strcmp(token,"SG_")==0){
+							flag=1;
+						}
+						break;
+					case 2:
+						if(flag==0){
+							messageID=atol(token);
+							for(int i=0;i<boList->current && flag==0;i++){
+								if(messageID==boList->list[i].messageID){
+									int k=0,f=0;
+									char aux[1024];
+									for(int k=0,j=0;k<strlen(lineaux) && f>=0 ;k++){
+										if(lineaux[k]!='\"' && f==0)
+											continue;
+										else if(lineaux[k]=='\"' && f==0){
+											f=1;
+										}else if(lineaux[k]!='\"' && f==1){
+											aux[j]=lineaux[k];
+											j++;
+										}else if(lineaux[k]=='\"' && f==1){
+											aux[j]='\0';
+											f=-1;
+										}
+									}
+									free(lineaux);
+									strcpy(boList->list[i].description,aux);
+									flag=-1;
+								}else{
+									continue;
+								}
+							}
+						}
+						if(flag==1){
+							messageID=atol(token);
+							token=strtok(NULL," ");
+							for(int i=0;i<boList->current && flag==1;i++){
+								if(messageID==boList->list[i].messageID){
+									for(int j=0;j<boList->list[i].signals->current && flag==1;j++){	
+										if(token!=NULL){				
+											if(strcmp(token,boList->list[i].signals->list[j].name)==0){
+												int k=0,f=0;
+												char aux[1024];
+												for(int k=0,j=0;k<strlen(lineaux) && f>=0 ;k++){
+													if(lineaux[k]!='\"' && f==0)
+														continue;
+													else if(lineaux[k]=='\"' && f==0){
+														f=1;
+													}else if(lineaux[k]!='\"' && f==1){
+														aux[j]=lineaux[k];
+														j++;
+													}else if(lineaux[k]=='\"' && f==1){
+														aux[j]='\0';
+														f=-1;
+													}
+												}
+												free(lineaux);
+												strcpy(boList->list[i].signals->list[j].description,aux);
+												flag=-1;
+											}else{
+												continue;
+											}
+										}
+									}
+								}
+							}
+						}
+						break;
+					default:
+						break;
+				}
+				token=strtok(NULL," ");
+				j++;
+			}
 		}
     }
+	for(int i=0;i<boList->current;i++)
+		for(int j=0;j<boList->list[i].signals->current;j++)
+			if(strlen(boList->list[i].signals->list[j].description)==0)
+				strcpy(boList->list[i].signals->list[j].description,"N/A");
     fclose(fp);
 	if(line)
     	free(line);
     return boList;
 }
-
-int main(int argc, char **argv)
+decodedCAN* parseCAN(BO_List* boList)
 {
-	/*Read dbc file and populate the structs above*/
-	BO_List* boList=readDBC("J1939/J1939.dbc");
+	decodedCAN* dc=(decodedCAN*)malloc(sizeof(decodedCAN));
 	int s, i; 
 	int nbytes;
 	struct sockaddr_can addr;
@@ -424,7 +465,7 @@ int main(int argc, char **argv)
 
 	if ((s = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0) {
 		perror("Socket");
-		return 1;
+		return NULL;
 	}
 
 	strcpy(ifr.ifr_name, "vcan0" );
@@ -436,40 +477,27 @@ int main(int argc, char **argv)
 
 	if (bind(s, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
 		perror("Bind");
-		return 1;
+		return NULL;
 	}
     while(1){
         nbytes = read(s, &frame, sizeof(struct can_frame));
 
         if (nbytes < 0) {
             perror("Read");
-            return 1;
+            return NULL;
         }
 		unsigned char data[frame.can_dlc];
 		/*frame.data is inverted for some reason*/
 		for (int j=0,i = frame.can_dlc-1; i >=0; i--,j++){
 			data[j]=frame.data[i];
 		}
-		
-		decodedCAN* dc=(decodedCAN*)malloc(sizeof(decodedCAN));
 		dc=decode(intToHex(frame.can_id),frame.can_dlc,data,boList,dc);
-		if(dc->signals!=0){
-			printf("Sensor-> %s\n",dc->name);
-			
-			for(int i=0;i<dc->signals;i++){
-				
-				printf("  %s:",dc->signalname[i]);
-				printf(" %f",dc->value[i]);
-				printf(" %s\n",dc->unit[i]);
-			}
-		}
-		free(dc);
     }
 
 	if (close(s) < 0) {
 		perror("Close");
-		return 1;
+		return NULL;
 	}
 
-	return 0;
+	return dc;
 }

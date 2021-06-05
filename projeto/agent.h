@@ -20,6 +20,7 @@
 #endif
 #include <signal.h>
 #include <stdio.h>
+#include <fcntl.h>
 #include <Tables/requestMonitoringDataTable/requestMonitoringDataTable.h>
 #include <Tables/errorTable/errorTable.h>
 #include <Tables/errorDescriptionTable/errorDescriptionTable.h>

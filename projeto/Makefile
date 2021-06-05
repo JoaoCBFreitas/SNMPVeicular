@@ -25,7 +25,6 @@ errorSensorTable=Tables/errorSensorTable
 
 
 
-
 OBJ=obj
 
 
@@ -42,6 +41,7 @@ all: $(TARGETS)
 
 agent:
 	mkdir obj
+	cd SocketCAN && $(MAKE) all && mv canReceive.o ../obj/ && mv generator ../
 	cd $(sampleUnitsTable) && $(MAKE) all && mv sampleUnitsTable.o ../../obj/
 	cd $(capabilitiesTable) && $(MAKE) all && mv capabilitiesTable.o ../../obj/
 	cd $(genericTypesTable) && $(MAKE) all && mv genericTypesTable.o ../../obj/
@@ -64,4 +64,4 @@ manager:
 	$(CC) $(CFLAGS) -o manager $(OBJ)/progManager.o $(BUILDLIBS)
 	rm -r obj
 clean:
-	rm $(TARGETS)
+	rm $(TARGETS) generator

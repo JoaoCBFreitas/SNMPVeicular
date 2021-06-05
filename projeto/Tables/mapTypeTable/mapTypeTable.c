@@ -42,6 +42,18 @@ static netsnmp_table_array_callbacks cb;
 const oid mapTypeTable_oid[] = {mapTypeTable_TABLE_OID};
 const size_t mapTypeTable_oid_len = OID_LENGTH(mapTypeTable_oid);
 
+/*This function will return the table with a certain id*/
+mapTypeTable_context* findRow(unsigned long id){
+    netsnmp_index index;
+    oid index_oid[2];
+    index_oid[0] = id;
+    index.oids = (oid *)&index_oid;
+    index.len = 1;
+    void*data=CONTAINER_FIND(cb.container,&index);
+    mapTypeTable_context* mapType=data;
+    return mapType;
+}
+
 #ifdef mapTypeTable_CUSTOM_SORT
 /************************************************************
  * keep binary tree to find context by name
@@ -168,19 +180,6 @@ void init_mapTypeTable(BO_List* boList)
         }
         int idGenericTypes=addToGenericTypes(&typesList,boList->list[i].messageID,boList->list[i].description);
         int idSampleUnits=addToSampleUnits(&sampleunitsList,boList->list[i].messageID,"");
-        index_oid[0] = inserted;
-        index.oids = (oid *)&index_oid;
-        index.len = 1;
-        ctx = NULL;
-        /* Search for it first. */
-        ctx = CONTAINER_FIND(cb.container, &index);
-        if (!ctx)
-        {
-            // No dice. We add the new row
-            ctx = mapTypeTable_create_row(&index, boList->list[i].name, "CAN 2.0", inserted, idGenericTypes, idSampleUnits, 0, 0, 0, 0);
-            CONTAINER_INSERT(cb.container, ctx);
-            inserted++;
-        }
     }
     errorDescrList *errorList = readErrorDescr(errorList);
     init_sampleUnitsTable(&sampleunitsList);

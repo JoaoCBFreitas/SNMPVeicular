@@ -24,6 +24,7 @@ extern "C"
 #include "../requestStatisticsDataTable/requestStatisticsDataTable.h"
 #include "../samplesTable/samplesTable.h"
 #include "../sampledValuesTable/sampledValuesTable.h"
+
     typedef struct requestMonitoringStruct
     {
         int reqID;
@@ -87,7 +88,7 @@ extern "C"
     const requestMonitoringDataTable_context *requestMonitoringDataTable_get_by_idx_rs(netsnmp_index *,
                                                                                        int row_status);
     int requestMonitoringDataTable_get_value(netsnmp_request_info *, netsnmp_index *, netsnmp_table_request_info *);
-    void checkTables(BO_List*);
+    void checkTables(BO_List*,decodedCAN*);
 
     /*************************************************************
  * oid declarations

@@ -92,7 +92,7 @@ requestMonitoringStruct* tableToStruct(requestMonitoringDataTable_context* reqMo
  * This Function will compare requestMonitoringDataTable with requestControlDataTable, to identify if and when modifications are made (sets/deletes).
  * Based on those results it will change the other tables.
  */
-void checkTables(BO_List* boList){
+void checkTables(BO_List* boList,decodedCAN* dc){
     netsnmp_iterator *it;
     netsnmp_index index;
     oid index_oid[2];
@@ -113,8 +113,6 @@ void checkTables(BO_List* boList){
                 exit;
             else
                 printf("Control inserted\n");
-            /*TODO Insert a afetar o samples Tables*/
-
             exit;
         }else{
             if(reqMonitoring->requestID==reqControl->requestControlID && reqMonitoring->status!=reqControl->statusControl){
@@ -132,15 +130,52 @@ void checkTables(BO_List* boList){
                 break;
             case 1:
                 /*Request is active, read data from CAN interface*/
-                
-                /*SampledValuesTable
+                if(TRUE){
+                    mapTypeTable_context* mapType=findRow(reqMonitoring->requestMapID);
+                    if(mapType!=NULL){
+                        printf("AAA %s\n",dc->name);
+                    }
+ 
+                    /*Read CAN interface, create sampledValuesTables and then create sampleTable
+                    Finnaly update requestMonitoringDataTable values if necessary*/
+                    /*SampledValuesTable
                     sampledValueID
                     relatedSampleValue
                     sampleType
                     sampleRecordedValue
                     nOfSampledValues
                     mapTypeSamplesID
-                */
+                    */
+                   /*
+                    void* data2;
+                    int firstEmptyID=1;
+                    for(data2=ITERATOR_FIRST(it);data2;data2=ITERATOR_NEXT(it)){
+                        samplesTable_context *samplesTable =data2;
+                        if(samplesTable!=NULL)
+                            firstEmptyID=samplesTable->sampleID+1;
+                    }
+                    time_t t=time(NULL);
+                    struct tm *tm=localtime(&t);
+                    char s[64];
+                    assert(strftime(s,sizeof(s),"%c",tm));
+
+                    samplesStruct* sStruct=(samplesStruct*)malloc(sizeof(samplesStruct));
+                    sStruct->sampleID=firstEmptyID;
+                    sStruct->requestSampleID=reqMonitoring->requestID;
+                    sStruct->timestamp=malloc(sizeof(char)*64);
+                    strcpy(sStruct->timestamp,s);
+                    sStruct->sampleValueID=0;
+                    sStruct->sampleFrequency=0;
+                    sStruct->previousSampleID=0;
+                    int insertSamples=insertSamplesRow(sStruct);
+                    free(sStruct);
+                    if(insertSamples==0){
+                        printf("SamplesInserted\n");
+                    }else{
+                        printf("Samples insertion failed");
+                    }
+                    */
+                }
                 break;
             case 2:
                 /*Row is in set mode*/
@@ -164,34 +199,6 @@ void checkTables(BO_List* boList){
                 }else
                     printf("No statistics\n");
 
-                void* data2;
-                int firstEmptyID=1;
-                for(data2=ITERATOR_FIRST(it);data2;data2=ITERATOR_NEXT(it)){
-                    samplesTable_context *samplesTable =data2;
-                    if(samplesTable!=NULL)
-                        firstEmptyID=samplesTable->sampleID+1;
-                }
-                time_t t=time(NULL);
-                struct tm *tm=localtime(&t);
-                char s[64];
-                assert(strftime(s,sizeof(s),"%c",tm));
-
-                samplesStruct* sStruct=(samplesStruct*)malloc(sizeof(samplesStruct));
-                sStruct->sampleID=firstEmptyID;
-                sStruct->requestSampleID=reqMonitoring->requestID;
-                sStruct->timestamp=malloc(sizeof(char)*64);
-                strcpy(sStruct->timestamp,s);
-                /*Fix SampleValueID && sampleFrequency*/
-                sStruct->sampleValueID=0;
-                sStruct->sampleFrequency=0;
-                sStruct->previousSampleID=0;
-                int insertSamples=insertSamplesRow(sStruct);
-                free(sStruct);
-                if(insertSamples==0){
-                    printf("SamplesInserted\n");
-                }else{
-                    printf("Statistics insertion failed");
-                }
                 reqStruct=tableToStruct(reqMonitoring,reqStruct);
                 requestMonitoringDataTable_create_row(&index,reqStruct);
                 break;
@@ -200,6 +207,7 @@ void checkTables(BO_List* boList){
                 break;
         }
     }
+    
     ITERATOR_RELEASE(it);
     free(reqStruct);
 }
@@ -302,7 +310,8 @@ void init_requestMonitoringDataTable(void)
 
     requestMonitoringStruct *req = (requestMonitoringStruct *)malloc(sizeof(requestMonitoringStruct));
     req->reqID = 0;
-    req->requestMapID = 1;
+    /*1937 até 1944*/
+    req->requestMapID = 1941;
     req->statisticsRequestID = 1;
     req->savingMode = 0;
     req->sampleFreq = 10;
