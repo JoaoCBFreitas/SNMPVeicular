@@ -94,4 +94,4 @@ SG getSignal(char* line);
 /*This function will read the dbc file and create all structs containg the decoding rules for CAN messages*/
 BO_List* readDBC(char* file);
 /*This function will read from the CAN interface and convert/convert CAN messages whose id matches the sensor given as input */
-decodedCAN* parseCAN(BO_List* boList);
+void parseCAN(BO_List* boList,int fd[]);

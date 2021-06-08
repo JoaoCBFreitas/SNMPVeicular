@@ -40,7 +40,7 @@ char* unMask(long id){
 	return res;
 }
 int* decToBinary(int n){
-    int *binaryNum=malloc(sizeof(int)*4);
+    static int binaryNum[4];
     int i=7;
 	if(n==0){
 		for(int j=0;j<8;j++){
@@ -108,7 +108,6 @@ void hexToBinary(int* binData,unsigned char* data){
             binData[cont]=b[j];
             cont++;
         }
-        free(b);
     }
 }
 decodedCAN* decode(unsigned char* id, int dlc,unsigned char data[],BO_List* boList,decodedCAN* dc){
@@ -454,9 +453,8 @@ BO_List* readDBC(char* file){
     	free(line);
     return boList;
 }
-decodedCAN* parseCAN(BO_List* boList)
+void parseCAN(BO_List* boList,int fd[])
 {
-	decodedCAN* dc=(decodedCAN*)malloc(sizeof(decodedCAN));
 	int s, i; 
 	int nbytes;
 	struct sockaddr_can addr;
@@ -465,7 +463,7 @@ decodedCAN* parseCAN(BO_List* boList)
 
 	if ((s = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0) {
 		perror("Socket");
-		return NULL;
+		exit(0);
 	}
 
 	strcpy(ifr.ifr_name, "vcan0" );
@@ -477,14 +475,15 @@ decodedCAN* parseCAN(BO_List* boList)
 
 	if (bind(s, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
 		perror("Bind");
-		return NULL;
+		exit(0);
 	}
     while(1){
+		decodedCAN* dc=(decodedCAN*)malloc(sizeof(decodedCAN));
         nbytes = read(s, &frame, sizeof(struct can_frame));
 
         if (nbytes < 0) {
             perror("Read");
-            return NULL;
+            exit(0);
         }
 		unsigned char data[frame.can_dlc];
 		/*frame.data is inverted for some reason*/
@@ -492,12 +491,12 @@ decodedCAN* parseCAN(BO_List* boList)
 			data[j]=frame.data[i];
 		}
 		dc=decode(intToHex(frame.can_id),frame.can_dlc,data,boList,dc);
+		write(fd[1],dc,sizeof(decodedCAN));
+		free(dc);
     }
 
 	if (close(s) < 0) {
 		perror("Close");
-		return NULL;
+		exit(0);
 	}
-
-	return dc;
 }

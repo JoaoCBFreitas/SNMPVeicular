@@ -69,29 +69,30 @@ int main(int argc, char **argv)
     keep_running = 1;
     signal(SIGTERM, stop_server);
     signal(SIGINT, stop_server);
-    decodedCAN* dc;
+    ssize_t r=0;
     //child process to decode CAN messages
     pid_t canDecoder;
     int fd[2];
     if(pipe(fd)<0)
         exit(1);
+
     canDecoder=fork();
-    if(fcntl(fd[0],F_SETFL,O_NONBLOCK)<0)
-        exit(2);
     /* you're main loop here... */
-    while (keep_running)
-    {
-        if(canDecoder==0){
-            decodedCAN* dc=parseCAN(boList);
-            close(fd[0]);
-            close(1);
-            dup(fd[1]);
-            write(1,dc,sizeof(dc));
-        }else{
+    if(canDecoder==0){
+        parseCAN(boList,fd);
+    }else{
+        while (keep_running)
+        {
             /* if you use select(), see snmp_select_info() in snmp_api(3) */
             /*     --- OR ---  */
-            agent_check_and_process(1); /* 0 == don't block */
-            checkTables(boList,dc);
+            agent_check_and_process(0); /* 0 == don't block */
+            decodedCAN dc;
+            int retval=fcntl(fd[0],F_SETFL,fcntl(fd[0],F_GETFL)| O_NONBLOCK);
+            r=read(fd[0],&dc,sizeof(decodedCAN));
+            if(r<=0){
+                dc.signals=-1;
+            }
+            checkTables(boList,&dc);
         }
     }    
     /* at shutdown time */

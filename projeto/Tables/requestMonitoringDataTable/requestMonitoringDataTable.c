@@ -130,12 +130,13 @@ void checkTables(BO_List* boList,decodedCAN* dc){
                 break;
             case 1:
                 /*Request is active, read data from CAN interface*/
-                if(TRUE){
+                if(dc->signals>0){
                     mapTypeTable_context* mapType=findRow(reqMonitoring->requestMapID);
-                    if(mapType!=NULL){
-                        printf("AAA %s\n",dc->name);
+                    if(mapType!=NULL ){
+                        /*verifica se o sinal foi pedido, se sim adiciona à tabela, se não ignora*/
+                        printf(" ");
                     }
- 
+                    printf("%s\n",dc->name);
                     /*Read CAN interface, create sampledValuesTables and then create sampleTable
                     Finnaly update requestMonitoringDataTable values if necessary*/
                     /*SampledValuesTable
