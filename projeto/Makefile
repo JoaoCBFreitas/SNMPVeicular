@@ -39,7 +39,7 @@ DLFLAGS=-fPIC -shared
 
 all: $(TARGETS)
 
-agent:
+agent: agent.c agent.h Makefile
 	mkdir obj
 	cd SocketCAN && $(MAKE) all && mv canReceive.o ../obj/ && mv generator ../
 	cd $(sampleUnitsTable) && $(MAKE) all && mv sampleUnitsTable.o ../../obj/
@@ -58,10 +58,10 @@ agent:
 	$(CC) $(CFLAGS) -o $(OBJ)/progAgent.o $(BUILDAGENTLIBS) -c agent.c
 	$(CC) $(CFLAGS) -o agent $(OBJ)/*.o $(BUILDAGENTLIBS)
 	rm -r obj
-manager: 
+manager: manager.c manager.h Makefile
 	mkdir obj
 	$(CC) $(CFLAGS) -o $(OBJ)/progManager.o $(BUILDLIBS) -c manager.c	
 	$(CC) $(CFLAGS) -o manager $(OBJ)/progManager.o $(BUILDLIBS)
 	rm -r obj
 clean:
-	rm $(TARGETS) generator
+	rm $(TARGETS) generator -r obj

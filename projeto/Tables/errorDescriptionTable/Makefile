@@ -10,5 +10,5 @@ DLFLAGS=-fPIC -shared
 
 all: $(TARGETS)
 
-errorDescriptionTable.o: errorDescriptionTable.c Makefile
+errorDescriptionTable.o: errorDescriptionTable.c errorDescriptionTable.h Makefile
 		$(CC) $(CFLAGS) $(DLFLAGS) -c -o errorDescriptionTable.o errorDescriptionTable.c

@@ -173,7 +173,7 @@ void init_mapTypeTable(BO_List* boList)
             if (!ctx)
             {
                 // No dice. We add the new row
-                ctx = mapTypeTable_create_row(&index, boList->list[i].name, "CAN 2.0", inserted, idGenericTypes, idSampleUnits, 0, 0, 0, 0);
+                ctx = mapTypeTable_create_row(&index, boList->list[i].signals->list[j].name, "CAN 2.0", inserted, idGenericTypes, idSampleUnits, 0, 0, 0, 0);
                 CONTAINER_INSERT(cb.container, ctx);
                 inserted++;
             }

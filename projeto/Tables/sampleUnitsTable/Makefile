@@ -11,6 +11,5 @@ DLFLAGS=-fPIC -shared
 all: $(TARGETS)
 
 
-sampleUnitsTable.o: sampleUnitsTable.c Makefile
+sampleUnitsTable.o: sampleUnitsTable.c sampleUnitsTable.h Makefile
 		$(CC) $(CFLAGS) $(DLFLAGS) -c -o sampleUnitsTable.o sampleUnitsTable.c
-#		$(CC) $(CFLAGS) $(DLFLAGS) -o sampleUnitsTable.so sampleUnitsTable.o

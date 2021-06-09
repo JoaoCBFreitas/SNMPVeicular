@@ -41,6 +41,27 @@ static netsnmp_table_array_callbacks cb;
 
 const oid requestStatisticsDataTable_oid[] = {requestStatisticsDataTable_TABLE_OID};
 const size_t requestStatisticsDataTable_oid_len = OID_LENGTH(requestStatisticsDataTable_oid);
+/*This function will convert from requestStatisticsDataTable_context to statisticsStruct*/
+statisticsStruct* convertStatStruct(requestStatisticsDataTable_context* statStruct,statisticsStruct* sS){
+    sS->avgValue=statStruct->avgValue;
+    sS->nOfSamples=statStruct->nOfSamplesStatistics;
+    sS->duration=malloc(sizeof(char)*statStruct->durationTimeStatistics_len);
+    strcpy(sS->duration,statStruct->durationTimeStatistics);
+    sS->minValue=statStruct->minValue;
+    sS->maxValue=statStruct->maxValue;
+    sS->statID=statStruct->statisticsID;    
+    return sS;
+}
+/*Given an ID, this function will return a row with that ID*/
+void* getStatisticsTable(long unsigned int id){
+    netsnmp_index index;
+    oid index_oid[2];
+    index_oid[0] = id;
+    index.oids = (oid *)&index_oid;
+    index.len = 1;
+    void *data=CONTAINER_FIND(cb.container,&index);
+    return data;
+}
 /************************************************************
  * This function inserts a statisticsStruct into the requestStatisticsDataTable
  */

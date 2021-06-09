@@ -10,6 +10,5 @@ DLFLAGS=-fPIC -shared
 
 all: $(TARGETS)
 
-genericTypesTable.o: genericTypesTable.c Makefile
+genericTypesTable.o: genericTypesTable.c genericTypesTable.h Makefile
 		$(CC) $(CFLAGS) $(DLFLAGS) -c -o genericTypesTable.o genericTypesTable.c
-#		$(CC) $(CFLAGS) $(DLFLAGS) -o genericTypesTable.so genericTypesTable.o

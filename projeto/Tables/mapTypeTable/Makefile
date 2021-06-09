@@ -10,6 +10,5 @@ DLFLAGS=-fPIC -shared
 all: $(TARGETS)
 
 
-mapTypeTable.o: mapTypeTable.c Makefile
+mapTypeTable.o: mapTypeTable.c mapTypeTable.h Makefile
 		$(CC) $(CFLAGS) $(DLFLAGS) -c -o mapTypeTable.o mapTypeTable.c
-#		$(CC) $(CFLAGS) $(DLFLAGS) -o mapTypeTable.so mapTypeTable.o

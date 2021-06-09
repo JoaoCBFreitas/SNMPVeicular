@@ -55,6 +55,7 @@ extern "C"
                                                            int row_status);
     int samplesTable_get_value(netsnmp_request_info *, netsnmp_index *, netsnmp_table_request_info *);
     int insertSamplesRow(samplesStruct*);
+    int firstSampleEntry();
     /*************************************************************
  * oid declarations
  */

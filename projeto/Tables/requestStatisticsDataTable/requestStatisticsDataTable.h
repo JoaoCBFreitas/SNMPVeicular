@@ -54,6 +54,8 @@ extern "C"
                                                                                        int row_status);
     int requestStatisticsDataTable_get_value(netsnmp_request_info *, netsnmp_index *, netsnmp_table_request_info *);
     int insertStatisticsRow(statisticsStruct* );
+    void* getStatisticsTable(long unsigned int);
+    statisticsStruct* convertStatStruct(requestStatisticsDataTable_context* ,statisticsStruct* );
     /*************************************************************
  * oid declarations
  */

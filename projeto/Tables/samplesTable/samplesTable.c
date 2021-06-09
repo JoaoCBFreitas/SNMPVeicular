@@ -41,6 +41,23 @@ static netsnmp_table_array_callbacks cb;
 
 const oid samplesTable_oid[] = {samplesTable_TABLE_OID};
 const size_t samplesTable_oid_len = OID_LENGTH(samplesTable_oid);
+/*This function will return the first empty ID of samplesTable*/
+int firstSampleEntry(){
+    netsnmp_iterator *it;
+    void* data;
+    it=CONTAINER_ITERATOR(cb.container);
+    int res=0;
+    if(NULL==it){
+        return res;
+    }
+    res=1;
+    for(data=ITERATOR_FIRST(it);data;data=ITERATOR_NEXT(it)){
+        samplesTable_context *samplesTable =data;
+        if(samplesTable!=NULL)
+            res=samplesTable->sampleID+1;
+    }
+    return res;
+}
 /************************************************************
  * This function inserts a samplesStruct into the samplesTable
  */

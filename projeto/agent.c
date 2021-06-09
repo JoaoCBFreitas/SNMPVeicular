@@ -1,11 +1,13 @@
 #include <agent.h>
 
 static int keep_running;
-
+//child process to decode CAN messages
+pid_t canDecoder=-1;
 RETSIGTYPE
 stop_server(int a)
 {
     keep_running = 0;
+    kill(canDecoder,SIGKILL);
 }
 int main(int argc, char **argv)
 {
@@ -69,9 +71,8 @@ int main(int argc, char **argv)
     keep_running = 1;
     signal(SIGTERM, stop_server);
     signal(SIGINT, stop_server);
+    signal(SIGCHLD,SIG_IGN);
     ssize_t r=0;
-    //child process to decode CAN messages
-    pid_t canDecoder;
     int fd[2];
     if(pipe(fd)<0)
         exit(1);
@@ -83,6 +84,7 @@ int main(int argc, char **argv)
     }else{
         while (keep_running)
         {
+            checkTables();
             /* if you use select(), see snmp_select_info() in snmp_api(3) */
             /*     --- OR ---  */
             agent_check_and_process(0); /* 0 == don't block */
@@ -91,8 +93,9 @@ int main(int argc, char **argv)
             r=read(fd[0],&dc,sizeof(decodedCAN));
             if(r<=0){
                 dc.signals=-1;
+            }else{
+                checkSamples(boList,&dc);
             }
-            checkTables(boList,&dc);
         }
     }    
     /* at shutdown time */

@@ -11,5 +11,5 @@ DLFLAGS=-fPIC -shared
 all: $(TARGETS)
 
 
-requestMonitoringDataTable.o: requestMonitoringDataTable.c Makefile
+requestMonitoringDataTable.o: requestMonitoringDataTable.c requestMonitoringDataTable.h Makefile
 		$(CC) $(CFLAGS) $(DLFLAGS) -c -o requestMonitoringDataTable.o requestMonitoringDataTable.c

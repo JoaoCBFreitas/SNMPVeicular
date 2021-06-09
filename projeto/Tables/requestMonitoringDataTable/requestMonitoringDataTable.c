@@ -89,10 +89,123 @@ requestMonitoringStruct* tableToStruct(requestMonitoringDataTable_context* reqMo
     return reqStruct;
 }
 /**
- * This Function will compare requestMonitoringDataTable with requestControlDataTable, to identify if and when modifications are made (sets/deletes).
- * Based on those results it will change the other tables.
+ * This Function will check if the decodedCan message has a request already set for it. If so it will add/edit entries into the MIB
  */
-void checkTables(BO_List* boList,decodedCAN* dc){
+void checkSamples(BO_List* boList,decodedCAN* dc){
+    netsnmp_iterator *it;
+    netsnmp_index index;
+    oid index_oid[2];
+    void* data;
+    requestMonitoringStruct * reqStruct=(requestMonitoringStruct*)malloc(sizeof(requestMonitoringStruct));
+    it=CONTAINER_ITERATOR(cb.container);
+    if(NULL==it){
+        exit;
+    }
+    /*Inserçoes no requestStatistics/requestMonitoring estao a falhar*/
+    for(data=ITERATOR_FIRST(it);data;data=ITERATOR_NEXT(it)){
+        requestMonitoringDataTable_context *reqMonitoring =data;
+        index_oid[0] = reqMonitoring->requestID;
+        index.oids = (oid *)&index_oid;
+        index.len = 1;
+        mapTypeTable_context* mapType;
+        char unit[32];
+        double value;
+        switch(reqMonitoring->status){
+            case 0:
+                break;
+            case 1:
+                /*Request is active, read data from CAN interface*/
+                mapType=findRow(reqMonitoring->requestMapID);
+                if(mapType!=NULL){
+                    for(int i=0;i<dc->signals;i++){
+                        if(strcmp(mapType->dataSource,dc->signalname[i])==0){
+                            samplesStruct* ss=(samplesStruct*)malloc(sizeof(samplesStruct));
+                            int firstSampleTableEmptyID=firstSampleEntry();
+                            int firstSampledValuesEntry=firstSampledEntry();
+                            ss->sampleID=firstSampleTableEmptyID;
+                            ss->previousSampleID=reqMonitoring->lastSampleID;
+                            ss->requestSampleID=reqMonitoring->requestID;
+                            ss->sampleFrequency=reqMonitoring->samplingFrequency;
+                            ss->sampleValueID=firstSampledValuesEntry;
+                            ss->timestamp=malloc(sizeof(char)*64);
+                            time_t t=time(NULL);
+                            struct tm *tm=localtime(&t);
+                            char s[64];
+                            assert(strftime(s,sizeof(s),"%c",tm));
+                            strcpy(ss->timestamp,s);
+                            int insertSamples=insertSamplesRow(ss);
+                            free(ss);
+                            if(insertSamples==0){
+                                printf("SamplesInserted\n");
+                            }else{
+                                printf("Samples insertion failed\n");
+                            }
+                            /*Add sampledStruct*/
+                            sampledStruct* svs=(sampledStruct*)malloc(sizeof(sampledStruct));
+                            svs->nOfsampledValues=dc->signals;
+                            svs->mapTypeSamplesID=mapType->mapTypeID;
+                            svs->relatedSampleValue=0;
+                            svs->sampledValueID=firstSampledValuesEntry;
+                            svs->sampleRecordedValue=dc->value[i];
+                            svs->sampleType=1;
+
+                            int insertSampledValue=insertSampledValuesRow(svs);
+                            free(svs);
+                            if(insertSamples==0){
+                                printf("SampledValue Inserted, %f\n",dc->value[i]);
+                            }else{
+                                printf("SampledValue insertion failed\n");
+                            }
+                            
+                            /*Update requestStatisticsDataTable*/
+                            if(reqMonitoring->requestStatisticsID!=0){
+                                requestStatisticsDataTable_context *statStruct=getStatisticsTable(reqMonitoring->requestStatisticsID);
+                                statisticsStruct* sS=(statisticsStruct*)malloc(sizeof(statisticsStruct));
+                                sS=convertStatStruct(statStruct,sS);
+                                if(sS->maxValue<dc->value[i])
+                                    sS->maxValue=dc->value[i];
+                                else
+                                    if(sS->minValue>dc->value[i])
+                                        sS->minValue=dc->value[i];
+                                double total=sS->avgValue*sS->nOfSamples;
+                                total+=dc->value[i];
+                                sS->nOfSamples+=1;
+                                sS->avgValue=total;
+                                int inserted=insertStatisticsRow(sS);
+                                if(inserted!=0){
+                                    printf("Statistics updated\n");
+                                }else{
+                                    printf("Statistics update failed\n");
+                                }
+                                free(sS);
+                            }
+                            /*Update requestMonitoringDataTable*/
+                            reqStruct=tableToStruct(reqMonitoring,reqStruct);
+                            reqStruct->lastSampleID=firstSampleTableEmptyID;
+                            reqStruct->nofSamples+=1;
+                            if(reqStruct->nofSamples==reqStruct->maxNofSamples){
+                                reqStruct->status=2;
+                            }
+                            requestMonitoringDataTable_create_row(&index,reqStruct);
+                            /*TODO requestControl(depende se fizer alteraçoes ou nao)*/
+                        }
+                    }
+                }
+                break;
+            case 2:
+                break;
+            default:
+                printf("Undefined status\n");
+                break;
+        }
+    }
+    ITERATOR_RELEASE(it);
+    free(reqStruct);
+}
+/**
+ * This Function will compare requestMonitoringDataTable with requestControlDataTable, to identify if and when modifications are made (sets/deletes).
+ */
+void checkTables(){
     netsnmp_iterator *it;
     netsnmp_index index;
     oid index_oid[2];
@@ -129,54 +242,6 @@ void checkTables(BO_List* boList,decodedCAN* dc){
                 /*Delete all rows related to this row*/
                 break;
             case 1:
-                /*Request is active, read data from CAN interface*/
-                if(dc->signals>0){
-                    mapTypeTable_context* mapType=findRow(reqMonitoring->requestMapID);
-                    if(mapType!=NULL ){
-                        /*verifica se o sinal foi pedido, se sim adiciona à tabela, se não ignora*/
-                        printf(" ");
-                    }
-                    printf("%s\n",dc->name);
-                    /*Read CAN interface, create sampledValuesTables and then create sampleTable
-                    Finnaly update requestMonitoringDataTable values if necessary*/
-                    /*SampledValuesTable
-                    sampledValueID
-                    relatedSampleValue
-                    sampleType
-                    sampleRecordedValue
-                    nOfSampledValues
-                    mapTypeSamplesID
-                    */
-                   /*
-                    void* data2;
-                    int firstEmptyID=1;
-                    for(data2=ITERATOR_FIRST(it);data2;data2=ITERATOR_NEXT(it)){
-                        samplesTable_context *samplesTable =data2;
-                        if(samplesTable!=NULL)
-                            firstEmptyID=samplesTable->sampleID+1;
-                    }
-                    time_t t=time(NULL);
-                    struct tm *tm=localtime(&t);
-                    char s[64];
-                    assert(strftime(s,sizeof(s),"%c",tm));
-
-                    samplesStruct* sStruct=(samplesStruct*)malloc(sizeof(samplesStruct));
-                    sStruct->sampleID=firstEmptyID;
-                    sStruct->requestSampleID=reqMonitoring->requestID;
-                    sStruct->timestamp=malloc(sizeof(char)*64);
-                    strcpy(sStruct->timestamp,s);
-                    sStruct->sampleValueID=0;
-                    sStruct->sampleFrequency=0;
-                    sStruct->previousSampleID=0;
-                    int insertSamples=insertSamplesRow(sStruct);
-                    free(sStruct);
-                    if(insertSamples==0){
-                        printf("SamplesInserted\n");
-                    }else{
-                        printf("Samples insertion failed");
-                    }
-                    */
-                }
                 break;
             case 2:
                 /*Row is in set mode*/
@@ -190,8 +255,8 @@ void checkTables(BO_List* boList,decodedCAN* dc){
                     statStruct->statID=reqMonitoring->requestStatisticsID;
                     strcpy(statStruct->duration,reqMonitoring->durationTime);
                     statStruct->nOfSamples=0;
-                    statStruct->minValue=0;
-                    statStruct->maxValue=0;
+                    statStruct->minValue=9999;
+                    statStruct->maxValue=-999;
                     statStruct->avgValue=0;
                     int stat=insertStatisticsRow(statStruct);
                     free(statStruct);
@@ -322,7 +387,7 @@ void init_requestMonitoringDataTable(void)
     req->durationTime = "01:00:00";
     req->expireTime = "02:00:00";
     req->maxNofSamples = 100;
-    req->lastSampleID = 4;
+    req->lastSampleID = 0;
     req->loopmode = 1;
     req->nofSamples = 4;
     req->status = 2;

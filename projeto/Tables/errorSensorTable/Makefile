@@ -10,5 +10,5 @@ DLFLAGS=-fPIC -shared
 
 all: $(TARGETS)
 
-errorSensorTable.o: errorSensorTable.c Makefile
+errorSensorTable.o: errorSensorTable.c errorSensorTable.h Makefile
 		$(CC) $(CFLAGS) $(DLFLAGS) -c -o errorSensorTable.o errorSensorTable.c

@@ -10,6 +10,5 @@ DLFLAGS=-fPIC -shared
 
 all: $(TARGETS)
 
-capabilitiesTable.o: capabilitiesTable.c Makefile
+capabilitiesTable.o: capabilitiesTable.c capabilitiesTable.h Makefile
 		$(CC) $(CFLAGS) $(DLFLAGS) -c -o capabilitiesTable.o capabilitiesTable.c
-#		$(CC) $(CFLAGS) $(DLFLAGS) -o capabilitiesTable.so capabilitiesTable.o

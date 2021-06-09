@@ -23,7 +23,7 @@ extern "C"
         int sampledValueID;
         int relatedSampleValue;
         int sampleType;
-        int sampleRecordedValue;
+        double sampleRecordedValue;
         int nOfsampledValues;
         int mapTypeSamplesID;
     } sampledStruct;
@@ -50,7 +50,8 @@ extern "C"
     const sampledValuesTable_context *sampledValuesTable_get_by_idx_rs(netsnmp_index *,
                                                                        int row_status);
     int sampledValuesTable_get_value(netsnmp_request_info *, netsnmp_index *, netsnmp_table_request_info *);
-
+    int insertSampledValuesRow(sampledStruct*);
+    int firstSampledEntry();
     /*************************************************************
  * oid declarations
  */

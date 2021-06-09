@@ -41,7 +41,43 @@ static netsnmp_table_array_callbacks cb;
 
 const oid sampledValuesTable_oid[] = {sampledValuesTable_TABLE_OID};
 const size_t sampledValuesTable_oid_len = OID_LENGTH(sampledValuesTable_oid);
-
+/************************************************************
+ * This function inserts a sampledStruct into the sampledValuesTable
+ */
+int insertSampledValuesRow(sampledStruct* req){
+    sampledValuesTable_context *ctx;
+    netsnmp_index index;
+    oid index_oid[2];
+    index_oid[0] = req->sampledValueID;
+    index.oids = (oid *)&index_oid;
+    index.len = 1;
+    ctx = NULL;
+    /* Search for it first. */
+    ctx = CONTAINER_FIND(cb.container, &index);
+    if (!ctx)
+    {
+        // No dice. We add the new row
+        ctx = sampledValuesTable_create_row(&index, req);
+        CONTAINER_INSERT(cb.container, ctx);
+    }
+}
+/*This function will return the first empty ID of sampledValuesTable*/
+int firstSampledEntry(){
+    netsnmp_iterator *it;
+    void* data;
+    it=CONTAINER_ITERATOR(cb.container);
+    int res=0;
+    if(NULL==it){
+        return res;
+    }
+    res=1;
+    for(data=ITERATOR_FIRST(it);data;data=ITERATOR_NEXT(it)){
+        sampledValuesTable_context *sampledTable =data;
+        if(sampledTable!=NULL)
+            res=sampledTable->sampledValueID+1;
+    }
+    return res;
+}
 #ifdef sampledValuesTable_CUSTOM_SORT
 /************************************************************
  * keep binary tree to find context by name
@@ -133,29 +169,7 @@ sampledValuesTable_get(const char *name, int len)
  */
 void init_sampledValuesTable(void)
 {
-    sampledValuesTable_context *ctx;
-    netsnmp_index index;
-    oid index_oid[2];
     initialize_table_sampledValuesTable();
-    sampledStruct *req = (sampledStruct *)malloc(sizeof(sampledStruct));
-    req->sampledValueID = 0;
-    req->relatedSampleValue = 0;
-    req->sampleType = 1;
-    req->sampleRecordedValue = 120;
-    req->nOfsampledValues = 1;
-    req->mapTypeSamplesID=1;
-    index_oid[0] = 0;
-    index.oids = (oid *)&index_oid;
-    index.len = 1;
-    ctx = NULL;
-    /* Search for it first. */
-    ctx = CONTAINER_FIND(cb.container, &index);
-    if (!ctx)
-    {
-        // No dice. We add the new row
-        ctx = sampledValuesTable_create_row(&index, req);
-        CONTAINER_INSERT(cb.container, ctx);
-    }
 }
 
 /************************************************************
@@ -337,7 +351,6 @@ sampledValuesTable_context *sampledValuesTable_create_row(netsnmp_index *hdr, sa
     ctx->sampleRecordedValue = req->sampleRecordedValue;
     ctx->nOfSampledValues = (long unsigned int)req->nOfsampledValues;
     ctx->mapTypeSamplesID=(long unsigned int)req->mapTypeSamplesID;
-    printf("SampledValue inserida: %ld\n", ctx->sampledValueID);
     return ctx;
 }
 /**
