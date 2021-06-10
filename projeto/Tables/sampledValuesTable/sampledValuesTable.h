@@ -52,6 +52,8 @@ extern "C"
     int sampledValuesTable_get_value(netsnmp_request_info *, netsnmp_index *, netsnmp_table_request_info *);
     int insertSampledValuesRow(sampledStruct*);
     int firstSampledEntry();
+    int deleteSampledEntry(int);
+    sampledValuesTable_context* getSampledEntry(int);
     /*************************************************************
  * oid declarations
  */

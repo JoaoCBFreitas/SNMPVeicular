@@ -68,7 +68,7 @@ extern "C"
     int requestControlDataTable_get_value(netsnmp_request_info *, netsnmp_index *, netsnmp_table_request_info *);
     void* getControlTableID(long unsigned int);
     int insertControlRow(requestStruct *);
-
+    int deleteControlEntry(int);
     /*************************************************************
  * oid declarations
  */

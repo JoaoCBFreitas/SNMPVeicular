@@ -1140,7 +1140,8 @@ status OBJECT-TYPE
 	SYNTAX  INTEGER {
 			off(0),
 			on(1),
-			set(2) }
+			set(2),
+			delete(3) }
 	MAX-ACCESS read-create
 	STATUS  current
 	DESCRIPTION

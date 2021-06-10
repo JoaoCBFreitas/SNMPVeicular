@@ -41,6 +41,43 @@ static netsnmp_table_array_callbacks cb;
 
 const oid sampledValuesTable_oid[] = {sampledValuesTable_TABLE_OID};
 const size_t sampledValuesTable_oid_len = OID_LENGTH(sampledValuesTable_oid);
+
+/*This function will return an entry from sampledValuesTable by it's id*/
+sampledValuesTable_context* getSampledEntry(int id){
+    sampledValuesTable_context *ctx;
+    netsnmp_index index;
+    oid index_oid[2];
+    index_oid[0] = id;
+    index.oids = (oid *)&index_oid;
+    index.len = 1;
+    ctx = NULL;
+    ctx = CONTAINER_FIND(cb.container, &index);
+    return ctx;
+}
+/*This function will delete an entry from sampledValuesTable*/
+int deleteSampledEntry(int id){
+    sampledValuesTable_context *ctx;
+    netsnmp_index index;
+    oid index_oid[2];
+    index_oid[0] = id;
+    index.oids = (oid *)&index_oid;
+    index.len = 1;
+    ctx = NULL;
+    /* Search for it first. */
+    ctx = CONTAINER_FIND(cb.container, &index);
+    if (ctx)
+    {
+        CONTAINER_REMOVE(cb.container,&index);
+        sampledValuesTable_delete_row(ctx);
+    }else{
+        return 2;
+    }
+    ctx = CONTAINER_FIND(cb.container, &index);
+    if(ctx)
+        return 1;
+    else
+        return 0;
+}
 /************************************************************
  * This function inserts a sampledStruct into the sampledValuesTable
  */
@@ -428,4 +465,23 @@ int sampledValuesTable_extract_index(sampledValuesTable_context *ctx, netsnmp_in
     snmp_reset_var_buffers(&var_sampledValueID);
 
     return err;
+}
+/************************************************************
+ * the *_delete_row method is called to delete a row.
+ */
+netsnmp_index *sampledValuesTable_delete_row(sampledValuesTable_context *ctx)
+{
+    /* netsnmp_mutex_destroy(ctx->lock); */
+    /*
+    if (ctx->index.oids)
+        free(ctx->index.oids);
+    */
+    free(ctx->data);
+
+    /*
+     * release header
+     */
+    free(ctx);
+
+    return NULL;
 }

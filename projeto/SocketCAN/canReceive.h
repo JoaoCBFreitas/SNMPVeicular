@@ -59,7 +59,7 @@ typedef struct decodedCAN{
 	char name[128];
 	int signals;
 	char signalname[100][32];
-	double *value;
+	double value[100];
 	char unit[100][32];
 }decodedCAN;
 

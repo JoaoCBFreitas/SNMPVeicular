@@ -41,6 +41,33 @@ static netsnmp_table_array_callbacks cb;
 
 const oid requestStatisticsDataTable_oid[] = {requestStatisticsDataTable_TABLE_OID};
 const size_t requestStatisticsDataTable_oid_len = OID_LENGTH(requestStatisticsDataTable_oid);
+/*This function will delete an entry from requestStatisticsDataTable*/
+int deleteStatisticsEntry(int id){
+    requestStatisticsDataTable_context *ctx;
+    netsnmp_index index;
+    oid index_oid[2];
+    index_oid[0] = id;
+    index.oids = (oid *)&index_oid;
+    index.len = 1;
+    ctx = NULL;
+    /* Search for it first. */
+    ctx = CONTAINER_FIND(cb.container, &index);
+    if (ctx)
+    {
+        CONTAINER_REMOVE(cb.container,&index);
+        requestStatisticsDataTable_delete_row(ctx);
+    }else{
+        return 2;
+    }
+    ctx = CONTAINER_FIND(cb.container, &index);
+    if(ctx)
+        return 1;
+    else
+        return 0;
+}
+
+
+
 /*This function will convert from requestStatisticsDataTable_context to statisticsStruct*/
 statisticsStruct* convertStatStruct(requestStatisticsDataTable_context* statStruct,statisticsStruct* sS){
     sS->avgValue=statStruct->avgValue;
@@ -76,9 +103,14 @@ int insertStatisticsRow(statisticsStruct* req)
     ctx = NULL;
     /* Search for it first. */
     ctx = CONTAINER_FIND(cb.container, &index);
-    if (!ctx)
-    {
-        // No dice. We add the new row
+    /*Delete previous entry if it already exists*/
+    if(ctx){
+        CONTAINER_REMOVE(cb.container,&index);
+        requestStatisticsDataTable_delete_row(ctx);
+        ctx = requestStatisticsDataTable_create_row(&index, req);
+        CONTAINER_INSERT(cb.container, ctx);
+        return 0;
+    }else{
         ctx = requestStatisticsDataTable_create_row(&index, req);
         CONTAINER_INSERT(cb.container, ctx);
         return 0;
@@ -345,9 +377,11 @@ requestStatisticsDataTable_duplicate_row(requestStatisticsDataTable_context *row
 netsnmp_index *requestStatisticsDataTable_delete_row(requestStatisticsDataTable_context *ctx)
 {
     /* netsnmp_mutex_destroy(ctx->lock); */
-
+    /*
     if (ctx->index.oids)
         free(ctx->index.oids);
+    */
+    free(ctx->data);
 
     /*
      * TODO: release any memory you allocated here...

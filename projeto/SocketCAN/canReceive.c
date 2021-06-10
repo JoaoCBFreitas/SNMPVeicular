@@ -124,7 +124,6 @@ decodedCAN* decode(unsigned char* id, int dlc,unsigned char data[],BO_List* boLi
 			if(strcmp(boList->list[i].id,id)==0){
 				strcpy(dc->name,boList->list[i].name);
 				dc->name[strlen(boList->list[i].name)]='\0';
-				dc->value=malloc(sizeof(int)*boList->list[i].signals->current);
 				dc->signals=boList->list[i].signals->current;
 				for(int k=0;k<boList->list[i].signals->current;k++){
 					strcpy(dc->signalname[k],boList->list[i].signals->list[k].name);

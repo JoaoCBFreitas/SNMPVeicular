@@ -56,6 +56,7 @@ extern "C"
     int insertStatisticsRow(statisticsStruct* );
     void* getStatisticsTable(long unsigned int);
     statisticsStruct* convertStatStruct(requestStatisticsDataTable_context* ,statisticsStruct* );
+    int deleteStatisticsEntry(int);
     /*************************************************************
  * oid declarations
  */

@@ -41,6 +41,42 @@ static netsnmp_table_array_callbacks cb;
 
 const oid samplesTable_oid[] = {samplesTable_TABLE_OID};
 const size_t samplesTable_oid_len = OID_LENGTH(samplesTable_oid);
+/*This function will return an entry from samplesTable by it's id*/
+samplesTable_context* getSampleEntry(int id){
+    samplesTable_context *ctx;
+    netsnmp_index index;
+    oid index_oid[2];
+    index_oid[0] = id;
+    index.oids = (oid *)&index_oid;
+    index.len = 1;
+    ctx = NULL;
+    ctx = CONTAINER_FIND(cb.container, &index);
+    return ctx;
+}
+/*This function will delete an entry from samplesTable*/
+int deleteSamplesEntry(int id){
+    samplesTable_context *ctx;
+    netsnmp_index index;
+    oid index_oid[2];
+    index_oid[0] = id;
+    index.oids = (oid *)&index_oid;
+    index.len = 1;
+    ctx = NULL;
+    /* Search for it first. */
+    ctx = CONTAINER_FIND(cb.container, &index);
+    if (ctx)
+    {
+        CONTAINER_REMOVE(cb.container,&index);
+        samplesTable_delete_row(ctx);
+    }else{
+        return 2;
+    }
+    ctx = CONTAINER_FIND(cb.container, &index);
+    if(ctx)
+        return 1;
+    else
+        return 0;
+}
 /*This function will return the first empty ID of samplesTable*/
 int firstSampleEntry(){
     netsnmp_iterator *it;
@@ -338,13 +374,11 @@ samplesTable_duplicate_row(samplesTable_context *row_ctx)
 netsnmp_index *samplesTable_delete_row(samplesTable_context *ctx)
 {
     /* netsnmp_mutex_destroy(ctx->lock); */
-
+    /*
     if (ctx->index.oids)
         free(ctx->index.oids);
-
-    /*
-     * TODO: release any memory you allocated here...
-     */
+    */
+    free(ctx->data);
 
     /*
      * release header

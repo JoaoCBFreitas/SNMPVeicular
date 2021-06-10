@@ -44,12 +44,6 @@ extern "C"
         int status;
 
     } requestMonitoringStruct;
-    typedef struct requestMonitoringList
-    {
-        int capacity;
-        int current;
-        requestMonitoringStruct *requestList;
-    } requestMonitoringList;
     /** Index requestID is internal */
 
     typedef struct requestMonitoringDataTable_context_s
@@ -90,7 +84,7 @@ extern "C"
     int requestMonitoringDataTable_get_value(netsnmp_request_info *, netsnmp_index *, netsnmp_table_request_info *);
     void checkTables();
     void checkSamples(BO_List*,decodedCAN*);
-
+    int deleteRequestEntry(requestMonitoringStruct *);
     /*************************************************************
  * oid declarations
  */
