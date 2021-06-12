@@ -324,23 +324,26 @@ void checkTables(){
             case 3:
                 /*Row is in Delete mode, delete this row and all other rows related to this one*/
                 /***********************Delete all samplesEntry***************************/
-                samplesTable=getSampleEntry(reqStruct->lastSampleID);
-                while(samplesTable->sampleID!=0){
-                    int aux=samplesTable->sampleID;
-                    /*****************Delete all sampledEntry***********/
-                    sampledValuesTable_context* sampledTable=getSampledEntry(samplesTable->sampleValueID);
-                    while(sampledTable->sampledValueID!=0){
-                        int aux2=sampledTable->sampledValueID;
-                        sampledTable=getSampledEntry(sampledTable->relatedSampleValue);
-                        delete=deleteSampledEntry(aux2);
-                        if(delete==0)
-                            printf("SampledValuesEntry deleted\n");
+                reqStruct=tableToStruct(reqMonitoring,reqStruct);
+                if(reqStruct->lastSampleID!=0){
+                    samplesTable=getSampleEntry(reqStruct->lastSampleID);
+                    while(samplesTable!=NULL){
+                        int aux=samplesTable->sampleID;
+                        /*****************Delete all sampledEntry***********/
+                        sampledValuesTable_context* sampledTable=getSampledEntry(samplesTable->sampleValueID);
+                        while(sampledTable!=NULL){
+                            int aux2=sampledTable->sampledValueID;
+                            sampledTable=getSampledEntry(sampledTable->relatedSampleValue);
+                            delete=deleteSampledEntry(aux2);
+                            if(delete!=0)
+                                printf("SampledValuesEntry deletion failed ID:%d\n",aux2);
+                        }
+                        /***************************************************/
+                        samplesTable=getSampleEntry(samplesTable->previousSampleID);
+                        delete=deleteSamplesEntry(aux);
+                        if(delete!=0)
+                            printf("SampleEntry deletion Failed ID:%d\n",aux);
                     }
-                    /***************************************************/
-                    samplesTable=getSampleEntry(samplesTable->previousSampleID);
-                    delete=deleteSamplesEntry(aux);
-                    if(delete==0)
-                         printf("SampleEntry deleted\n");
                 }
                 /*************************************************************************/
                 /*Delete requestStatisticsDataEntry*/
@@ -349,24 +352,18 @@ void checkTables(){
                     printf("Deletion of requestStatisticsDataEntry failed\n");
                 else if(delete==2)
                     printf("RequestStatisticsDataEntry not found\n");
-                else if(delete==0)
-                    printf("RequestStatisticsDataEntry deleted\n");
                 /*Delete requestControlDataEntry*/
                 delete=deleteControlEntry(reqStruct->reqID);
                 if(delete==1)
                     printf("Deletion of requestControlDataEntry failed\n");
                 else if(delete==2)
                     printf("RequestControlDataEntry not found\n");
-                else if(delete==0)
-                    printf("RequestControlDataEntry deleted\n");
                 /*Delete requestMonitoringDataEntry*/
                 delete=deleteRequestEntry(reqStruct);
                 if(delete==1)
                     printf("Deletion of requestMonitoringDataEntry failed\n");
                 else if(delete==2)
                     printf("RequestMonitoringDataEntry not found\n");
-                else if(delete==0)
-                    printf("RequestMonitorngDataEntry deleted\n");
 
                 break;
             default:
