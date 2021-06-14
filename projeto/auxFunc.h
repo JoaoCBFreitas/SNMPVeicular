@@ -11,6 +11,7 @@
 #include <net-snmp/agent/snmp_agent.h>
 #include <net-snmp/agent/snmp_vars.h>
 
+#include "Tables/errorSensorTable/errorSensorTable.h"
 #include "Tables/errorDescriptionTable/errorDescriptionTable.h"
 #include "Tables/sampleUnitsTable/sampleUnitsTable.h"
 #include "Tables/genericTypesTable/genericTypesTable.h"
@@ -23,5 +24,7 @@ int addToSampleUnits(sampleUnitsList *, long , char*);
   returning the index in which the generic type was inserted, 
   if the generic type is already in the list it will return its index*/
 int addToGenericTypes(genericTypeList *,long , char*);
-
-errorDescrList *readErrorDescr(errorDescrList *);
+/*This function will add a error description to a list of error descriptions, 
+  returning the index in which the error description was inserted, 
+  if the error description is already in the list it will return its index*/
+int addToErrorDescription(errorDescrList*, long,char*);

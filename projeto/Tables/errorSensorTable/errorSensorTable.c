@@ -41,6 +41,32 @@ static netsnmp_table_array_callbacks cb;
 
 const oid errorSensorTable_oid[] = {errorSensorTable_TABLE_OID};
 const size_t errorSensorTable_oid_len = OID_LENGTH(errorSensorTable_oid);
+/*
+    This function will add an id and description to the database
+*/
+void insertErrorSensorTable(int id, char* descr)
+{
+    errorSensorTable_context *ctx;
+    netsnmp_index index;
+    oid index_oid[2];
+    errorSensorStruct *req = (errorSensorStruct *)malloc(sizeof(errorSensorStruct));
+    req->errorSensorID = id;
+    req->errorSensorDescription=malloc(sizeof(char)*strlen(descr));
+    strcpy(req->errorSensorDescription,descr);
+    index_oid[0] = id;
+    index.oids = (oid *)&index_oid;
+    index.len = 1;
+    ctx = NULL;
+    /* Search for it first. */
+    ctx = CONTAINER_FIND(cb.container, &index);
+    if (!ctx)
+    {
+        // No dice. We add the new row
+        ctx = errorSensorTable_create_row(&index, req);
+        CONTAINER_INSERT(cb.container, ctx);
+    }
+}
+
 
 #ifdef errorSensorTable_CUSTOM_SORT
 /************************************************************

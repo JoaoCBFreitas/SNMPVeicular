@@ -1,50 +1,30 @@
 #include "auxFunc.h"
 
-errorDescrList *readErrorDescr(errorDescrList *samples)
-{
-    samples = (errorDescrList *)malloc(sizeof(errorDescrList));
-    samples->capacity = 1;
-    samples->current = 0;
-    samples->errorList = malloc(sizeof(errorDescrList));
-    FILE *fp;
-    char *line = NULL;
-    size_t len = 0;
-    ssize_t read;
-    fp = fopen("./Files/errorDescription.txt", "r");
-    if (fp == NULL)
-        exit(EXIT_FAILURE);
-    int i = 0;
-    while ((read = getline(&line, &len, fp)) != -1)
+int addToErrorDescription(errorDescrList* samples,long message,char* descr){
+    errorDescrStruct* aux=(errorDescrStruct*)malloc(sizeof(errorDescrStruct));
+    aux->errorDescrID=message;
+    aux->errorDescr=malloc(sizeof(char) * 65535);
+    strcpy(aux->errorDescr,descr);
+    if (samples->capacity == samples->current)
     {
-        errorDescrStruct *aux = (errorDescrStruct *)malloc(sizeof(errorDescrStruct));
-        aux->errorDescrID = i;
-        aux->errorDescr = malloc(sizeof(char) * 65535);
-        strtok(line, "\n");
-        strcpy(aux->errorDescr, line);
-        if (samples->capacity == samples->current)
+        errorDescrList *samples2 = (errorDescrList *)malloc(sizeof(errorDescrList));
+        samples2->capacity = samples->capacity * 2;
+        samples2->current = samples->current;
+        samples2->errorList = malloc(sizeof(errorDescrList) * samples2->capacity);
+        for (int j = 0; j < samples->current; j++)
         {
-            errorDescrList *samples2 = (errorDescrList *)malloc(sizeof(errorDescrList));
-            samples2->capacity = samples->capacity * 2;
-            samples2->current = samples->current;
-            samples2->errorList = malloc(sizeof(errorDescrStruct) * samples2->capacity);
-            for (int j = 0; j < samples->current; j++)
-            {
-                samples2->errorList[j] = samples->errorList[j];
-            }
-            samples->capacity = samples2->capacity;
-            samples->current = samples2->current;
-            samples->errorList = samples2->errorList;
-            free(samples2);
+            samples2->errorList[j] = samples->errorList[j];
         }
-        i++;
-        samples->errorList[samples->current] = *aux;
-        samples->current++;
+        samples->capacity = samples2->capacity;
+        samples->current = samples2->current;
+        samples->errorList = samples2->errorList;
+        free(samples2);
     }
-    fclose(fp);
-    if (line)
-        free(line);
-    return samples;
+    samples->errorList[samples->current] = *aux;
+    samples->current++;
+    return samples->current-1;
 }
+
 int addToSampleUnits(sampleUnitsList *samples, long message, char* unit)
 {
     for(int i=0;i<samples->current;i++){
