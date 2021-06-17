@@ -161,19 +161,19 @@ int main(int argc, char **argv)
 		frame.can_id=strtoul(list->list[i].id,NULL,16);
 		frame.can_dlc = list->list[i].dlc;
 		long unsigned int aux=strtoul(list->list[i].data,NULL,16);
-		printf("%lX\n",aux);
+		printf("%s %lX\n",list->list[i].id,aux);
 		memcpy(frame.data,&aux,sizeof(aux));
 		if (write(s, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame)) {
 			perror("Write");
 			return 1;
 		}
-		/*
+		
 		if(i<list->current-1){
 			int sleeptime=(int)((list->list[i+1].timestamp-list->list[i].timestamp)*1000000);
 			usleep(sleeptime);
 		}
-		*/
-		usleep(100000);
+		
+		//usleep(100000);
 		i++;
 	}
 

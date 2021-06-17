@@ -144,7 +144,7 @@ requestMonitoringStruct* tableToStruct(requestMonitoringDataTable_context* reqMo
 /**
  * This Function will check if the decodedCan message has a request already set for it. If so it will add/edit entries into the MIB
  */
-void checkSamples(BO_List* boList,decodedCAN* dc){
+void checkSamples(char* signalname,double value,int signals){
     netsnmp_iterator *it;
     netsnmp_index index;
     oid index_oid[2];
@@ -162,7 +162,6 @@ void checkSamples(BO_List* boList,decodedCAN* dc){
         index.len = 1;
         mapTypeTable_context* mapType;
         char unit[32];
-        double value;
         switch(reqMonitoring->status){
             case 0:
                 /*Row is in Off mode, do nothing*/
@@ -171,72 +170,69 @@ void checkSamples(BO_List* boList,decodedCAN* dc){
                 /*Row is in On mode, read data from CAN interface and add to tables*/
                 mapType=findRow(reqMonitoring->requestMapID);
                 if(mapType!=NULL){
-                    for(int i=0;i<dc->signals;i++){
-                        if(strcmp(mapType->dataSource,dc->signalname[i])==0){
-                            samplesStruct* ss=(samplesStruct*)malloc(sizeof(samplesStruct));
-                            int firstSampleTableEmptyID=firstSampleEntry();
-                            int firstSampledValuesEntry=firstSampledEntry();
-                            ss->sampleID=firstSampleTableEmptyID;
-                            ss->previousSampleID=reqMonitoring->lastSampleID;
-                            ss->requestSampleID=reqMonitoring->requestID;
-                            ss->sampleFrequency=reqMonitoring->samplingFrequency;
-                            ss->sampleValueID=firstSampledValuesEntry;
-                            ss->timestamp=malloc(sizeof(char)*64);
-                            time_t t=time(NULL);
-                            struct tm *tm=localtime(&t);
-                            char s[64];
-                            assert(strftime(s,sizeof(s),"%c",tm));
-                            strcpy(ss->timestamp,s);
-                            int insertSamples=insertSamplesRow(ss);
-                            free(ss);
-                            if(insertSamples!=0)
-                                printf("Samples insertion failed\n");
-                            /*Add sampledStruct*/
-                            sampledStruct* svs=(sampledStruct*)malloc(sizeof(sampledStruct));
-                            svs->nOfsampledValues=dc->signals;
-                            svs->mapTypeSamplesID=mapType->mapTypeID;
-                            svs->relatedSampleValue=0;
-                            svs->sampledValueID=firstSampledValuesEntry;
-                            svs->sampleRecordedValue=dc->value[i];
-                            svs->sampleType=1;
-
-                            int insertSampledValue=insertSampledValuesRow(svs);
-                            free(svs);
-                            if(insertSamples!=0)
-                                printf("SampledValue insertion failed\n");
-                            
-                            /*Update requestStatisticsDataTable*/
-                            if(reqMonitoring->requestStatisticsID!=0){
-                                requestStatisticsDataTable_context *statStruct=getStatisticsTable(reqMonitoring->requestStatisticsID);
-                                statisticsStruct* sS=(statisticsStruct*)malloc(sizeof(statisticsStruct));
-                                sS=convertStatStruct(statStruct,sS);
-                                if(sS->maxValue<dc->value[i])
-                                    sS->maxValue=dc->value[i];
-                                else
-                                    if(sS->minValue>dc->value[i])
-                                        sS->minValue=dc->value[i];
-                                double total=sS->avgValue*sS->nOfSamples;
-                                total+=dc->value[i];
-                                sS->nOfSamples+=1;
-                                sS->avgValue=total/sS->nOfSamples;
-                                int inserted=insertStatisticsRow(sS);
-                                if(inserted!=0){
-                                    printf("Statistics update failed\n");
-                                }
-                                free(sS);
+                    if(strcmp(mapType->dataSource,signalname)==0){
+                        samplesStruct* ss=(samplesStruct*)malloc(sizeof(samplesStruct));
+                        int firstSampleTableEmptyID=firstSampleEntry();
+                        int firstSampledValuesEntry=firstSampledEntry();
+                        ss->sampleID=firstSampleTableEmptyID;
+                        ss->previousSampleID=reqMonitoring->lastSampleID;
+                        ss->requestSampleID=reqMonitoring->requestID;
+                        ss->sampleFrequency=reqMonitoring->samplingFrequency;
+                        ss->sampleValueID=firstSampledValuesEntry;
+                        ss->timestamp=malloc(sizeof(char)*64);
+                        time_t t=time(NULL);
+                        struct tm *tm=localtime(&t);
+                        char s[64];
+                        assert(strftime(s,sizeof(s),"%c",tm));
+                        strcpy(ss->timestamp,s);
+                        int insertSamples=insertSamplesRow(ss);
+                        free(ss);
+                        if(insertSamples!=0)
+                            printf("Samples insertion failed\n");
+                        /*Add sampledStruct*/
+                        sampledStruct* svs=(sampledStruct*)malloc(sizeof(sampledStruct));
+                        svs->nOfsampledValues=signals;
+                        svs->mapTypeSamplesID=mapType->mapTypeID;
+                        svs->relatedSampleValue=0;
+                        svs->sampledValueID=firstSampledValuesEntry;
+                        svs->sampleRecordedValue=value;
+                        svs->sampleType=1;
+                        int insertSampledValue=insertSampledValuesRow(svs);
+                        free(svs);
+                        if(insertSamples!=0)
+                            printf("SampledValue insertion failed\n");
+                        
+                        /*Update requestStatisticsDataTable*/
+                        if(reqMonitoring->requestStatisticsID!=0){
+                            requestStatisticsDataTable_context *statStruct=getStatisticsTable(reqMonitoring->requestStatisticsID);
+                            statisticsStruct* sS=(statisticsStruct*)malloc(sizeof(statisticsStruct));
+                            sS=convertStatStruct(statStruct,sS);
+                            if(sS->maxValue<value)
+                                sS->maxValue=value;
+                            else
+                                if(sS->minValue>value)
+                                    sS->minValue=value;
+                            double total=sS->avgValue*sS->nOfSamples;
+                            total+=value;
+                            sS->nOfSamples+=1;
+                            sS->avgValue=total/sS->nOfSamples;
+                            int inserted=insertStatisticsRow(sS);
+                            if(inserted!=0){
+                                printf("Statistics update failed\n");
                             }
-                            /*Update requestMonitoringDataTable*/
-                            reqStruct=tableToStruct(reqMonitoring,reqStruct);
-                            reqStruct->lastSampleID=firstSampleTableEmptyID;
-                            reqStruct->nofSamples+=1;
-                            if(reqStruct->nofSamples==reqStruct->maxNofSamples){
-                                reqStruct->status=0;
-                                printf("Request %d finished\n",reqStruct->reqID);
-                            }
-                            int inserted=insertMonitoringRow(reqStruct);
-                            requestMonitoringDataTable_create_row(&index,reqStruct);
-                            /*TODO requestControl(depende se fizer alteraçoes ou nao)*/
+                            free(sS);
                         }
+                        /*Update requestMonitoringDataTable*/
+                        reqStruct=tableToStruct(reqMonitoring,reqStruct);
+                        reqStruct->lastSampleID=firstSampleTableEmptyID;
+                        reqStruct->nofSamples+=1;
+                        if(reqStruct->nofSamples==reqStruct->maxNofSamples){
+                            reqStruct->status=0;
+                            printf("Request %d finished\n",reqStruct->reqID);
+                        }
+                        int inserted=insertMonitoringRow(reqStruct);
+                        requestMonitoringDataTable_create_row(&index,reqStruct);
+                        /*TODO requestControl(depende se fizer alteraçoes ou nao)*/
                     }
                 }
                 break;
@@ -474,8 +470,8 @@ void init_requestMonitoringDataTable(void)
 
     requestMonitoringStruct *req = (requestMonitoringStruct *)malloc(sizeof(requestMonitoringStruct));
     req->reqID = 0;
-    /*1937 até 1944*/
-    req->requestMapID = 1941;
+    /*1894 até 1901*/
+    req->requestMapID = 1898;
     req->statisticsRequestID = 1;
     req->savingMode = 0;
     req->sampleFreq = 10;
@@ -662,19 +658,20 @@ void requestMonitoringDataTable_set_reserve1(netsnmp_request_group *rg)
         case COLUMN_REQUESTID:
             /** UNSIGNED32 = ASN_UNSIGNED */
             /* or possibly 'netsnmp_check_vb_int_range' */
-            rc = netsnmp_check_vb_int(var);
+            rc = netsnmp_check_vb_uint(var);
+            
             break;
 
         case COLUMN_REQUESTMAPID:
             /** UNSIGNED32 = ASN_UNSIGNED */
             /* or possibly 'netsnmp_check_vb_int_range' */
-            rc = netsnmp_check_vb_int(var);
+            rc = netsnmp_check_vb_uint(var);
             break;
 
         case COLUMN_REQUESTSTATISTICSID:
             /** UNSIGNED32 = ASN_UNSIGNED */
             /* or possibly 'netsnmp_check_vb_int_range' */
-            rc = netsnmp_check_vb_int(var);
+            rc = netsnmp_check_vb_uint(var);
             break;
 
         case COLUMN_SAVINGMODE:
@@ -686,7 +683,7 @@ void requestMonitoringDataTable_set_reserve1(netsnmp_request_group *rg)
         case COLUMN_SAMPLINGFREQUENCY:
             /** UNSIGNED32 = ASN_UNSIGNED */
             /* or possibly 'netsnmp_check_vb_int_range' */
-            rc = netsnmp_check_vb_int(var);
+            rc = netsnmp_check_vb_uint(var);
             break;
 
         case COLUMN_MAXDELAY:
@@ -697,14 +694,14 @@ void requestMonitoringDataTable_set_reserve1(netsnmp_request_group *rg)
 
         case COLUMN_STARTTIME:
             /** OBUDateandTime = ASN_OCTET_STR */
-            /* or possibly 'netsnmp_check_vb_int_range' */
+            /* or possibly 'netsnmp_check_vb_type_and_size' */
             rc = netsnmp_check_vb_type_and_max_size(var, ASN_OCTET_STR,
                                                     sizeof(row_ctx->startTime));
             break;
 
         case COLUMN_ENDTIME:
             /** OBUDateandTime = ASN_OCTET_STR */
-            /* or possibly 'netsnmp_check_vb_int_range' */
+            /* or possibly 'netsnmp_check_vb_type_and_size' */
             rc = netsnmp_check_vb_type_and_max_size(var, ASN_OCTET_STR,
                                                     sizeof(row_ctx->endTime));
             break;
@@ -726,13 +723,13 @@ void requestMonitoringDataTable_set_reserve1(netsnmp_request_group *rg)
         case COLUMN_MAXNOFSAMPLES:
             /** UNSIGNED32 = ASN_UNSIGNED */
             /* or possibly 'netsnmp_check_vb_int_range' */
-            rc = netsnmp_check_vb_int(var);
+            rc = netsnmp_check_vb_uint(var);
             break;
 
         case COLUMN_LASTSAMPLEID:
             /** UNSIGNED32 = ASN_UNSIGNED */
             /* or possibly 'netsnmp_check_vb_int_range' */
-            rc = netsnmp_check_vb_int(var);
+            rc = netsnmp_check_vb_uint(var);
             break;
 
         case COLUMN_LOOPMODE:
@@ -871,13 +868,13 @@ void requestMonitoringDataTable_set_reserve2(netsnmp_request_group *rg)
             break;
 
         case COLUMN_STARTTIME:
-            /**  =  */
+            /** OBUDateandTime = ASN_OCTET_STR */
             /*
                      * TODO: routine to check valid values
                      *
                      * EXAMPLE:
                      *
-                    * if ( *var->val.integer != XXX ) {
+                    * if ( XXX_check_value( var->val.string, XXX ) ) {
                 *    rc = SNMP_ERR_INCONSISTENTVALUE;
                 *    rc = SNMP_ERR_BADVALUE;
                 * }
@@ -885,13 +882,13 @@ void requestMonitoringDataTable_set_reserve2(netsnmp_request_group *rg)
             break;
 
         case COLUMN_ENDTIME:
-            /**  =  */
+            /** OBUDateandTime = ASN_OCTET_STR */
             /*
                      * TODO: routine to check valid values
                      *
                      * EXAMPLE:
                      *
-                    * if ( *var->val.integer != XXX ) {
+                    * if ( XXX_check_value( var->val.string, XXX ) ) {
                 *    rc = SNMP_ERR_INCONSISTENTVALUE;
                 *    rc = SNMP_ERR_BADVALUE;
                 * }
@@ -1173,11 +1170,11 @@ void requestMonitoringDataTable_set_commit(netsnmp_request_group *rg)
             break;
 
         case COLUMN_STARTTIME:
-            /**  =  */
+            /** OBUDateandTime = ASN_OCTET_STR */
             break;
 
         case COLUMN_ENDTIME:
-            /**  =  */
+            /** OBUDateandTime = ASN_OCTET_STR */
             break;
 
         case COLUMN_DURATIONTIME:
@@ -1265,11 +1262,11 @@ void requestMonitoringDataTable_set_free(netsnmp_request_group *rg)
             break;
 
         case COLUMN_STARTTIME:
-            /**  =  */
+            /** OBUDateandTime = ASN_OCTET_STR */
             break;
 
         case COLUMN_ENDTIME:
-            /**  =  */
+            /** OBUDateandTime = ASN_OCTET_STR */
             break;
 
         case COLUMN_DURATIONTIME:
@@ -1362,11 +1359,11 @@ void requestMonitoringDataTable_set_undo(netsnmp_request_group *rg)
             break;
 
         case COLUMN_STARTTIME:
-            /**  =  */
+            /** OBUDateandTime = ASN_OCTET_STR */
             break;
 
         case COLUMN_ENDTIME:
-            /**  =  */
+            /** OBUDateandTime = ASN_OCTET_STR */
             break;
 
         case COLUMN_DURATIONTIME:
@@ -1413,6 +1410,11 @@ requestMonitoringDataTable_context *requestMonitoringDataTable_create_row_defaul
         free(ctx);
         return NULL;
     }
+    ctx->status=2;
+    ctx->samplingFrequency=0;
+    ctx->maxDelay=0;
+    ctx->lastSampleID=0;
+    ctx->nOfSamples=0;
     ctx->startTime_len=0;
     ctx->endTime_len=0;
     ctx->expireTime_len=0;

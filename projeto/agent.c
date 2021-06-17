@@ -94,7 +94,9 @@ int main(int argc, char **argv)
             if(r<=0){
                 dc.signals=-1;
             }else{
-                checkSamples(boList,&dc);
+                for(int i=0;i<dc.signals;i++)
+                    //dc.values esta a vir como 0 (nao devia acho eu)
+                    checkSamples(dc.signalname[i],dc.value[i],dc.signals);
             }
         }
     }    

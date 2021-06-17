@@ -83,7 +83,7 @@ extern "C"
                                                                                        int row_status);
     int requestMonitoringDataTable_get_value(netsnmp_request_info *, netsnmp_index *, netsnmp_table_request_info *);
     void checkTables();
-    void checkSamples(BO_List*,decodedCAN*);
+    void checkSamples(char*,double,int);
     int deleteRequestEntry(requestMonitoringStruct *);
     /*************************************************************
  * oid declarations
