@@ -54,14 +54,6 @@ int main(int argc, char **argv)
     init_sampledValuesTable();
     init_errorTable();
     init_snmp("veicular-daemon");
-    /*
-    for(int i=0;i<boList->current;i++){
-        printf("MessageDescription: %s\n",boList->list[i].description);
-        for(int j=0;j<boList->list[i].signals->current;j++){
-            printf("    SignalDescription: %s\n",boList->list[i].signals->list[j].description);
-        }
-    }
-    */
     /* If we're going to be a snmp master agent, initial the ports */
     if (!agentx_subagent)
         init_master_agent(); /* open the port to listen on 
@@ -95,7 +87,6 @@ int main(int argc, char **argv)
                 dc.signals=-1;
             }else{
                 for(int i=0;i<dc.signals;i++)
-                    //dc.values esta a vir como 0 (nao devia acho eu)
                     checkSamples(dc.signalname[i],dc.value[i],dc.signals);
             }
         }

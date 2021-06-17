@@ -232,7 +232,7 @@ void checkSamples(char* signalname,double value,int signals){
                         }
                         int inserted=insertMonitoringRow(reqStruct);
                         requestMonitoringDataTable_create_row(&index,reqStruct);
-                        /*TODO requestControl(depende se fizer alteraçoes ou nao)*/
+                        /*TODO requestControl*/
                     }
                 }
                 break;
