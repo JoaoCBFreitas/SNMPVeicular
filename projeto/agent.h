@@ -25,7 +25,6 @@
 #include <Tables/requestMonitoringDataTable/requestMonitoringDataTable.h>
 #include <Tables/errorTable/errorTable.h>
 #include <Tables/errorDescriptionTable/errorDescriptionTable.h>
-#include <Tables/errorSensorTable/errorSensorTable.h>
 
 #define DEMO_USE_SNMP_VERSION_3
 
@@ -40,21 +39,3 @@ const char *snmpusername = "snmpadmin";
      *  so make sure this module is included in the agent.
      */
 config_require(util_funcs / header_generic);
-typedef struct activeRequests
-{
-     int reqID;
-     int genericRequestID;
-     int statisticsRequestID;
-     int savingMode;
-     int sampleFreq;
-     int maxDelay;
-     char *startTime;
-     char *endTime;
-     char *durationTime;
-     char *expireTime;
-     int maxNofSamples;
-     int lastSampleID;
-     int loopmode;
-     int nofSamples;
-     int status;
-} activeRequests;

@@ -11,7 +11,7 @@
 #include <net-snmp/agent/snmp_agent.h>
 #include <net-snmp/agent/snmp_vars.h>
 
-#include "Tables/errorSensorTable/errorSensorTable.h"
+
 #include "Tables/errorDescriptionTable/errorDescriptionTable.h"
 #include "Tables/sampleUnitsTable/sampleUnitsTable.h"
 #include "Tables/genericTypesTable/genericTypesTable.h"

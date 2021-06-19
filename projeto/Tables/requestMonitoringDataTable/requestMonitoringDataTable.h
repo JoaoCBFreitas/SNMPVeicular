@@ -23,11 +23,12 @@ extern "C"
 #include "../requestControlDataTable/requestControlDataTable.h"
 #include "../requestStatisticsDataTable/requestStatisticsDataTable.h"
 #include "../samplesTable/samplesTable.h"
-#include "../sampledValuesTable/sampledValuesTable.h"
 
+#define MAXSNMPSTRINGSIZE 65525
     typedef struct requestMonitoringStruct
     {
         int reqID;
+        int requestControlID;
         int requestMapID;
         int statisticsRequestID;
         int savingMode;
@@ -42,6 +43,7 @@ extern "C"
         int loopmode;
         int nofSamples;
         int status;
+        char* requestUser;
 
     } requestMonitoringStruct;
     /** Index requestID is internal */
@@ -51,24 +53,27 @@ extern "C"
         netsnmp_index index; /** THIS MUST BE FIRST!!! */
         oid oid_buf[2];
         unsigned long requestID;            /** UNSIGNED32 = ASN_UNSIGNED */
+        unsigned long requestControlID;     /** UNSIGNED32 = ASN_UNSIGNED */
         unsigned long requestMapID;         /** UNSIGNED32 = ASN_UNSIGNED */
         unsigned long requestStatisticsID;  /** UNSIGNED32 = ASN_UNSIGNED */
         long savingMode;                    /** INTEGER = ASN_INTEGER */
         unsigned long samplingFrequency;    /** UNSIGNED32 = ASN_UNSIGNED */
         long maxDelay;                      /** INTEGER = ASN_INTEGER */
-        unsigned char startTime[65535];     /** OBUDateandTime = ASN_OCTET_STR */
+        unsigned char startTime[MAXSNMPSTRINGSIZE];     /** OBUDateandTime = ASN_OCTET_STR */
         long startTime_len;
-        unsigned char endTime[65535]; /** OBUDateandTime = ASN_OCTET_STR */
+        unsigned char endTime[MAXSNMPSTRINGSIZE]; /** OBUDateandTime = ASN_OCTET_STR */
         long endTime_len;
-        unsigned char durationTime[65535]; /** OBUDateandTime = ASN_OCTET_STR */
+        unsigned char durationTime[MAXSNMPSTRINGSIZE]; /** OBUDateandTime = ASN_OCTET_STR */
         long durationTime_len;
-        unsigned char expireTime[65535]; /** OBUDateandTime = ASN_OCTET_STR */
+        unsigned char expireTime[MAXSNMPSTRINGSIZE]; /** OBUDateandTime = ASN_OCTET_STR */
         long expireTime_len;
         unsigned long maxNOfSamples; /** UNSIGNED32 = ASN_UNSIGNED */
         unsigned long lastSampleID;  /** UNSIGNED32 = ASN_UNSIGNED */
         long loopMode;               /** INTEGER = ASN_INTEGER */
         unsigned long nOfSamples;    /** COUNTER = ASN_COUNTER */
         long status;                 /** INTEGER = ASN_INTEGER */
+        unsigned char requestUser[MAXSNMPSTRINGSIZE]; /** OCTET STRING = ASN_OCTET_STR */
+        long requestUser_len;
         void *data;
         int valid;
     } requestMonitoringDataTable_context;
@@ -83,7 +88,7 @@ extern "C"
                                                                                        int row_status);
     int requestMonitoringDataTable_get_value(netsnmp_request_info *, netsnmp_index *, netsnmp_table_request_info *);
     void checkTables();
-    void checkSamples(char*,double,int);
+    void checkSamples(char*,double,int,char*);
     int deleteRequestEntry(requestMonitoringStruct *);
     /*************************************************************
  * oid declarations
@@ -97,22 +102,24 @@ extern "C"
  * column number definitions for table requestMonitoringDataTable
  */
 #define COLUMN_REQUESTID 1
-#define COLUMN_REQUESTMAPID 2
-#define COLUMN_REQUESTSTATISTICSID 3
-#define COLUMN_SAVINGMODE 4
-#define COLUMN_SAMPLINGFREQUENCY 5
-#define COLUMN_MAXDELAY 6
-#define COLUMN_STARTTIME 7
-#define COLUMN_ENDTIME 8
-#define COLUMN_DURATIONTIME 9
-#define COLUMN_EXPIRETIME 10
-#define COLUMN_MAXNOFSAMPLES 11
+#define COLUMN_REQUESTCONTROLID 2
+#define COLUMN_REQUESTMAPID 3
+#define COLUMN_REQUESTSTATISTICSID 4
+#define COLUMN_SAVINGMODE 5
+#define COLUMN_SAMPLINGFREQUENCY 6
+#define COLUMN_MAXDELAY 7
+#define COLUMN_STARTTIME 8
+#define COLUMN_ENDTIME 9
+#define COLUMN_DURATIONTIME 10
+#define COLUMN_EXPIRETIME 11
 #define COLUMN_LASTSAMPLEID 12
-#define COLUMN_LOOPMODE 13
-#define COLUMN_NOFSAMPLES 14
-#define COLUMN_STATUS 15
+#define COLUMN_NOFSAMPLES 13
+#define COLUMN_MAXNOFSAMPLES 14
+#define COLUMN_LOOPMODE 15
+#define COLUMN_STATUS 16
+#define COLUMN_REQUESTUSER 17
 #define requestMonitoringDataTable_COL_MIN 1
-#define requestMonitoringDataTable_COL_MAX 15
+#define requestMonitoringDataTable_COL_MAX 17
 
 /* comment out the following line if you don't handle SET-REQUEST for requestMonitoringDataTable */
 #define requestMonitoringDataTable_SET_HANDLING

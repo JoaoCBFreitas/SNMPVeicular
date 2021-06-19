@@ -99,7 +99,7 @@ int insertMonitoringRow(requestMonitoringStruct* req)
 int insertRowControl_Monitor(requestMonitoringDataTable_context *reqMonitoring){
     requestStruct *req = (requestStruct *)malloc(sizeof(requestStruct));
     req->reqID=reqMonitoring->requestID;
-    req->genericID=reqMonitoring->requestMapID;
+    req->requestControlMapID=reqMonitoring->requestControlID;
     req->settingMode=reqMonitoring->savingMode;
     req->commitTime=malloc(sizeof(char)*reqMonitoring->startTime_len+1);
     strcpy(req->commitTime,reqMonitoring->startTime);
@@ -112,7 +112,6 @@ int insertRowControl_Monitor(requestMonitoringDataTable_context *reqMonitoring){
     req->expireTime=malloc(sizeof(char)*reqMonitoring->expireTime_len+1);
     strcpy(req->expireTime,reqMonitoring->expireTime);
     req->status=reqMonitoring->status;
-    req->valueID=reqMonitoring->lastSampleID;
     req->valuesTable=0;
     int insert=insertControlRow(req);
     free(req);
@@ -121,6 +120,7 @@ int insertRowControl_Monitor(requestMonitoringDataTable_context *reqMonitoring){
 /*This function will convert a requestMonitoringDataTable_context to requestMonitoringStruct*/
 requestMonitoringStruct* tableToStruct(requestMonitoringDataTable_context* reqMonitoring,requestMonitoringStruct* reqStruct){
     reqStruct->reqID=reqMonitoring->requestID;
+    reqStruct->requestControlID=reqMonitoring->requestControlID;
     reqStruct->requestMapID=reqMonitoring->requestMapID;
     reqStruct->statisticsRequestID=reqMonitoring->requestStatisticsID;
     reqStruct->savingMode=reqMonitoring->savingMode;
@@ -139,12 +139,14 @@ requestMonitoringStruct* tableToStruct(requestMonitoringDataTable_context* reqMo
     reqStruct->loopmode=reqMonitoring->loopMode;
     reqStruct->nofSamples=reqMonitoring->nOfSamples;
     reqStruct->status=reqMonitoring->status;
+    reqStruct->requestUser=malloc(sizeof(char)*strlen(reqMonitoring->requestUser));
+    strcpy(reqStruct->requestUser,reqMonitoring->requestUser);
     return reqStruct;
 }
 /**
  * This Function will check if the decodedCan message has a request already set for it. If so it will add/edit entries into the MIB
  */
-void checkSamples(char* signalname,double value,int signals){
+void checkSamples(char* signalname,double value,int signals,char* timestamp){
     netsnmp_iterator *it;
     netsnmp_index index;
     oid index_oid[2];
@@ -180,16 +182,13 @@ void checkSamples(char* signalname,double value,int signals){
                         ss->sampleFrequency=reqMonitoring->samplingFrequency;
                         ss->sampleValueID=firstSampledValuesEntry;
                         ss->timestamp=malloc(sizeof(char)*64);
-                        time_t t=time(NULL);
-                        struct tm *tm=localtime(&t);
-                        char s[64];
-                        assert(strftime(s,sizeof(s),"%c",tm));
-                        strcpy(ss->timestamp,s);
+                        strcpy(ss->timestamp,timestamp);
                         int insertSamples=insertSamplesRow(ss);
                         free(ss);
                         if(insertSamples!=0)
                             printf("Samples insertion failed\n");
                         /*Add sampledStruct*/
+                        /*
                         sampledStruct* svs=(sampledStruct*)malloc(sizeof(sampledStruct));
                         svs->nOfsampledValues=signals;
                         svs->mapTypeSamplesID=mapType->mapTypeID;
@@ -201,7 +200,7 @@ void checkSamples(char* signalname,double value,int signals){
                         free(svs);
                         if(insertSamples!=0)
                             printf("SampledValue insertion failed\n");
-                        
+                        */
                         /*Update requestStatisticsDataTable*/
                         if(reqMonitoring->requestStatisticsID!=0){
                             requestStatisticsDataTable_context *statStruct=getStatisticsTable(reqMonitoring->requestStatisticsID);
@@ -325,7 +324,9 @@ void checkTables(){
                     samplesTable=getSampleEntry(reqStruct->lastSampleID);
                     while(samplesTable!=NULL){
                         int aux=samplesTable->sampleID;
+                        
                         /*****************Delete all sampledEntry***********/
+                        /*
                         sampledValuesTable_context* sampledTable=getSampledEntry(samplesTable->sampleValueID);
                         while(sampledTable!=NULL){
                             int aux2=sampledTable->sampledValueID;
@@ -334,6 +335,7 @@ void checkTables(){
                             if(delete!=0)
                                 printf("SampledValuesEntry deletion failed ID:%d\n",aux2);
                         }
+                        */
                         /***************************************************/
                         samplesTable=getSampleEntry(samplesTable->previousSampleID);
                         delete=deleteSamplesEntry(aux);
@@ -485,6 +487,7 @@ void init_requestMonitoringDataTable(void)
     req->loopmode = 1;
     req->nofSamples = 0;
     req->status = 2;
+    req->requestUser="Utilizador teste";
     index_oid[0] = 0;
     index.oids = (oid *)&index_oid;
     index.len = 1;
@@ -662,6 +665,12 @@ void requestMonitoringDataTable_set_reserve1(netsnmp_request_group *rg)
             
             break;
 
+        case COLUMN_REQUESTCONTROLID:
+            /** UNSIGNED32 = ASN_UNSIGNED */
+            /* or possibly 'netsnmp_check_vb_int_range' */
+            rc = netsnmp_check_vb_uint(var);
+            
+            break;
         case COLUMN_REQUESTMAPID:
             /** UNSIGNED32 = ASN_UNSIGNED */
             /* or possibly 'netsnmp_check_vb_int_range' */
@@ -742,7 +751,12 @@ void requestMonitoringDataTable_set_reserve1(netsnmp_request_group *rg)
             /* or possibly 'netsnmp_check_vb_int_range' */
             rc = netsnmp_check_vb_int(var);
             break;
-
+        case COLUMN_REQUESTUSER:
+            /** OCTET STRING = ASN_OCTET_STR */
+            /* or possibly 'netsnmp_check_vb_type_and_size' */
+            rc = netsnmp_check_vb_type_and_max_size(var, ASN_OCTET_STR,
+                                                    sizeof(row_ctx->requestUser));
+            break;
         default: /** We shouldn't get here */
             rc = SNMP_ERR_GENERR;
             snmp_log(LOG_ERR, "unknown column in "
@@ -796,7 +810,19 @@ void requestMonitoringDataTable_set_reserve2(netsnmp_request_group *rg)
                 * }
                 */
             break;
-
+        case COLUMN_REQUESTCONTROLID:
+            /** UNSIGNED32 = ASN_UNSIGNED */
+            /*
+                     * TODO: routine to check valid values
+                     *
+                     * EXAMPLE:
+                     *
+                    * if ( *var->val.integer != XXX ) {
+                *    rc = SNMP_ERR_INCONSISTENTVALUE;
+                *    rc = SNMP_ERR_BADVALUE;
+                * }
+                */
+            break;
         case COLUMN_REQUESTMAPID:
             /** UNSIGNED32 = ASN_UNSIGNED */
             /*
@@ -977,7 +1003,19 @@ void requestMonitoringDataTable_set_reserve2(netsnmp_request_group *rg)
                 * }
                 */
             break;
-
+        case COLUMN_REQUESTUSER:
+            /** OCTET STRING = ASN_OCTET_STR */
+            /*
+                     * TODO: routine to check valid values
+                     *
+                     * EXAMPLE:
+                     *
+                    * if ( XXX_check_value( var->val.string, XXX ) ) {
+                *    rc = SNMP_ERR_INCONSISTENTVALUE;
+                *    rc = SNMP_ERR_BADVALUE;
+                * }
+                */
+            break;
         default:               /** We shouldn't get here */
             netsnmp_assert(0); /** why wasn't this caught in reserve1? */
         }
@@ -1026,7 +1064,10 @@ void requestMonitoringDataTable_set_action(netsnmp_request_group *rg)
             /** UNSIGNED32 = ASN_UNSIGNED */
             row_ctx->requestID = *var->val.integer;
             break;
-
+        case COLUMN_REQUESTCONTROLID:
+            /** UNSIGNED32 = ASN_UNSIGNED */
+            row_ctx->requestControlID = *var->val.integer;
+            break;
         case COLUMN_REQUESTMAPID:
             /** UNSIGNED32 = ASN_UNSIGNED */
             row_ctx->requestMapID = *var->val.integer;
@@ -1094,7 +1135,11 @@ void requestMonitoringDataTable_set_action(netsnmp_request_group *rg)
             /** INTEGER = ASN_INTEGER */
             row_ctx->status = *var->val.integer;
             break;
-
+        case COLUMN_REQUESTUSER:
+            /** OCTET STRING = ASN_OCTET_STR */
+            memcpy(row_ctx->requestUser, var->val.string, var->val_len);
+            row_ctx->requestUser_len = var->val_len;
+            break;
         default:               /** We shouldn't get here */
             netsnmp_assert(0); /** why wasn't this caught in reserve1? */
         }
@@ -1148,7 +1193,9 @@ void requestMonitoringDataTable_set_commit(netsnmp_request_group *rg)
         case COLUMN_REQUESTID:
             /** UNSIGNED32 = ASN_UNSIGNED */
             break;
-
+        case COLUMN_REQUESTCONTROLID:
+            /** UNSIGNED32 = ASN_UNSIGNED */
+            break;
         case COLUMN_REQUESTMAPID:
             /** UNSIGNED32 = ASN_UNSIGNED */
             break;
@@ -1199,7 +1246,9 @@ void requestMonitoringDataTable_set_commit(netsnmp_request_group *rg)
         case COLUMN_STATUS:
             /** INTEGER = ASN_INTEGER */
             break;
-
+        case COLUMN_REQUESTUSER:
+            /** OCTET STRING = ASN_OCTET_STR */
+            break;
         default:               /** We shouldn't get here */
             netsnmp_assert(0); /** why wasn't this caught in reserve1? */
         }
@@ -1241,6 +1290,10 @@ void requestMonitoringDataTable_set_free(netsnmp_request_group *rg)
             /** UNSIGNED32 = ASN_UNSIGNED */
             break;
 
+        case COLUMN_REQUESTCONTROLID:
+            /** UNSIGNED32 = ASN_UNSIGNED */
+            break;
+
         case COLUMN_REQUESTMAPID:
             /** UNSIGNED32 = ASN_UNSIGNED */
             break;
@@ -1290,6 +1343,9 @@ void requestMonitoringDataTable_set_free(netsnmp_request_group *rg)
             break;
         case COLUMN_STATUS:
             /** INTEGER = ASN_INTEGER */
+            break;
+        case COLUMN_REQUESTUSER:
+            /** OCTET STRING = ASN_OCTET_STR */
             break;
         default: /** We shouldn't get here */
             break;
@@ -1338,6 +1394,10 @@ void requestMonitoringDataTable_set_undo(netsnmp_request_group *rg)
             /** UNSIGNED32 = ASN_UNSIGNED */
             break;
 
+        case COLUMN_REQUESTCONTROLID:
+            /** UNSIGNED32 = ASN_UNSIGNED */
+            break;
+
         case COLUMN_REQUESTMAPID:
             /** UNSIGNED32 = ASN_UNSIGNED */
             break;
@@ -1387,6 +1447,10 @@ void requestMonitoringDataTable_set_undo(netsnmp_request_group *rg)
             break;
         case COLUMN_STATUS:
             /** INTEGER = ASN_INTEGER */
+            break;
+
+        case COLUMN_REQUESTUSER:
+            /** OCTET STRING = ASN_OCTET_STR */
             break;
 
         default:               /** We shouldn't get here */
@@ -1527,7 +1591,12 @@ int requestMonitoringDataTable_get_value(
                                  (char *)&context->requestID,
                                  sizeof(context->requestID));
         break;
-
+    case COLUMN_REQUESTCONTROLID:
+        /** UNSIGNED32 = ASN_UNSIGNED */
+        snmp_set_var_typed_value(var, ASN_UNSIGNED,
+                                 (char *)&context->requestControlID,
+                                 sizeof(context->requestControlID));
+        break;
     case COLUMN_REQUESTMAPID:
         /** UNSIGNED32 = ASN_UNSIGNED */
         snmp_set_var_typed_value(var, ASN_UNSIGNED,
@@ -1626,6 +1695,12 @@ int requestMonitoringDataTable_get_value(
                                  sizeof(context->status));
         break;
 
+    case COLUMN_REQUESTUSER:
+        /** OCTET STRING = ASN_OCTET_STR */
+        snmp_set_var_typed_value(var, ASN_OCTET_STR,
+                                 (char *)&context->requestUser,
+                                 context->requestUser_len);
+        break;
     default: /** We shouldn't get here */
         snmp_log(LOG_ERR, "unknown column in "
                           "requestMonitoringDataTable_get_value\n");
@@ -1672,6 +1747,7 @@ requestMonitoringDataTable_context *requestMonitoringDataTable_create_row(netsnm
     ctx->oid_buf[0] = req->reqID;
     ctx->index.len = 1;
     ctx->requestID = (long unsigned int)req->reqID;
+    ctx->requestControlID= (long unsigned int) req->requestControlID;
     ctx->requestMapID = (long unsigned int)req->requestMapID;
     ctx->requestStatisticsID = (long unsigned int)req->statisticsRequestID;
     ctx->savingMode = req->savingMode;
@@ -1690,6 +1766,8 @@ requestMonitoringDataTable_context *requestMonitoringDataTable_create_row(netsnm
     ctx->loopMode = req->loopmode;
     ctx->nOfSamples = req->nofSamples;
     ctx->status = req->status;
+    strcpy(ctx->requestUser,req->requestUser);
+    ctx->requestUser_len=strlen(req->requestUser);
     return ctx;
 }
 /************************************************************
@@ -1740,6 +1818,7 @@ int requestMonitoringDataTable_row_copy(requestMonitoringDataTable_context *dst,
      * copy components into the context structure
      */
     dst->requestID = src->requestID;
+    dst->requestControlID=src->requestControlID;
     dst->requestMapID = src->requestMapID;
     dst->requestStatisticsID = src->requestStatisticsID;
     dst->savingMode = src->savingMode;
@@ -1758,5 +1837,7 @@ int requestMonitoringDataTable_row_copy(requestMonitoringDataTable_context *dst,
     dst->loopMode = src->loopMode;
     dst->nOfSamples = src->nOfSamples;
     dst->status = src->status;
+    memcpy(dst->requestUser, src->requestUser, src->requestUser_len);
+    dst->requestUser_len = src->requestUser_len;
     return 0;
 }

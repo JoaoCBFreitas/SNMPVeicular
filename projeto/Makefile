@@ -17,10 +17,8 @@ samplesTable=Tables/samplesTable
 mapTypeTable=Tables/mapTypeTable
 genericTypesTable=Tables/genericTypesTable
 sampleUnitsTable=Tables/sampleUnitsTable
-sampledValuesTable=Tables/sampledValuesTable
 errorTable=Tables/errorTable
 errorDescriptionTable=Tables/errorDescriptionTable
-errorSensorTable=Tables/errorSensorTable
 
 
 
@@ -49,10 +47,8 @@ agent: agent.c agent.h Makefile
 	cd $(requestMonitoringDataTable) && $(MAKE) all && mv requestMonitoringDataTable.o ../../obj/
 	cd $(requestStatisticsDataTable) && $(MAKE) all && mv requestStatisticsDataTable.o ../../obj/
 	cd $(samplesTable) && $(MAKE) all && mv samplesTable.o ../../obj/
-	cd $(sampledValuesTable) && $(MAKE) all && mv sampledValuesTable.o ../../obj/
 	cd $(errorTable) && $(MAKE) all && mv errorTable.o ../../obj/
 	cd $(errorDescriptionTable) && $(MAKE) all && mv errorDescriptionTable.o ../../obj/
-	cd $(errorSensorTable) && $(MAKE) all && mv errorSensorTable.o ../../obj/
 	$(CC) $(CFLAGS) -o $(OBJ)/auxFunc.o $(BUILDAGENTLIBS) -c auxFunc.c -lm
 	cd $(mapTypeTable) && $(MAKE) all && mv mapTypeTable.o ../../obj/
 	$(CC) $(CFLAGS) -o $(OBJ)/progAgent.o $(BUILDAGENTLIBS) -c agent.c

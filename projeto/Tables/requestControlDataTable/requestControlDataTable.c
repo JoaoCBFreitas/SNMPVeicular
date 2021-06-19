@@ -290,11 +290,11 @@ int requestControlDataTable_get_value(
                                  sizeof(context->requestControlID));
         break;
 
-    case COLUMN_GENERICREQUESTCONTROLTYPEID:
+    case COLUMN_REQUESTCONTROLMAPID:
         /** UNSIGNED32 = ASN_UNSIGNED */
         snmp_set_var_typed_value(var, ASN_UNSIGNED,
-                                 (char *)&context->genericRequestControlTypeID,
-                                 sizeof(context->genericRequestControlTypeID));
+                                 (char *)&context->requestControlMapID,
+                                 sizeof(context->requestControlMapID));
         break;
 
     case COLUMN_SETTINGMODE:
@@ -344,13 +344,6 @@ int requestControlDataTable_get_value(
         snmp_set_var_typed_value(var, ASN_UNSIGNED,
                                  (char *)&context->valuesTableID,
                                  sizeof(context->valuesTableID));
-        break;
-
-    case COLUMN_VALUESID:
-        /** UNSIGNED32 = ASN_UNSIGNED */
-        snmp_set_var_typed_value(var, ASN_UNSIGNED,
-                                 (char *)&context->valuesID,
-                                 sizeof(context->valuesID));
         break;
 
     case COLUMN_STATUSCONTROL:
@@ -406,7 +399,7 @@ requestControlDataTable_context *requestControlDataTable_create_row(netsnmp_inde
     ctx->oid_buf[0] = req->reqID;
     ctx->index.len = 1;
     ctx->requestControlID = (long unsigned int)req->reqID;
-    ctx->genericRequestControlTypeID = (long unsigned int)req->genericID;
+    ctx->requestControlMapID = (long unsigned int)req->requestControlMapID;
     ctx->settingMode = req->settingMode;
     strcpy(ctx->commitTime, req->commitTime);
     ctx->commitTime_len = strlen(req->commitTime);
@@ -419,7 +412,6 @@ requestControlDataTable_context *requestControlDataTable_create_row(netsnmp_inde
     strcpy(ctx->expireControlTime, req->expireTime);
     ctx->expireControlTime_len = strlen(req->expireTime);
     ctx->valuesTableID = (long unsigned int)req->valuesTable;
-    ctx->valuesID = (long unsigned int)req->valueID;
     ctx->statusControl = req->status;
     return ctx;
 }
@@ -540,7 +532,7 @@ int requestControlDataTable_row_copy(requestControlDataTable_context *dst, reque
      * copy components into the context structure
      */
     dst->requestControlID = src->requestControlID;
-    dst->genericRequestControlTypeID = src->genericRequestControlTypeID;
+    dst->requestControlMapID = src->requestControlMapID;
     dst->settingMode = src->settingMode;
 
     memcpy(dst->commitTime, src->commitTime, src->commitTime_len);
@@ -554,7 +546,6 @@ int requestControlDataTable_row_copy(requestControlDataTable_context *dst, reque
     memcpy(dst->expireControlTime, src->expireControlTime, src->expireControlTime_len);
     dst->expireControlTime_len = src->expireControlTime_len;
     dst->valuesTableID = src->valuesTableID;
-    dst->valuesID = src->valuesID;
     dst->statusControl = src->statusControl;
     return 0;
 }

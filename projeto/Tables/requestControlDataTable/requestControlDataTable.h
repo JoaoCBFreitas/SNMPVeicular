@@ -16,10 +16,11 @@ extern "C"
 #include <net-snmp/net-snmp-config.h>
 #include <net-snmp/library/container.h>
 #include <net-snmp/agent/table_array.h>
+#define MAXSNMPSTRINGSIZE 65525
     typedef struct requestStruct
     {
         int reqID;
-        int genericID;
+        int requestControlMapID;
         int settingMode;
         char *commitTime;
         char *waitTime;
@@ -27,7 +28,6 @@ extern "C"
         char *duration;
         char *expireTime;
         int valuesTable;
-        int valueID;
         int status;
 
     } requestStruct;
@@ -38,20 +38,19 @@ extern "C"
         netsnmp_index index; /** THIS MUST BE FIRST!!! */
         oid oid_buf[2];
         unsigned long requestControlID;            /** UNSIGNED32 = ASN_UNSIGNED */
-        unsigned long genericRequestControlTypeID; /** UNSIGNED32 = ASN_UNSIGNED */
+        unsigned long requestControlMapID; /** UNSIGNED32 = ASN_UNSIGNED */
         long settingMode;                          /** INTEGER = ASN_INTEGER */
-        unsigned char commitTime[65535];           /** OBUDateandTime = ASN_OCTET_STR */
+        unsigned char commitTime[MAXSNMPSTRINGSIZE];           /** OBUDateandTime = ASN_OCTET_STR */
         long commitTime_len;
-        unsigned char waitTime[65535]; /** OBUDateandTime = ASN_OCTET_STR */
+        unsigned char waitTime[MAXSNMPSTRINGSIZE]; /** OBUDateandTime = ASN_OCTET_STR */
         long waitTime_len;
-        unsigned char endControlTime[65535]; /** OBUDateandTime = ASN_OCTET_STR */
+        unsigned char endControlTime[MAXSNMPSTRINGSIZE]; /** OBUDateandTime = ASN_OCTET_STR */
         long endControlTime_len;
-        unsigned char durationControlTime[65535]; /** OBUDateandTime = ASN_OCTET_STR */
+        unsigned char durationControlTime[MAXSNMPSTRINGSIZE]; /** OBUDateandTime = ASN_OCTET_STR */
         long durationControlTime_len;
-        unsigned char expireControlTime[65535]; /** OBUDateandTime = ASN_OCTET_STR */
+        unsigned char expireControlTime[MAXSNMPSTRINGSIZE]; /** OBUDateandTime = ASN_OCTET_STR */
         long expireControlTime_len;
         unsigned long valuesTableID; /** UNSIGNED32 = ASN_UNSIGNED */
-        unsigned long valuesID;      /** UNSIGNED32 = ASN_UNSIGNED */
         long statusControl;          /** INTEGER = ASN_INTEGER */
         void *data;
         int valid;
@@ -81,7 +80,7 @@ extern "C"
  * column number definitions for table requestControlDataTable
  */
 #define COLUMN_REQUESTCONTROLID 1
-#define COLUMN_GENERICREQUESTCONTROLTYPEID 2
+#define COLUMN_REQUESTCONTROLMAPID 2
 #define COLUMN_SETTINGMODE 3
 #define COLUMN_COMMITTIME 4
 #define COLUMN_WAITTIME 5
@@ -89,10 +88,9 @@ extern "C"
 #define COLUMN_DURATIONCONTROLTIME 7
 #define COLUMN_EXPIRECONTROLTIME 8
 #define COLUMN_VALUESTABLEID 9
-#define COLUMN_VALUESID 10
-#define COLUMN_STATUSCONTROL 11
+#define COLUMN_STATUSCONTROL 10
 #define requestControlDataTable_COL_MIN 1
-#define requestControlDataTable_COL_MAX 11
+#define requestControlDataTable_COL_MAX 10
 
 /* comment out the following line if you don't handle SET-REQUEST for requestControlDataTable */
 #define requestControlDataTable_SET_HANDLING

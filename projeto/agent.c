@@ -86,8 +86,12 @@ int main(int argc, char **argv)
             if(r<=0){
                 dc.signals=-1;
             }else{
+                time_t t=time(NULL);
+                struct tm *tm=localtime(&t);
+                char s[64];
+                assert(strftime(s,sizeof(s),"%c",tm));
                 for(int i=0;i<dc.signals;i++)
-                    checkSamples(dc.signalname[i],dc.value[i],dc.signals);
+                    checkSamples(dc.signalname[i],dc.value[i],dc.signals,s);
             }
         }
     }    
