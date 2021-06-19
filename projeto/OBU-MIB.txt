@@ -47,130 +47,170 @@ requestMonitoringDataEntry OBJECT-TYPE
 
 RequestMonitoringDataEntry ::= SEQUENCE {
 
-	requestID         Unsigned32,
-	requestMapID      Unsigned32,
-	savingMode        INTEGER,
-	samplingFrequency Unsigned32,
-	maxDelay          INTEGER,
-	startTime         OBUDateandTime,
-	endTime           OBUDateandTime,
-	durationTime      OBUDateandTime,
-	expireTime        OBUDateandTime,
-	lastSampleID      Unsigned32,
-	nOfSamples        Counter32,
-	status            INTEGER }
+	requestID         	Unsigned32,
+	requestControlID  	Unsigned32,
+	requestMapID      	Unsigned32,
+	requestStatisticsID Unsigned32,
+	savingMode        	INTEGER,
+	samplingFrequency 	Unsigned32,
+	maxDelay          	INTEGER,
+	startTime         	OBUDateandTime,
+	endTime           	OBUDateandTime,
+	durationTime      	OBUDateandTime,
+	expireTime        	OBUDateandTime,
+	lastSampleID      	Unsigned32,
+	nOfSamples        	Counter32,
+	maxNOfSamples		Unsigned32,
+	loopMode			INTEGER,
+	status            	INTEGER,
+	requestUser         OCTET STRING}
 
 requestID OBJECT-TYPE
 	SYNTAX  Unsigned32 (1..99999999)
-	MAX-ACCESS read-only
+	MAX-ACCESS read-create
 	STATUS  current
 	DESCRIPTION
 		"This object will identify a certain request"
 	-- 1.3.6.1.3.8888.1.1.1
 ::= { requestMonitoringDataEntry 1 }
 
-
-requestMapID OBJECT-TYPE
+requestControlID OBJECT-TYPE
 	SYNTAX  Unsigned32
-	MAX-ACCESS read-only
+	MAX-ACCESS read-create
 	STATUS  current
 	DESCRIPTION
-		"This object will identify the mapTypeTable related to a certain set of requests"
+		"This object will identify the requestControlDataEntry related to a request"
 	-- 1.3.6.1.3.8888.1.1.2
 ::= { requestMonitoringDataEntry 2 }
 
+requestMapID OBJECT-TYPE
+	SYNTAX  Unsigned32
+	MAX-ACCESS read-create
+	STATUS  current
+	DESCRIPTION
+		"This object will identify the mapTypeTable related to a requests"
+	-- 1.3.6.1.3.8888.1.1.3
+::= { requestMonitoringDataEntry 3 }
+
+requestStatisticsID OBJECT-TYPE
+	SYNTAX  Unsigned32
+	MAX-ACCESS read-create
+	STATUS  current
+	DESCRIPTION
+		"This object will identify the requestStatisticsDataEntry related to a request"
+	-- 1.3.6.1.3.8888.1.1.4
+::= { requestMonitoringDataEntry 4 }
 
 savingMode OBJECT-TYPE
 	SYNTAX  INTEGER {
 			permanent(0),
 			volatile(1) }
-	MAX-ACCESS read-only
+	MAX-ACCESS read-create
 	STATUS  current
 	DESCRIPTION
 		"This object will identify the mode in which a specific request will be saved"
-	-- 1.3.6.1.3.8888.1.1.3
-::= { requestMonitoringDataEntry 3 }
-
-
-samplingFrequency OBJECT-TYPE
-	SYNTAX  Unsigned32
-	MAX-ACCESS read-only
-	STATUS  current
-	DESCRIPTION
-		"This object will store the sampling frequency"
-	-- 1.3.6.1.3.8888.1.1.4
-::= { requestMonitoringDataEntry 4 }
-
-
-maxDelay OBJECT-TYPE
-	SYNTAX  INTEGER
-	MAX-ACCESS read-only
-	STATUS  current
-	DESCRIPTION
-		"This object will store the maximum delay allowed"
 	-- 1.3.6.1.3.8888.1.1.5
 ::= { requestMonitoringDataEntry 5 }
 
 
-startTime OBJECT-TYPE
-	SYNTAX  OBUDateandTime
-	MAX-ACCESS read-only
+samplingFrequency OBJECT-TYPE
+	SYNTAX  Unsigned32
+	MAX-ACCESS read-create
 	STATUS  current
 	DESCRIPTION
-		"This object will store the start time of a certain request"
+		"This object will store the sampling frequency"
 	-- 1.3.6.1.3.8888.1.1.6
 ::= { requestMonitoringDataEntry 6 }
 
 
-endTime OBJECT-TYPE
-	SYNTAX  OBUDateandTime
-	MAX-ACCESS read-only
+maxDelay OBJECT-TYPE
+	SYNTAX  INTEGER
+	MAX-ACCESS read-create
 	STATUS  current
 	DESCRIPTION
-		"This object will store the end time of a certain request"
+		"This object will store the maximum delay allowed"
 	-- 1.3.6.1.3.8888.1.1.7
 ::= { requestMonitoringDataEntry 7 }
 
 
-durationTime OBJECT-TYPE
+startTime OBJECT-TYPE
 	SYNTAX  OBUDateandTime
-	MAX-ACCESS read-only
+	MAX-ACCESS read-create
 	STATUS  current
 	DESCRIPTION
-		"This object will store the duration time of a certain request"
+		"This object will store the start time of a certain request"
 	-- 1.3.6.1.3.8888.1.1.8
-::= { requestMonitoringDataEntry 8 }
+::= { requestMonitoringDataEntry 8}
 
 
-expireTime OBJECT-TYPE
+endTime OBJECT-TYPE
 	SYNTAX  OBUDateandTime
-	MAX-ACCESS read-only
+	MAX-ACCESS read-create
 	STATUS  current
 	DESCRIPTION
-		"This object will store the expire time of a certain request"
+		"This object will store the end time of a certain request"
 	-- 1.3.6.1.3.8888.1.1.9
 ::= { requestMonitoringDataEntry 9 }
 
 
+durationTime OBJECT-TYPE
+	SYNTAX  OBUDateandTime
+	MAX-ACCESS read-create
+	STATUS  current
+	DESCRIPTION
+		"This object will store the duration time of a certain request"
+	-- 1.3.6.1.3.8888.1.1.10
+::= { requestMonitoringDataEntry 10}
+
+
+expireTime OBJECT-TYPE
+	SYNTAX  OBUDateandTime
+	MAX-ACCESS read-create
+	STATUS  current
+	DESCRIPTION
+		"This object will store the expire time of a certain request"
+	-- 1.3.6.1.3.8888.1.1.11
+::= { requestMonitoringDataEntry 11}
+
+
 lastSampleID OBJECT-TYPE
 	SYNTAX  Unsigned32
-	MAX-ACCESS read-only
+	MAX-ACCESS read-create
 	STATUS  current
 	DESCRIPTION
 		"This object will store the ID of the last sample to be recorded"
-	-- 1.3.6.1.3.8888.1.1.10
-::= { requestMonitoringDataEntry 10 }
+	-- 1.3.6.1.3.8888.1.1.12
+::= { requestMonitoringDataEntry 12 }
 
 
 nOfSamples OBJECT-TYPE
 	SYNTAX  Counter32
-	MAX-ACCESS read-only
+	MAX-ACCESS read-create
 	STATUS  current
 	DESCRIPTION
 		"This object will store the total number of samples recorded"
-	-- 1.3.6.1.3.8888.1.1.11
-::= { requestMonitoringDataEntry 11 }
+	-- 1.3.6.1.3.8888.1.1.13
+::= { requestMonitoringDataEntry 13 }
 
+lastSampleID OBJECT-TYPE
+	SYNTAX  Unsigned32
+	MAX-ACCESS read-create
+	STATUS  current
+	DESCRIPTION
+		"This object will store the max number of samples to be recorded for a request"
+	-- 1.3.6.1.3.8888.1.1.14
+::= { requestMonitoringDataEntry 14 }
+
+loopMode OBJECT-TYPE
+	SYNTAX  INTEGER {
+			yes(1),
+			no(2)}
+	MAX-ACCESS read-only
+	STATUS  current
+	DESCRIPTION
+		"This object will identify whether the request will loop or not"
+	-- 1.3.6.1.3.8888.1.1.15
+::= { requestMonitoringDataEntry 15 }
 
 status OBJECT-TYPE
 	SYNTAX  INTEGER {
@@ -182,8 +222,17 @@ status OBJECT-TYPE
 	STATUS  current
 	DESCRIPTION
 		"This object will identify the current status of a request"
-	-- 1.3.6.1.3.8888.1.1.12
-::= { requestMonitoringDataEntry 12 }
+	-- 1.3.6.1.3.8888.1.1.16
+::= { requestMonitoringDataEntry 16 }
+
+requestUser OBJECT-TYPE
+	SYNTAX  OCTET STRING
+	MAX-ACCESS read-create
+	STATUS  current
+	DESCRIPTION
+		"This object will store the expire time of a certain request"
+	-- 1.3.6.1.3.8888.1.1.17
+::= { requestMonitoringDataEntry 17}
 
 
 requestControlDataTable OBJECT-TYPE
@@ -211,9 +260,7 @@ requestControlDataEntry OBJECT-TYPE
 RequestControlDataEntry ::= SEQUENCE {
 
 	requestControlID    Unsigned32,
-	requestMonitoringID INTEGER,
 	requestControlMapID Unsigned32,
-	requestStatisticsID Unsigned32,
 	settingMode         INTEGER,
 	commitTime          OBUDateandTime,
 	waitTime            OBUDateandTime,
@@ -221,139 +268,96 @@ RequestControlDataEntry ::= SEQUENCE {
 	durationControlTime OBUDateandTime,
 	expireControlTime   OBUDateandTime,
 	valuesTableID       Unsigned32,
-	controlNofSamples   Unsigned32,
-	maxNOfSamples       Unsigned32,
-	statusControl       INTEGER,
-	loopMode            INTEGER,
-	requestControlUser  OCTET STRING }
+	statusControl       INTEGER }
 
 requestControlID OBJECT-TYPE
 	SYNTAX  Unsigned32 (1..99999999)
-	MAX-ACCESS read-create
+	MAX-ACCESS read-only
 	STATUS  current
 	DESCRIPTION
 		"ID of a certain request"
 	-- 1.3.6.1.3.8888.2.1.1
 ::= { requestControlDataEntry 1 }
 
-requestMonitoringID OBJECT-TYPE
-	SYNTAX  INTEGER
+requestControlMapID OBJECT-TYPE
+	SYNTAX  Unsigned32
 	MAX-ACCESS read-only
 	STATUS  current
 	DESCRIPTION
-		"This object will store the row in requestMonitoringDataTable that is related to this entry"
-	-- 1.3.6.1.3.8888.2.1.2
-	::= { requestControlDataEntry 2 }
-
-requestControlMapID OBJECT-TYPE
-	SYNTAX  Unsigned32
-	MAX-ACCESS read-create
-	STATUS  current
-	DESCRIPTION
 		"This object will identify the requestControlMapID related to a certain request"
-	-- 1.3.6.1.3.8888.2.1.3 --
-	::= { requestControlDataEntry 3 }
-
-requestStatisticsID OBJECT-TYPE
-	SYNTAX  Unsigned32
-	MAX-ACCESS read-create
-	STATUS  current
-	DESCRIPTION
-		"This object will store the ID of the related requestStatisticsDataTable, if it exists"
-	-- 1.3.6.1.3.8888.2.1.4
-	::= { requestControlDataEntry 4 }
+	-- 1.3.6.1.3.8888.2.1.2 --
+	::= { requestControlDataEntry 2 }
 
 settingMode OBJECT-TYPE
 	SYNTAX  INTEGER {
 			permanent(0),
 			volatile(1) }
-	MAX-ACCESS read-create
+	MAX-ACCESS read-only
 	STATUS  current
 	DESCRIPTION
 		"This object will identify the mode in which a specific request will be set"
-	-- 1.3.6.1.3.8888.2.1.5 --
-	::= { requestControlDataEntry 5 }
+	-- 1.3.6.1.3.8888.2.1.3 --
+	::= { requestControlDataEntry 3 }
 
 
 commitTime OBJECT-TYPE
 	SYNTAX  OBUDateandTime
-	MAX-ACCESS read-create
+	MAX-ACCESS read-only
 	STATUS  current
 	DESCRIPTION
 		"This object will store the commit time of a certain request"
-	-- 1.3.6.1.3.8888.2.1.6 --
-	::= { requestControlDataEntry 6 }
+	-- 1.3.6.1.3.8888.2.1.4--
+	::= { requestControlDataEntry 4 }
 
 
 waitTime OBJECT-TYPE
 	SYNTAX  OBUDateandTime
-	MAX-ACCESS read-create
+	MAX-ACCESS read-only
 	STATUS  current
 	DESCRIPTION
 		"This object will store the wait time of a certain request"
-	-- 1.3.6.1.3.8888.2.1.7 --
-	::= { requestControlDataEntry 7 }
+	-- 1.3.6.1.3.8888.2.1.5 --
+	::= { requestControlDataEntry 5 }
 
 
 endControlTime OBJECT-TYPE
 	SYNTAX  OBUDateandTime
-	MAX-ACCESS read-create
+	MAX-ACCESS read-only
 	STATUS  current
 	DESCRIPTION
 		"This object will store the end time of a certain request"
-	-- 1.3.6.1.3.8888.2.1.8 --
-	::= { requestControlDataEntry 8 }
+	-- 1.3.6.1.3.8888.2.1.6 --
+	::= { requestControlDataEntry 6 }
 
 
 durationControlTime OBJECT-TYPE
 	SYNTAX  OBUDateandTime
-	MAX-ACCESS read-create
+	MAX-ACCESS read-only
 	STATUS  current
 	DESCRIPTION
 		"This object will store the duration time of a certain request"
-	-- 1.3.6.1.3.8888.2.1.9 --
-	::= { requestControlDataEntry 9 }
+	-- 1.3.6.1.3.8888.2.1.7 --
+	::= { requestControlDataEntry 7 }
 
 
 expireControlTime OBJECT-TYPE
 	SYNTAX  OBUDateandTime
-	MAX-ACCESS read-create
+	MAX-ACCESS read-only
 	STATUS  current
 	DESCRIPTION
 		"This object will store the expire time of a certain request"
-	-- 1.3.6.1.3.8888.2.1.10 --
-	::= { requestControlDataEntry 10 }
+	-- 1.3.6.1.3.8888.2.1.8 --
+	::= { requestControlDataEntry 8 }
 
 
 valuesTableID OBJECT-TYPE
 	SYNTAX  Unsigned32
-	MAX-ACCESS read-create
-	STATUS  current
-	DESCRIPTION
-		"This object will identify the lastSampleID of the respective value related to a specific request"
-	-- 1.3.6.1.3.8888.2.1.11 --
-	::= { requestControlDataEntry 11 }
-
-
-controlNofSamples OBJECT-TYPE
-	SYNTAX  Unsigned32
 	MAX-ACCESS read-only
 	STATUS  current
 	DESCRIPTION
-		"This object will store the current number of samples recorded for a certain request"
-	-- 1.3.6.1.3.8888.2.1.12 --
-	::= { requestControlDataEntry 12 }
-
-
-maxNOfSamples OBJECT-TYPE
-	SYNTAX  Unsigned32
-	MAX-ACCESS read-create
-	STATUS  current
-	DESCRIPTION
-		"This object will store the max number of samples to be recorded"
-	-- 1.3.6.1.3.8888.2.1.13 --
-	::= { requestControlDataEntry 13 }
-
+		"This object will identify the lastSampleID of the respective value related to a specific request"
+	-- 1.3.6.1.3.8888.2.1.9 --
+	::= { requestControlDataEntry 9 }
 
 statusControl OBJECT-TYPE
 	SYNTAX  INTEGER {
@@ -361,34 +365,13 @@ statusControl OBJECT-TYPE
 			on(1),
 			set(2),
 			delete(3) }
-	MAX-ACCESS read-create
-	STATUS  current
-	DESCRIPTION
-		"This object will identify the current status of the request"
-	-- 1.3.6.1.3.8888.2.1.14 --
-	::= { requestControlDataEntry 14 }
-
-
-loopMode OBJECT-TYPE
-	SYNTAX  INTEGER {
-			yes(1),
-			no(2) }
-	MAX-ACCESS read-create
-	STATUS  current
-	DESCRIPTION
-		"This object will be used to know if a particular request will loop or not"
-	-- 1.3.6.1.3.8888.2.1.15 --
-	::= { requestControlDataEntry 15 }
-
-
-requestControlUser OBJECT-TYPE
-	SYNTAX  OCTET STRING
 	MAX-ACCESS read-only
 	STATUS  current
 	DESCRIPTION
-		"This object will store the SNMP user that made the request"
-	-- 1.3.6.1.3.8888.2.1.16
-	::= { requestControlDataEntry 16 }
+		"This object will identify the current status of the request"
+	-- 1.3.6.1.3.8888.2.1.10 --
+	::= { requestControlDataEntry 10 }
+
 
 requestStatisticsDataTable OBJECT-TYPE
 	SYNTAX  SEQUENCE OF RequestStatisticsDataEntry
