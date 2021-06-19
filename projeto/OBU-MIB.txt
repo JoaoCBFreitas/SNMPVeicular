@@ -50,7 +50,7 @@ RequestMonitoringDataEntry ::= SEQUENCE {
 	requestID         	Unsigned32,
 	requestControlID  	Unsigned32,
 	requestMapID      	Unsigned32,
-	requestStatisticsID Unsigned32,
+	requestStatisticsID 	Unsigned32,
 	savingMode        	INTEGER,
 	samplingFrequency 	Unsigned32,
 	maxDelay          	INTEGER,
@@ -61,16 +61,16 @@ RequestMonitoringDataEntry ::= SEQUENCE {
 	lastSampleID      	Unsigned32,
 	nOfSamples        	Counter32,
 	maxNOfSamples		Unsigned32,
-	loopMode			INTEGER,
+	loopMode		INTEGER,
 	status            	INTEGER,
-	requestUser         OCTET STRING}
+	requestUser         	OCTET STRING}
 
 requestID OBJECT-TYPE
 	SYNTAX  Unsigned32 (1..99999999)
 	MAX-ACCESS read-create
 	STATUS  current
 	DESCRIPTION
-		"This object will identify a certain request"
+		"This object will identify an individual request"
 	-- 1.3.6.1.3.8888.1.1.1
 ::= { requestMonitoringDataEntry 1 }
 
@@ -240,7 +240,7 @@ requestControlDataTable OBJECT-TYPE
 	MAX-ACCESS not-accessible
 	STATUS  current
 	DESCRIPTION
-		"This table is used to identify and store information regarding individual requests on an object."
+		"This table is used to identify and store information regarding all requests on an object."
 	-- 1.3.6.1.3.8888.2
 ::= { obuMIB 2 }
 
