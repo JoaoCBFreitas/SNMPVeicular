@@ -19,27 +19,36 @@ extern "C"
 #include <assert.h>
 #include <stdio.h>
 #include <time.h>
+#define MAXSNMPSTRINGSIZE 65525
+
     /** Index sampleID is internal */
     typedef struct samplesStruct
     {
         int sampleID;
         int requestSampleID;
         char *timestamp;
-        int sampleValueID;
         int sampleFrequency;
         int previousSampleID;
+        int sampleType;
+        double sampleRecordedValue;
+        int mapTypeSamplesID;
+        char* sampleCheckSum;
     } samplesStruct;
     typedef struct samplesTable_context_s
     {
         netsnmp_index index; /** THIS MUST BE FIRST!!! */
         oid oid_buf[2];
-        unsigned long sampleID;         /** UNSIGNED32 = ASN_UNSIGNED */
-        unsigned long requestSampleID;  /** UNSIGNED32 = ASN_UNSIGNED */
-        unsigned char timeStamp[65535]; /** OBUDateandTime = ASN_OCTET_STR */
+        unsigned long sampleID;                         /** UNSIGNED32 = ASN_UNSIGNED */
+        unsigned long requestSampleID;                  /** UNSIGNED32 = ASN_UNSIGNED */
+        unsigned char timeStamp[MAXSNMPSTRINGSIZE];     /** OBUDateandTime = ASN_OCTET_STR */
         long timeStamp_len;
-        unsigned long sampleValueID;    /** UNSIGNED32 = ASN_UNSIGNED */
-        unsigned long sampleFrequency;  /** UNSIGNED32 = ASN_UNSIGNED */
-        unsigned long previousSampleID; /** UNSIGNED32 = ASN_UNSIGNED */
+        unsigned long sampleFrequency;                  /** UNSIGNED32 = ASN_UNSIGNED */
+        unsigned long previousSampleID;                 /** UNSIGNED32 = ASN_UNSIGNED */
+        unsigned long sampleType;
+        unsigned long sampleRecordedValue;              /** INTEGER = ASN_INTEGER */
+        unsigned long mapTypeSamplesID;                 /** UNSIGNED32 = ASN_UNSIGNED */
+        unsigned char sampleChecksum[MAXSNMPSTRINGSIZE];/** OCTET STRING = ASN_OCTET_STR */
+        long sampleChecksum_len;
         int valid;
         void *data;
 
@@ -72,11 +81,14 @@ extern "C"
 #define COLUMN_SAMPLEID 1
 #define COLUMN_REQUESTSAMPLEID 2
 #define COLUMN_TIMESTAMP 3
-#define COLUMN_SAMPLEVALUEID 4
-#define COLUMN_SAMPLEFREQUENCY 5
-#define COLUMN_PREVIOUSSAMPLEID 6
+#define COLUMN_SAMPLEFREQUENCY 4
+#define COLUMN_PREVIOUSSAMPLEID 5
+#define COLUMN_SAMPLETYPE 6
+#define COLUMN_SAMPLERECODEDVALUE 7
+#define COLUMN_MAPTYPESAMPLESID 8
+#define COLUMN_SAMPLECHECKSUM 9
 #define samplesTable_COL_MIN 1
-#define samplesTable_COL_MAX 6
+#define samplesTable_COL_MAX 9
 
 /* comment out the following line if you don't handle SET-REQUEST for samplesTable */
 #define samplesTable_SET_HANDLING

@@ -180,7 +180,7 @@ void checkSamples(char* signalname,double value,int signals,char* timestamp){
                         ss->previousSampleID=reqMonitoring->lastSampleID;
                         ss->requestSampleID=reqMonitoring->requestID;
                         ss->sampleFrequency=reqMonitoring->samplingFrequency;
-                        ss->sampleValueID=firstSampledValuesEntry;
+                        //ss->sampleValueID=firstSampledValuesEntry;
                         ss->timestamp=malloc(sizeof(char)*64);
                         strcpy(ss->timestamp,timestamp);
                         int insertSamples=insertSamplesRow(ss);

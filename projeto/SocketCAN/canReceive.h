@@ -17,9 +17,28 @@
 
 #include <linux/can.h>
 #include <linux/can/raw.h>
+
+#define MAXNAMESIZE 1024
+/*
+In the struct SG, the entry "name" is the longer more complete name given to CAN nodes, for example EEC1-> Eletronic Engine Controller 1
+TODO:It's more efficient to do with malloc
+*/
+#define MAXDESCRIPTIONSIZE 10000
+/*
+It's this big so it doesn't break when creating the struct, ideally it would be done with malloc but it was not working
+TODO:It's more efficient to do with malloc
+*/
+#define MAXRECEIVERSIZE 128
+/*This value should be large enough to store sender and receiver node names*/
+#define MAXCHARACTERS 32
+/*According to the dbc standard, the short version of the name of a node must be unique and between 1-32 characters long*/
+#define MAXSIGNALNUMBER 100
+/*100 should be a large enough number to store all signal values from a message*/
+
+
 /*This struct will contain rules to decode a signal*/
 typedef struct SG{
-	char name[1024];
+	char name[MAXNAMESIZE];
 	int bitStart;
 	int length;
 	int endian;
@@ -28,9 +47,9 @@ typedef struct SG{
 	int offset;
 	double min;
 	double max;
-	char unit[1024];
-	char receiver[128];
-	char description[10000];
+	char unit[MAXNAMESIZE];
+	char receiver[MAXRECEIVERSIZE];
+	char description[MAXDESCRIPTIONSIZE];
 }SG;
 /*This struct will contain all signals decoding rules for a certain message*/
 typedef struct SG_List{
@@ -41,11 +60,11 @@ typedef struct SG_List{
 /*This struct will contain all information regarding a certain CAN message*/
 typedef struct BO{
 	long messageID;
-	char id[32];
-	char name[1024];
+	char id[MAXCHARACTERS];
+	char name[MAXNAMESIZE];
 	int length;
-	char sender[128];
-	char description[1024];
+	char sender[MAXRECEIVERSIZE];
+	char description[MAXNAMESIZE];
 	SG_List* signals;
 }BO;
 /*This struct will contain all messages/signals and rules present in the dbc file*/
@@ -56,11 +75,11 @@ typedef struct BO_List{
 }BO_List;
 /*This struc will store the decoded contents of a CAN message*/
 typedef struct decodedCAN{
-	char name[128];
+	char name[MAXRECEIVERSIZE];
 	int signals;
-	char signalname[100][32];
-	double value[100];
-	char unit[100][32];
+	char signalname[MAXSIGNALNUMBER][MAXCHARACTERS];
+	double value[MAXSIGNALNUMBER];
+	char unit[MAXSIGNALNUMBER][MAXCHARACTERS];
 }decodedCAN;
 
 /*This function removes all occurrences of a character from a string*/

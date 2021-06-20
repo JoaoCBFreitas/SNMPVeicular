@@ -257,6 +257,13 @@ int errorDescriptionTable_get_value(
                                  context->errorDescr_len);
         break;
 
+    case COLUMN_ERRORCODE:
+        /** UNSIGNED32 = ASN_UNSIGNED */
+        snmp_set_var_typed_value(var, ASN_UNSIGNED,
+                                 (char *)&context->errorCode,
+                                 sizeof(context->errorCode));
+        break;
+
     default: /** We shouldn't get here */
         snmp_log(LOG_ERR, "unknown column in "
                           "errorDescriptionTable_get_value\n");
@@ -305,6 +312,7 @@ errorDescriptionTable_context *errorDescriptionTable_create_row(netsnmp_index *h
     ctx->errorDescrID = (long unsigned int)req.errorDescrID;
     strcpy(ctx->errorDescr, req.errorDescr);
     ctx->errorDescr_len = strlen(req.errorDescr);
+    ctx->errorCode = (long unsigned int)req.errorCode;
     return ctx;
 }
 /**

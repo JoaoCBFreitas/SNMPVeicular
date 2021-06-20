@@ -16,26 +16,28 @@ extern "C"
 #include <net-snmp/net-snmp-config.h>
 #include <net-snmp/library/container.h>
 #include <net-snmp/agent/table_array.h>
-
+#define MAXSNMPSTRINGSIZE 65525
     typedef struct errorStruct
     {
         int errorID;
-        int errorCode;
         char *errorTimeStamp;
         int errorDescriptionID;
-        int errorSensID;
+        char *errorUser;
+        char *errorExpireTime;
     } errorStruct;
     /** Index errorID is internal */
     typedef struct errorTable_context_s
     {
         netsnmp_index index; /** THIS MUST BE FIRST!!! */
         oid oid_buf[2];
-        unsigned long errorID;               /** UNSIGNED32 = ASN_UNSIGNED */
-        unsigned long errorCode;             /** UNSIGNED32 = ASN_UNSIGNED */
-        unsigned char errorTimeStamp[65535]; /** OBUDateandTime = ASN_OCTET_STR */
+        unsigned long errorID;                           /** UNSIGNED32 = ASN_UNSIGNED */
+        unsigned char errorTimeStamp[MAXSNMPSTRINGSIZE]; /** OBUDateandTime = ASN_OCTET_STR */
         long errorTimeStamp_len;
-        unsigned long errorDescriptionID; /** UNSIGNED32 = ASN_UNSIGNED */
-        unsigned long errorSensID;        /** UNSIGNED32 = ASN_UNSIGNED */
+        unsigned long errorDescriptionID;                /** UNSIGNED32 = ASN_UNSIGNED */
+        unsigned char errorUser[MAXSNMPSTRINGSIZE];      /** OCTET STRING = ASN_OCTET_STR */
+        long errorUser_len;
+        unsigned char errorExpireTime[MAXSNMPSTRINGSIZE];/** OCTET STRING = ASN_OCTET_STR */
+        long errorExpireTime_len;
         int valid;
         void *data;
 
@@ -63,10 +65,10 @@ extern "C"
  * column number definitions for table errorTable
  */
 #define COLUMN_ERRORID 1
-#define COLUMN_ERRORCODE 2
-#define COLUMN_ERRORTIMESTAMP 3
-#define COLUMN_ERRORDESCRIPTIONID 4
-#define COLUMN_ERRORSENSID 5
+#define COLUMN_ERRORTIMESTAMP 2
+#define COLUMN_ERRORDESCRIPTIONID 3
+#define COLUMN_ERRORUSER 4
+#define COLUMN_ERROREXPIRETIME 5
 #define errorTable_COL_MIN 1
 #define errorTable_COL_MAX 5
 

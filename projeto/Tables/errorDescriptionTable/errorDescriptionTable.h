@@ -16,11 +16,12 @@ extern "C"
 #include <net-snmp/net-snmp-config.h>
 #include <net-snmp/library/container.h>
 #include <net-snmp/agent/table_array.h>
-
+#define MAXSNMPSTRINGSIZE 65525
     typedef struct errorDescrStruct
     {
         int errorDescrID;
         char *errorDescr;
+        int errorCode;
     } errorDescrStruct;
     /** Index errorDescrID is internal */
     typedef struct errorDescrList
@@ -29,13 +30,15 @@ extern "C"
         int current;
         errorDescrStruct *errorList;
     } errorDescrList;
+
     typedef struct errorDescriptionTable_context_s
     {
         netsnmp_index index; /** THIS MUST BE FIRST!!! */
         oid oid_buf[2];
-        unsigned long errorDescrID;      /** UNSIGNED32 = ASN_UNSIGNED */
-        unsigned char errorDescr[65535]; /** OCTETSTR = ASN_OCTET_STR */
-        long errorDescr_len;
+        unsigned long errorDescrID;                 /** UNSIGNED32 = ASN_UNSIGNED */
+        unsigned char errorDescr[MAXSNMPSTRINGSIZE];/** OCTETSTR = ASN_OCTET_STR */
+        long errorDescr_len;                        /** UNSIGNED32 = ASN_UNSIGNED */
+        unsigned long errorCode;
         int valid;
         void *data;
     } errorDescriptionTable_context;
@@ -63,8 +66,9 @@ extern "C"
  */
 #define COLUMN_ERRORDESCRID 1
 #define COLUMN_ERRORDESCR 2
+#define COLUMN_ERRORCODE 3
 #define errorDescriptionTable_COL_MIN 1
-#define errorDescriptionTable_COL_MAX 2
+#define errorDescriptionTable_COL_MAX 3
 
 /* comment out the following line if you don't handle SET-REQUEST for errorDescriptionTable */
 #define errorDescriptionTable_SET_HANDLING

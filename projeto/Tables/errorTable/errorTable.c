@@ -139,10 +139,10 @@ void init_errorTable(void)
     initialize_table_errorTable();
     errorStruct *req = (errorStruct *)malloc(sizeof(errorStruct));
     req->errorID = 0;
-    req->errorCode = 1051;
     req->errorTimeStamp = "2017-01-23 15:22:60.357000";
     req->errorDescriptionID = 12;
-    req->errorSensID = 120;
+    req->errorUser = "Utilizador teste";
+    req->errorExpireTime = "00:02:00";
     index_oid[0] = 0;
     index.oids = (oid *)&index_oid;
     index.len = 1;
@@ -184,15 +184,20 @@ int errorTable_row_copy(errorTable_context *dst,
      */
     dst->errorID = src->errorID;
 
-    dst->errorCode = src->errorCode;
-
     memcpy(dst->errorTimeStamp, src->errorTimeStamp, src->errorTimeStamp_len);
     dst->errorTimeStamp_len = src->errorTimeStamp_len;
 
     dst->errorDescriptionID = src->errorDescriptionID;
 
-    dst->errorSensID = src->errorSensID;
+    memcpy(dst->errorTimeStamp, src->errorTimeStamp, src->errorTimeStamp_len);
+    dst->errorTimeStamp_len = src->errorTimeStamp_len;
 
+    memcpy(dst->errorUser, src->errorUser, src->errorUser_len);
+    dst->errorUser_len = src->errorUser_len;
+
+    memcpy(dst->errorExpireTime, src->errorExpireTime, src->errorExpireTime_len);
+    dst->errorExpireTime_len = src->errorExpireTime_len;
+    
     return 0;
 }
 
@@ -383,12 +388,6 @@ void errorTable_set_reserve1(netsnmp_request_group *rg)
             rc = netsnmp_check_vb_int(var);
             break;
 
-        case COLUMN_ERRORCODE:
-            /** UNSIGNED32 = ASN_UNSIGNED */
-            /* or possibly 'netsnmp_check_vb_int_range' */
-            rc = netsnmp_check_vb_int(var);
-            break;
-
         case COLUMN_ERRORTIMESTAMP:
             /** OBUDateandTime = ASN_OCTET_STR */
             /* or possibly 'netsnmp_check_vb_type_and_size' */
@@ -400,6 +399,19 @@ void errorTable_set_reserve1(netsnmp_request_group *rg)
             /** UNSIGNED32 = ASN_UNSIGNED */
             /* or possibly 'netsnmp_check_vb_int_range' */
             rc = netsnmp_check_vb_int(var);
+            break;
+        case COLUMN_ERRORUSER:
+            /** OCTET STRING = ASN_OCTET_STR */
+            /* or possibly 'netsnmp_check_vb_type_and_size' */
+            rc = netsnmp_check_vb_type_and_max_size(var, ASN_OCTET_STR,
+                                                    sizeof(row_ctx->errorUser));
+            break;
+
+        case COLUMN_ERROREXPIRETIME:
+            /** OCTET STRING = ASN_OCTET_STR */
+            /* or possibly 'netsnmp_check_vb_type_and_size' */
+            rc = netsnmp_check_vb_type_and_max_size(var, ASN_OCTET_STR,
+                                                    sizeof(row_ctx->errorExpireTime));
             break;
 
         default: /** We shouldn't get here */
@@ -456,20 +468,6 @@ void errorTable_set_reserve2(netsnmp_request_group *rg)
                 */
             break;
 
-        case COLUMN_ERRORCODE:
-            /** UNSIGNED32 = ASN_UNSIGNED */
-            /*
-                     * TODO: routine to check valid values
-                     *
-                     * EXAMPLE:
-                     *
-                    * if ( *var->val.integer != XXX ) {
-                *    rc = SNMP_ERR_INCONSISTENTVALUE;
-                *    rc = SNMP_ERR_BADVALUE;
-                * }
-                */
-            break;
-
         case COLUMN_ERRORTIMESTAMP:
             /** OBUDateandTime = ASN_OCTET_STR */
             /*
@@ -498,6 +496,33 @@ void errorTable_set_reserve2(netsnmp_request_group *rg)
                 */
             break;
 
+        case COLUMN_ERRORUSER:
+            /** OCTET STRING = ASN_OCTET_STR */
+            /*
+                     * TODO: routine to check valid values
+                     *
+                     * EXAMPLE:
+                     *
+                    * if ( XXX_check_value( var->val.string, XXX ) ) {
+                *    rc = SNMP_ERR_INCONSISTENTVALUE;
+                *    rc = SNMP_ERR_BADVALUE;
+                * }
+                */
+            break;
+
+        case COLUMN_ERROREXPIRETIME:
+            /** OCTET STRING = ASN_OCTET_STR */
+            /*
+                     * TODO: routine to check valid values
+                     *
+                     * EXAMPLE:
+                     *
+                    * if ( XXX_check_value( var->val.string, XXX ) ) {
+                *    rc = SNMP_ERR_INCONSISTENTVALUE;
+                *    rc = SNMP_ERR_BADVALUE;
+                * }
+                */
+            break;
         default:               /** We shouldn't get here */
             netsnmp_assert(0); /** why wasn't this caught in reserve1? */
         }
@@ -547,11 +572,6 @@ void errorTable_set_action(netsnmp_request_group *rg)
             row_ctx->errorID = *var->val.integer;
             break;
 
-        case COLUMN_ERRORCODE:
-            /** UNSIGNED32 = ASN_UNSIGNED */
-            row_ctx->errorCode = *var->val.integer;
-            break;
-
         case COLUMN_ERRORTIMESTAMP:
             /** OBUDateandTime = ASN_OCTET_STR */
             memcpy(row_ctx->errorTimeStamp, var->val.string, var->val_len);
@@ -561,6 +581,18 @@ void errorTable_set_action(netsnmp_request_group *rg)
         case COLUMN_ERRORDESCRIPTIONID:
             /** UNSIGNED32 = ASN_UNSIGNED */
             row_ctx->errorDescriptionID = *var->val.integer;
+            break;
+
+        case COLUMN_ERRORUSER:
+            /** OBUDateandTime = ASN_OCTET_STR */
+            memcpy(row_ctx->errorUser, var->val.string, var->val_len);
+            row_ctx->errorUser_len = var->val_len;
+            break;
+
+        case COLUMN_ERROREXPIRETIME:
+            /** OBUDateandTime = ASN_OCTET_STR */
+            memcpy(row_ctx->errorExpireTime, var->val.string, var->val_len);
+            row_ctx->errorExpireTime_len = var->val_len;
             break;
 
         default:               /** We shouldn't get here */
@@ -617,16 +649,20 @@ void errorTable_set_commit(netsnmp_request_group *rg)
             /** UNSIGNED32 = ASN_UNSIGNED */
             break;
 
-        case COLUMN_ERRORCODE:
-            /** UNSIGNED32 = ASN_UNSIGNED */
-            break;
-
         case COLUMN_ERRORTIMESTAMP:
             /** OBUDateandTime = ASN_OCTET_STR */
             break;
 
         case COLUMN_ERRORDESCRIPTIONID:
             /** UNSIGNED32 = ASN_UNSIGNED */
+            break;
+
+        case COLUMN_ERRORUSER:
+            /** OCTET STRING = ASN_OCTET_STR */
+            break;
+
+        case COLUMN_ERROREXPIRETIME:
+            /** OCTET STRING = ASN_OCTET_STR */
             break;
 
         default:               /** We shouldn't get here */
@@ -670,16 +706,20 @@ void errorTable_set_free(netsnmp_request_group *rg)
             /** UNSIGNED32 = ASN_UNSIGNED */
             break;
 
-        case COLUMN_ERRORCODE:
-            /** UNSIGNED32 = ASN_UNSIGNED */
-            break;
-
         case COLUMN_ERRORTIMESTAMP:
             /** OBUDateandTime = ASN_OCTET_STR */
             break;
 
         case COLUMN_ERRORDESCRIPTIONID:
             /** UNSIGNED32 = ASN_UNSIGNED */
+            break;
+
+        case COLUMN_ERRORUSER:
+            /** OCTET STRING = ASN_OCTET_STR */
+            break;
+
+        case COLUMN_ERROREXPIRETIME:
+            /** OCTET STRING = ASN_OCTET_STR */
             break;
 
         default: /** We shouldn't get here */
@@ -734,16 +774,20 @@ void errorTable_set_undo(netsnmp_request_group *rg)
             /** UNSIGNED32 = ASN_UNSIGNED */
             break;
 
-        case COLUMN_ERRORCODE:
-            /** UNSIGNED32 = ASN_UNSIGNED */
-            break;
-
         case COLUMN_ERRORTIMESTAMP:
             /** OBUDateandTime = ASN_OCTET_STR */
             break;
 
         case COLUMN_ERRORDESCRIPTIONID:
             /** UNSIGNED32 = ASN_UNSIGNED */
+            break;
+
+        case COLUMN_ERRORUSER:
+            /** OCTET STRING = ASN_OCTET_STR */
+            break;
+
+        case COLUMN_ERROREXPIRETIME:
+            /** OCTET STRING = ASN_OCTET_STR */
             break;
 
         default:               /** We shouldn't get here */
@@ -865,13 +909,6 @@ int errorTable_get_value(
                                  sizeof(context->errorID));
         break;
 
-    case COLUMN_ERRORCODE:
-        /** UNSIGNED32 = ASN_UNSIGNED */
-        snmp_set_var_typed_value(var, ASN_UNSIGNED,
-                                 (char *)&context->errorCode,
-                                 sizeof(context->errorCode));
-        break;
-
     case COLUMN_ERRORTIMESTAMP:
         /** OBUDateandTime = ASN_OCTET_STR */
         snmp_set_var_typed_value(var, ASN_OCTET_STR,
@@ -886,11 +923,18 @@ int errorTable_get_value(
                                  sizeof(context->errorDescriptionID));
         break;
 
-    case COLUMN_ERRORSENSID:
-        /** UNSIGNED32 = ASN_UNSIGNED */
-        snmp_set_var_typed_value(var, ASN_UNSIGNED,
-                                 (char *)&context->errorSensID,
-                                 sizeof(context->errorSensID));
+    case COLUMN_ERRORUSER:
+        /** OCTET STRING = ASN_OCTET_STR */
+        snmp_set_var_typed_value(var, ASN_OCTET_STR,
+                                 (char *)&context->errorUser,
+                                 context->errorUser_len);
+        break;
+
+    case COLUMN_ERROREXPIRETIME:
+        /** OCTET STRING = ASN_OCTET_STR */
+        snmp_set_var_typed_value(var, ASN_OCTET_STR,
+                                 (char *)&context->errorExpireTime,
+                                 context->errorExpireTime_len);
         break;
 
     default: /** We shouldn't get here */
@@ -939,11 +983,13 @@ errorTable_context *errorTable_create_row(netsnmp_index *hdr, errorStruct *req)
     ctx->oid_buf[0] = req->errorID;
     ctx->index.len = 1;
     ctx->errorID = (long unsigned int)req->errorID;
-    ctx->errorCode = (long unsigned int)req->errorCode;
     strcpy(ctx->errorTimeStamp, req->errorTimeStamp);
     ctx->errorTimeStamp_len = strlen(req->errorTimeStamp);
     ctx->errorDescriptionID = (long unsigned int)req->errorDescriptionID;
-    ctx->errorSensID = (long unsigned int)req->errorSensID;
+    strcpy(ctx->errorUser, req->errorUser);
+    ctx->errorUser_len = strlen(req->errorUser);
+    strcpy(ctx->errorExpireTime, req->errorExpireTime);
+    ctx->errorExpireTime_len = strlen(req->errorExpireTime);
     printf("ErrorTable inserida: %ld\n", ctx->errorID);
     return ctx;
 }

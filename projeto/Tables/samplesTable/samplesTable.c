@@ -240,12 +240,18 @@ int samplesTable_row_copy(samplesTable_context *dst,
     memcpy(dst->timeStamp, src->timeStamp, src->timeStamp_len);
     dst->timeStamp_len = src->timeStamp_len;
 
-    dst->sampleValueID = src->sampleValueID;
-
     dst->sampleFrequency = src->sampleFrequency;
 
     dst->previousSampleID = src->previousSampleID;
 
+    dst->sampleType = src->sampleType;
+
+    dst->sampleRecordedValue = src->sampleRecordedValue;
+
+    dst->mapTypeSamplesID = src->mapTypeSamplesID;
+    
+    memcpy(dst->sampleChecksum, src->sampleChecksum, src->sampleChecksum_len);
+    dst->sampleChecksum_len = src->sampleChecksum_len;
     return 0;
 }
 
@@ -431,13 +437,13 @@ void samplesTable_set_reserve1(netsnmp_request_group *rg)
         case COLUMN_SAMPLEID:
             /** UNSIGNED32 = ASN_UNSIGNED */
             /* or possibly 'netsnmp_check_vb_int_range' */
-            rc = netsnmp_check_vb_int(var);
+            rc = netsnmp_check_vb_uint(var);
             break;
 
         case COLUMN_REQUESTSAMPLEID:
             /** UNSIGNED32 = ASN_UNSIGNED */
             /* or possibly 'netsnmp_check_vb_int_range' */
-            rc = netsnmp_check_vb_int(var);
+            rc = netsnmp_check_vb_uint(var);
             break;
 
         case COLUMN_TIMESTAMP:
@@ -447,22 +453,41 @@ void samplesTable_set_reserve1(netsnmp_request_group *rg)
                                                     sizeof(row_ctx->timeStamp));
             break;
 
-        case COLUMN_SAMPLEVALUEID:
-            /** UNSIGNED32 = ASN_UNSIGNED */
-            /* or possibly 'netsnmp_check_vb_int_range' */
-            rc = netsnmp_check_vb_int(var);
-            break;
-
         case COLUMN_SAMPLEFREQUENCY:
             /** UNSIGNED32 = ASN_UNSIGNED */
             /* or possibly 'netsnmp_check_vb_int_range' */
-            rc = netsnmp_check_vb_int(var);
+            rc = netsnmp_check_vb_uint(var);
             break;
 
         case COLUMN_PREVIOUSSAMPLEID:
             /** UNSIGNED32 = ASN_UNSIGNED */
             /* or possibly 'netsnmp_check_vb_int_range' */
+            rc = netsnmp_check_vb_uint(var);
+            break;
+        
+        case COLUMN_SAMPLETYPE:
+            /** INTEGER = ASN_INTEGER */
+            /* or possibly 'netsnmp_check_vb_int_range' */
             rc = netsnmp_check_vb_int(var);
+            break;
+        
+        case COLUMN_SAMPLERECODEDVALUE:
+            /** INTEGER = ASN_INTEGER */
+            /* or possibly 'netsnmp_check_vb_int_range' */
+            rc = netsnmp_check_vb_int(var);
+            break;
+        
+        case COLUMN_MAPTYPESAMPLESID:
+            /** UNSIGNED32 = ASN_UNSIGNED */
+            /* or possibly 'netsnmp_check_vb_int_range' */
+            rc = netsnmp_check_vb_uint(var);
+            break;
+
+        case COLUMN_SAMPLECHECKSUM:
+            /** OBUDateandTime = ASN_OCTET_STR */
+            /* or possibly 'netsnmp_check_vb_type_and_size' */
+            rc = netsnmp_check_vb_type_and_max_size(var, ASN_OCTET_STR,
+                                                    sizeof(row_ctx->sampleChecksum));
             break;
 
         default: /** We shouldn't get here */
@@ -547,20 +572,6 @@ void samplesTable_set_reserve2(netsnmp_request_group *rg)
                 */
             break;
 
-        case COLUMN_SAMPLEVALUEID:
-            /** UNSIGNED32 = ASN_UNSIGNED */
-            /*
-                     * TODO: routine to check valid values
-                     *
-                     * EXAMPLE:
-                     *
-                    * if ( *var->val.integer != XXX ) {
-                *    rc = SNMP_ERR_INCONSISTENTVALUE;
-                *    rc = SNMP_ERR_BADVALUE;
-                * }
-                */
-            break;
-
         case COLUMN_SAMPLEFREQUENCY:
             /** UNSIGNED32 = ASN_UNSIGNED */
             /*
@@ -589,10 +600,63 @@ void samplesTable_set_reserve2(netsnmp_request_group *rg)
                 */
             break;
 
+        case COLUMN_SAMPLETYPE:
+            /** INTEGER = ASN_INTEGER */
+            /*
+                     * TODO: routine to check valid values
+                     *
+                     * EXAMPLE:
+                     *
+                    * if ( *var->val.integer != XXX ) {
+                *    rc = SNMP_ERR_INCONSISTENTVALUE;
+                *    rc = SNMP_ERR_BADVALUE;
+                * }
+                */
+            break;
+        case COLUMN_SAMPLERECODEDVALUE:
+            /** INTEGER = ASN_INTEGER */
+            /*
+                     * TODO: routine to check valid values
+                     *
+                     * EXAMPLE:
+                     *
+                    * if ( *var->val.integer != XXX ) {
+                *    rc = SNMP_ERR_INCONSISTENTVALUE;
+                *    rc = SNMP_ERR_BADVALUE;
+                * }
+                */
+            break;
+
+        case COLUMN_MAPTYPESAMPLESID:
+            /** UNSIGNED32 = ASN_UNSIGNED */
+            /*
+                     * TODO: routine to check valid values
+                     *
+                     * EXAMPLE:
+                     *
+                    * if ( *var->val.integer != XXX ) {
+                *    rc = SNMP_ERR_INCONSISTENTVALUE;
+                *    rc = SNMP_ERR_BADVALUE;
+                * }
+                */
+            break;
+
+        case COLUMN_SAMPLECHECKSUM:
+            /** OCTET STRING = ASN_OCTET_STR */
+            /*
+                     * TODO: routine to check valid values
+                     *
+                     * EXAMPLE:
+                     *
+                    * if ( XXX_check_value( var->val.string, XXX ) ) {
+                *    rc = SNMP_ERR_INCONSISTENTVALUE;
+                *    rc = SNMP_ERR_BADVALUE;
+                * }
+                */
+            break;
         default:               /** We shouldn't get here */
             netsnmp_assert(0); /** why wasn't this caught in reserve1? */
         }
-
         if (rc)
             netsnmp_set_mode_request_error(MODE_SET_BEGIN, current->ri, rc);
     }
@@ -638,20 +702,10 @@ void samplesTable_set_action(netsnmp_request_group *rg)
             row_ctx->sampleID = *var->val.integer;
             break;
 
-        case COLUMN_REQUESTSAMPLEID:
-            /** UNSIGNED32 = ASN_UNSIGNED */
-            row_ctx->requestSampleID = *var->val.integer;
-            break;
-
         case COLUMN_TIMESTAMP:
             /** OBUDateandTime = ASN_OCTET_STR */
             memcpy(row_ctx->timeStamp, var->val.string, var->val_len);
             row_ctx->timeStamp_len = var->val_len;
-            break;
-
-        case COLUMN_SAMPLEVALUEID:
-            /** UNSIGNED32 = ASN_UNSIGNED */
-            row_ctx->sampleValueID = *var->val.integer;
             break;
 
         case COLUMN_SAMPLEFREQUENCY:
@@ -662,6 +716,27 @@ void samplesTable_set_action(netsnmp_request_group *rg)
         case COLUMN_PREVIOUSSAMPLEID:
             /** UNSIGNED32 = ASN_UNSIGNED */
             row_ctx->previousSampleID = *var->val.integer;
+            break;
+
+        case COLUMN_SAMPLETYPE:
+            /** INTEGER = ASN_INTEGER */
+            row_ctx->previousSampleID = *var->val.integer;
+            break;
+
+        case COLUMN_SAMPLERECODEDVALUE:
+            /** INTEGER = ASN_INTEGER */
+            row_ctx->previousSampleID = *var->val.integer;
+            break;
+
+        case COLUMN_MAPTYPESAMPLESID:
+            /** UNSIGNED32 = ASN_UNSIGNED */
+            row_ctx->previousSampleID = *var->val.integer;
+            break;
+
+        case COLUMN_SAMPLECHECKSUM:
+            /** OCTET STRING = ASN_OCTET_STR */
+            memcpy(row_ctx->sampleChecksum, var->val.string, var->val_len);
+            row_ctx->sampleChecksum_len = var->val_len;
             break;
 
         default:               /** We shouldn't get here */
@@ -726,16 +801,28 @@ void samplesTable_set_commit(netsnmp_request_group *rg)
             /** OBUDateandTime = ASN_OCTET_STR */
             break;
 
-        case COLUMN_SAMPLEVALUEID:
-            /** UNSIGNED32 = ASN_UNSIGNED */
-            break;
-
         case COLUMN_SAMPLEFREQUENCY:
             /** UNSIGNED32 = ASN_UNSIGNED */
             break;
 
         case COLUMN_PREVIOUSSAMPLEID:
             /** UNSIGNED32 = ASN_UNSIGNED */
+            break;
+
+        case COLUMN_SAMPLETYPE:
+            /** INTEGER = ASN_INTEGER */
+            break;
+
+        case COLUMN_SAMPLERECODEDVALUE:
+            /** INTEGER = ASN_INTEGER */
+            break;
+
+        case COLUMN_MAPTYPESAMPLESID:
+            /** UNSIGNED32 = ASN_UNSIGNED */
+            break;
+
+        case COLUMN_SAMPLECHECKSUM:
+            /** OCTET STRING = ASN_OCTET_STR */
             break;
 
         default:               /** We shouldn't get here */
@@ -787,16 +874,28 @@ void samplesTable_set_free(netsnmp_request_group *rg)
             /** OBUDateandTime = ASN_OCTET_STR */
             break;
 
-        case COLUMN_SAMPLEVALUEID:
-            /** UNSIGNED32 = ASN_UNSIGNED */
-            break;
-
         case COLUMN_SAMPLEFREQUENCY:
             /** UNSIGNED32 = ASN_UNSIGNED */
             break;
 
         case COLUMN_PREVIOUSSAMPLEID:
             /** UNSIGNED32 = ASN_UNSIGNED */
+            break;
+
+        case COLUMN_SAMPLETYPE:
+            /** INTEGER = ASN_INTEGER */
+            break;
+
+        case COLUMN_SAMPLERECODEDVALUE:
+            /** INTEGER = ASN_INTEGER */
+            break;
+
+        case COLUMN_MAPTYPESAMPLESID:
+            /** UNSIGNED32 = ASN_UNSIGNED */
+            break;
+
+        case COLUMN_SAMPLECHECKSUM:
+            /** OCTET STRING = ASN_OCTET_STR */
             break;
 
         default: /** We shouldn't get here */
@@ -859,16 +958,28 @@ void samplesTable_set_undo(netsnmp_request_group *rg)
             /** OBUDateandTime = ASN_OCTET_STR */
             break;
 
-        case COLUMN_SAMPLEVALUEID:
-            /** UNSIGNED32 = ASN_UNSIGNED */
-            break;
-
         case COLUMN_SAMPLEFREQUENCY:
             /** UNSIGNED32 = ASN_UNSIGNED */
             break;
 
         case COLUMN_PREVIOUSSAMPLEID:
             /** UNSIGNED32 = ASN_UNSIGNED */
+            break;
+
+        case COLUMN_SAMPLETYPE:
+            /** INTEGER = ASN_INTEGER */
+            break;
+
+        case COLUMN_SAMPLERECODEDVALUE:
+            /** INTEGER = ASN_INTEGER */
+            break;
+
+        case COLUMN_MAPTYPESAMPLESID:
+            /** UNSIGNED32 = ASN_UNSIGNED */
+            break;
+
+        case COLUMN_SAMPLECHECKSUM:
+            /** OCTET STRING = ASN_OCTET_STR */
             break;
 
         default:               /** We shouldn't get here */
@@ -1004,13 +1115,6 @@ int samplesTable_get_value(
                                  context->timeStamp_len);
         break;
 
-    case COLUMN_SAMPLEVALUEID:
-        /** UNSIGNED32 = ASN_UNSIGNED */
-        snmp_set_var_typed_value(var, ASN_UNSIGNED,
-                                 (char *)&context->sampleValueID,
-                                 sizeof(context->sampleValueID));
-        break;
-
     case COLUMN_SAMPLEFREQUENCY:
         /** UNSIGNED32 = ASN_UNSIGNED */
         snmp_set_var_typed_value(var, ASN_UNSIGNED,
@@ -1023,6 +1127,34 @@ int samplesTable_get_value(
         snmp_set_var_typed_value(var, ASN_UNSIGNED,
                                  (char *)&context->previousSampleID,
                                  sizeof(context->previousSampleID));
+        break;
+
+    case COLUMN_SAMPLETYPE:
+        /** INTEGER = ASN_INTEGER */
+        snmp_set_var_typed_value(var, ASN_INTEGER,
+                                 (char *)&context->sampleType,
+                                 sizeof(context->sampleType));
+        break;
+
+    case COLUMN_SAMPLERECODEDVALUE:
+        /** INTEGER = ASN_INTEGER */
+        snmp_set_var_typed_value(var, ASN_INTEGER,
+                                 (char *)&context->sampleRecordedValue,
+                                 sizeof(context->sampleRecordedValue));
+        break;
+
+    case COLUMN_MAPTYPESAMPLESID:
+        /** UNSIGNED32 = ASN_UNSIGNED */
+        snmp_set_var_typed_value(var, ASN_UNSIGNED,
+                                 (char *)&context->mapTypeSamplesID,
+                                 sizeof(context->mapTypeSamplesID));
+        break;
+
+    case COLUMN_SAMPLECHECKSUM:
+        /** OCTET STRING = ASN_OCTET_STR */
+        snmp_set_var_typed_value(var, ASN_OCTET_STR,
+                                 (char *)&context->sampleChecksum,
+                                 context->sampleChecksum_len);
         break;
 
     default: /** We shouldn't get here */
@@ -1071,11 +1203,14 @@ samplesTable_context *samplesTable_create_row(netsnmp_index *hdr, samplesStruct 
     ctx->oid_buf[0] = req->sampleID;
     ctx->index.len = 1;
     ctx->sampleID = (long unsigned int)req->sampleID;
-    ctx->requestSampleID = (long unsigned int)req->requestSampleID;
     strcpy(ctx->timeStamp, req->timestamp);
     ctx->timeStamp_len = strlen(req->timestamp);
-    ctx->sampleValueID = (long unsigned int)req->sampleValueID;
     ctx->sampleFrequency = (long unsigned int)req->sampleFrequency;
     ctx->previousSampleID = (long unsigned int)req->previousSampleID;
+    ctx->sampleType = (long unsigned int)req->sampleType;
+    ctx->sampleRecordedValue = (long unsigned int)req->sampleRecordedValue;
+    ctx->mapTypeSamplesID = (long unsigned int)req->mapTypeSamplesID;
+    strcpy(ctx->sampleChecksum, req->sampleCheckSum);
+    ctx->sampleChecksum_len = strlen(req->sampleCheckSum);
     return ctx;
 }
