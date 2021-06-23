@@ -43,14 +43,15 @@ const oid mapTypeTable_oid[] = {mapTypeTable_TABLE_OID};
 const size_t mapTypeTable_oid_len = OID_LENGTH(mapTypeTable_oid);
 
 /*This function will return the table with a certain id*/
-mapTypeTable_context* findRow(unsigned long id){
+mapTypeTable_context *findRow(unsigned long id)
+{
     netsnmp_index index;
     oid index_oid[2];
     index_oid[0] = id;
     index.oids = (oid *)&index_oid;
     index.len = 1;
-    void*data=CONTAINER_FIND(cb.container,&index);
-    mapTypeTable_context* mapType=data;
+    void *data = CONTAINER_FIND(cb.container, &index);
+    mapTypeTable_context *mapType = data;
     return mapType;
 }
 
@@ -143,15 +144,11 @@ mapTypeTable_get(const char *name, int len)
 /************************************************************
  * Initializes the mapTypeTable module
  */
-void init_mapTypeTable(BO_List* boList)
+void init_mapTypeTable(BO_List *boList)
 {
     mapTypeTable_context *ctx;
     netsnmp_index index;
     oid index_oid[2];
-    errorDescrList errorList;
-    errorList.capacity=1;
-    errorList.current=0;
-    errorList.errorList=malloc(sizeof(errorDescrStruct));
 
     sampleUnitsList sampleunitsList;
     sampleunitsList.capacity = 1;
@@ -161,51 +158,48 @@ void init_mapTypeTable(BO_List* boList)
     genericTypeList typesList;
     typesList.capacity = 1;
     typesList.current = 0;
-    typesList.genericList = malloc(sizeof(genericTypeList));   
+    typesList.genericList = malloc(sizeof(genericTypeList));
     initialize_table_mapTypeTable();
-    int inserted=0;
-    int errorInserted=0;
+    int inserted = 0;
+    int errorInserted = 0;
     regex_t regex;
-    int value=regcomp(&regex,"DM[0-9]+:",REG_EXTENDED);
-    if(value){
-        fprintf(stderr,"Could not compile regex\n");
+    int value = regcomp(&regex, "DM[0-9]+:", REG_EXTENDED);
+    if (value)
+    {
+        fprintf(stderr, "Could not compile regex\n");
         exit(1);
     }
-    for (int i = 0; i < boList->current; i++){
-        value=regexec(&regex,boList->list[i].name,0,NULL,0);
-        if(value==REG_NOMATCH){
-            for(int j=0;j<boList->list[i].signals->current;j++){
-                int idSampleUnits=addToSampleUnits(&sampleunitsList,boList->list[i].messageID,boList->list[i].signals->list[j].unit);
-                int idGenericTypes=addToGenericTypes(&typesList,boList->list[i].messageID,boList->list[i].signals->list[j].description);
+    for (int i = 0; i < boList->current; i++)
+    {
+        value = regexec(&regex, boList->list[i].name, 0, NULL, 0);
+        if (value == REG_NOMATCH)
+        {
+            for (int j = 0; j < boList->list[i].signals->current; j++)
+            {
+                int idSampleUnits = addToSampleUnits(&sampleunitsList, boList->list[i].messageID, boList->list[i].signals->list[j].unit);
+                int idGenericTypes = addToGenericTypes(&typesList, boList->list[i].messageID, boList->list[i].signals->list[j].description);
                 index_oid[0] = inserted;
                 index.oids = (oid *)&index_oid;
                 index.len = 1;
+                char *aux = malloc(sizeof(char) + strlen(boList->list[i].signals->list[j].name) + strlen(boList->list[i].name) + 1);
+                strcpy(aux, boList->list[i].name);
+                strcat(aux, boList->list[i].signals->list[j].name);
                 ctx = NULL;
                 /* Search for it first. */
                 ctx = CONTAINER_FIND(cb.container, &index);
                 if (!ctx)
                 {
                     // No dice. We add the new row
-                    ctx = mapTypeTable_create_row(&index, boList->list[i].signals->list[j].name, "CAN 2.0", inserted, idGenericTypes, idSampleUnits, 0, 0, 0, 0);
+                    ctx = mapTypeTable_create_row(&index, aux, "CAN 2.0", inserted, idGenericTypes, idSampleUnits, 0, 0, 0, 0);
                     CONTAINER_INSERT(cb.container, ctx);
                     inserted++;
                 }
-            }
-            //Nao sei se estes dois ficam ou nao (adicionam descriçoes do EEC1 etc)
-            int idGenericTypes=addToGenericTypes(&typesList,boList->list[i].messageID,boList->list[i].description);
-            int idSampleUnits=addToSampleUnits(&sampleunitsList,boList->list[i].messageID,"");
-            
-        }else if(!value){
-            for(int j=0;j<boList->list[i].signals->current;j++){
-                int idErrorDescription=addToErrorDescription(&errorList,errorInserted,boList->list[i].signals->list[j].description);
-                //insertErrorSensorTable(errorInserted,boList->list[i].signals->list[j].name);
-                errorInserted++;
+                free(aux);
             }
         }
     }
     init_sampleUnitsTable(&sampleunitsList);
     init_genericTypesTable(&typesList);
-    init_errorDescriptionTable(&errorList);
     regfree(&regex);
 }
 

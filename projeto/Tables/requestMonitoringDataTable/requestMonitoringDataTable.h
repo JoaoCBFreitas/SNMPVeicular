@@ -43,7 +43,7 @@ extern "C"
         int loopmode;
         int nofSamples;
         int status;
-        char* requestUser;
+        char *requestUser;
 
     } requestMonitoringStruct;
     /** Index requestID is internal */
@@ -52,14 +52,14 @@ extern "C"
     {
         netsnmp_index index; /** THIS MUST BE FIRST!!! */
         oid oid_buf[2];
-        unsigned long requestID;            /** UNSIGNED32 = ASN_UNSIGNED */
-        unsigned long requestControlID;     /** UNSIGNED32 = ASN_UNSIGNED */
-        unsigned long requestMapID;         /** UNSIGNED32 = ASN_UNSIGNED */
-        unsigned long requestStatisticsID;  /** UNSIGNED32 = ASN_UNSIGNED */
-        long savingMode;                    /** INTEGER = ASN_INTEGER */
-        unsigned long samplingFrequency;    /** UNSIGNED32 = ASN_UNSIGNED */
-        long maxDelay;                      /** INTEGER = ASN_INTEGER */
-        unsigned char startTime[MAXSNMPSTRINGSIZE];     /** OBUDateandTime = ASN_OCTET_STR */
+        unsigned long requestID;                    /** UNSIGNED32 = ASN_UNSIGNED */
+        unsigned long requestControlID;             /** UNSIGNED32 = ASN_UNSIGNED */
+        unsigned long requestMapID;                 /** UNSIGNED32 = ASN_UNSIGNED */
+        unsigned long requestStatisticsID;          /** UNSIGNED32 = ASN_UNSIGNED */
+        long savingMode;                            /** INTEGER = ASN_INTEGER */
+        unsigned long samplingFrequency;            /** UNSIGNED32 = ASN_UNSIGNED */
+        long maxDelay;                              /** INTEGER = ASN_INTEGER */
+        unsigned char startTime[MAXSNMPSTRINGSIZE]; /** OBUDateandTime = ASN_OCTET_STR */
         long startTime_len;
         unsigned char endTime[MAXSNMPSTRINGSIZE]; /** OBUDateandTime = ASN_OCTET_STR */
         long endTime_len;
@@ -67,11 +67,11 @@ extern "C"
         long durationTime_len;
         unsigned char expireTime[MAXSNMPSTRINGSIZE]; /** OBUDateandTime = ASN_OCTET_STR */
         long expireTime_len;
-        unsigned long maxNOfSamples; /** UNSIGNED32 = ASN_UNSIGNED */
-        unsigned long lastSampleID;  /** UNSIGNED32 = ASN_UNSIGNED */
-        long loopMode;               /** INTEGER = ASN_INTEGER */
-        unsigned long nOfSamples;    /** COUNTER = ASN_COUNTER */
-        long status;                 /** INTEGER = ASN_INTEGER */
+        unsigned long maxNOfSamples;                  /** UNSIGNED32 = ASN_UNSIGNED */
+        unsigned long lastSampleID;                   /** UNSIGNED32 = ASN_UNSIGNED */
+        long loopMode;                                /** INTEGER = ASN_INTEGER */
+        unsigned long nOfSamples;                     /** COUNTER = ASN_COUNTER */
+        long status;                                  /** INTEGER = ASN_INTEGER */
         unsigned char requestUser[MAXSNMPSTRINGSIZE]; /** OCTET STRING = ASN_OCTET_STR */
         long requestUser_len;
         void *data;
@@ -88,7 +88,7 @@ extern "C"
                                                                                        int row_status);
     int requestMonitoringDataTable_get_value(netsnmp_request_info *, netsnmp_index *, netsnmp_table_request_info *);
     void checkTables();
-    void checkSamples(char*,double,int,char*);
+    void checkSamples(char *, double, int, char *, char *);
     int deleteRequestEntry(requestMonitoringStruct *);
     /*************************************************************
  * oid declarations
@@ -102,7 +102,7 @@ extern "C"
  * column number definitions for table requestMonitoringDataTable
  */
 #define COLUMN_REQUESTID 1
-#define COLUMN_REQUESTCONTROLID 2
+#define COLUMN_MONITORINGCONTROLID 2
 #define COLUMN_REQUESTMAPID 3
 #define COLUMN_REQUESTSTATISTICSID 4
 #define COLUMN_SAVINGMODE 5

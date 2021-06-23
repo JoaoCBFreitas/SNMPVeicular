@@ -37,10 +37,10 @@ extern "C"
     {
         netsnmp_index index; /** THIS MUST BE FIRST!!! */
         oid oid_buf[2];
-        unsigned long requestControlID;            /** UNSIGNED32 = ASN_UNSIGNED */
-        unsigned long requestControlMapID; /** UNSIGNED32 = ASN_UNSIGNED */
-        long settingMode;                          /** INTEGER = ASN_INTEGER */
-        unsigned char commitTime[MAXSNMPSTRINGSIZE];           /** OBUDateandTime = ASN_OCTET_STR */
+        unsigned long requestControlID;              /** UNSIGNED32 = ASN_UNSIGNED */
+        unsigned long requestControlMapID;           /** UNSIGNED32 = ASN_UNSIGNED */
+        long settingMode;                            /** INTEGER = ASN_INTEGER */
+        unsigned char commitTime[MAXSNMPSTRINGSIZE]; /** OBUDateandTime = ASN_OCTET_STR */
         long commitTime_len;
         unsigned char waitTime[MAXSNMPSTRINGSIZE]; /** OBUDateandTime = ASN_OCTET_STR */
         long waitTime_len;
@@ -65,9 +65,10 @@ extern "C"
     const requestControlDataTable_context *requestControlDataTable_get_by_idx_rs(netsnmp_index *,
                                                                                  int row_status);
     int requestControlDataTable_get_value(netsnmp_request_info *, netsnmp_index *, netsnmp_table_request_info *);
-    void* getControlTableID(long unsigned int);
+    void *getControlTableID(long unsigned int);
     int insertControlRow(requestStruct *);
     int deleteControlEntry(int);
+    int firstControlEntry(void);
     /*************************************************************
  * oid declarations
  */

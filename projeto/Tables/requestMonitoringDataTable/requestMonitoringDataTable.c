@@ -42,7 +42,8 @@ static netsnmp_table_array_callbacks cb;
 const oid requestMonitoringDataTable_oid[] = {requestMonitoringDataTable_TABLE_OID};
 const size_t requestMonitoringDataTable_oid_len = OID_LENGTH(requestMonitoringDataTable_oid);
 /*This function will delete an entry from requestMonitoringDataTable*/
-int deleteRequestEntry(requestMonitoringStruct * req){
+int deleteRequestEntry(requestMonitoringStruct *req)
+{
     requestMonitoringDataTable_context *ctx;
     netsnmp_index index;
     oid index_oid[2];
@@ -54,13 +55,15 @@ int deleteRequestEntry(requestMonitoringStruct * req){
     ctx = CONTAINER_FIND(cb.container, &index);
     if (ctx)
     {
-        CONTAINER_REMOVE(cb.container,&index);
+        CONTAINER_REMOVE(cb.container, &index);
         requestMonitoringDataTable_delete_row(ctx);
-    }else{
+    }
+    else
+    {
         return 2;
     }
     ctx = CONTAINER_FIND(cb.container, &index);
-    if(ctx)
+    if (ctx)
         return 1;
     else
         return 0;
@@ -68,7 +71,7 @@ int deleteRequestEntry(requestMonitoringStruct * req){
 /************************************************************
  * This function inserts a requestMonitoringStruct into the requestMonitoringDataTable
  */
-int insertMonitoringRow(requestMonitoringStruct* req)
+int insertMonitoringRow(requestMonitoringStruct *req)
 {
     requestMonitoringDataTable_context *ctx;
     netsnmp_index index;
@@ -80,170 +83,173 @@ int insertMonitoringRow(requestMonitoringStruct* req)
     /* Search for it first. */
     ctx = CONTAINER_FIND(cb.container, &index);
     /*Delete previous entry if it already exists*/
-    if(ctx){
-        CONTAINER_REMOVE(cb.container,&index);
+    if (ctx)
+    {
+        CONTAINER_REMOVE(cb.container, &index);
         requestMonitoringDataTable_delete_row(ctx);
         ctx = requestMonitoringDataTable_create_row(&index, req);
         CONTAINER_INSERT(cb.container, ctx);
         return 0;
-    }else{
+    }
+    else
+    {
         ctx = requestMonitoringDataTable_create_row(&index, req);
         CONTAINER_INSERT(cb.container, ctx);
         return 0;
     }
     return 1;
 }
-
-
-/*This function will add a row to requestControlDataTable if this table has no equivalent in requestMonitoringDataTable*/
-int insertRowControl_Monitor(requestMonitoringDataTable_context *reqMonitoring){
+/*This function will add a row to requestControlDataTable based on the contents of requestMonitoringDataTable*/
+int insertRowControl_Monitor(requestMonitoringDataTable_context *reqMonitoring)
+{
     requestStruct *req = (requestStruct *)malloc(sizeof(requestStruct));
-    req->reqID=reqMonitoring->requestID;
-    req->requestControlMapID=reqMonitoring->requestControlID;
-    req->settingMode=reqMonitoring->savingMode;
-    req->commitTime=malloc(sizeof(char)*reqMonitoring->startTime_len+1);
-    strcpy(req->commitTime,reqMonitoring->startTime);
-    req->endTime=malloc(sizeof(char)*reqMonitoring->endTime_len+1);
-    strcpy(req->endTime,reqMonitoring->endTime);
-    req->waitTime=malloc(sizeof(char)*strlen("00:10:00")+1);
-    strcpy(req->waitTime,"00:10:00");
-    req->duration=malloc(sizeof(char)*reqMonitoring->durationTime_len+1);
-    strcpy(req->duration,reqMonitoring->durationTime);
-    req->expireTime=malloc(sizeof(char)*reqMonitoring->expireTime_len+1);
-    strcpy(req->expireTime,reqMonitoring->expireTime);
-    req->status=reqMonitoring->status;
-    req->valuesTable=0;
-    int insert=insertControlRow(req);
+    req->reqID = reqMonitoring->requestControlID;
+    req->requestControlMapID = reqMonitoring->requestMapID;
+    req->settingMode = reqMonitoring->savingMode;
+    req->commitTime = malloc(sizeof(char) * reqMonitoring->startTime_len + 1);
+    strcpy(req->commitTime, reqMonitoring->startTime);
+    req->endTime = malloc(sizeof(char) * reqMonitoring->endTime_len + 1);
+    strcpy(req->endTime, reqMonitoring->endTime);
+    req->waitTime = malloc(sizeof(char) * strlen("00:10:00") + 1);
+    strcpy(req->waitTime, "00:10:00");
+    req->duration = malloc(sizeof(char) * reqMonitoring->durationTime_len + 1);
+    strcpy(req->duration, reqMonitoring->durationTime);
+    req->expireTime = malloc(sizeof(char) * reqMonitoring->expireTime_len + 1);
+    strcpy(req->expireTime, reqMonitoring->expireTime);
+    req->status = reqMonitoring->status;
+    req->valuesTable = 0;
+    int insert = insertControlRow(req);
     free(req);
     return insert;
 }
 /*This function will convert a requestMonitoringDataTable_context to requestMonitoringStruct*/
-requestMonitoringStruct* tableToStruct(requestMonitoringDataTable_context* reqMonitoring,requestMonitoringStruct* reqStruct){
-    reqStruct->reqID=reqMonitoring->requestID;
-    reqStruct->requestControlID=reqMonitoring->requestControlID;
-    reqStruct->requestMapID=reqMonitoring->requestMapID;
-    reqStruct->statisticsRequestID=reqMonitoring->requestStatisticsID;
-    reqStruct->savingMode=reqMonitoring->savingMode;
-    reqStruct->sampleFreq=reqMonitoring->samplingFrequency;
-    reqStruct->maxDelay=reqMonitoring->maxDelay;
-    reqStruct->startTime=malloc(sizeof(char)*strlen(reqMonitoring->startTime));
-    reqStruct->endTime=malloc(sizeof(char)*strlen(reqMonitoring->endTime));
-    reqStruct->durationTime=malloc(sizeof(char)*strlen(reqMonitoring->durationTime));
-    reqStruct->expireTime=malloc(sizeof(char)*strlen(reqMonitoring->expireTime));
-    strcpy(reqStruct->startTime,reqMonitoring->startTime);
-    strcpy(reqStruct->endTime,reqMonitoring->endTime);
-    strcpy(reqStruct->durationTime,reqMonitoring->durationTime);
-    strcpy(reqStruct->expireTime,reqMonitoring->expireTime);
-    reqStruct->maxNofSamples=reqMonitoring->maxNOfSamples;
-    reqStruct->lastSampleID=reqMonitoring->lastSampleID;
-    reqStruct->loopmode=reqMonitoring->loopMode;
-    reqStruct->nofSamples=reqMonitoring->nOfSamples;
-    reqStruct->status=reqMonitoring->status;
-    reqStruct->requestUser=malloc(sizeof(char)*strlen(reqMonitoring->requestUser));
-    strcpy(reqStruct->requestUser,reqMonitoring->requestUser);
+requestMonitoringStruct *tableToStruct(requestMonitoringDataTable_context *reqMonitoring, requestMonitoringStruct *reqStruct)
+{
+    reqStruct->reqID = reqMonitoring->requestID;
+    reqStruct->requestControlID = reqMonitoring->requestControlID;
+    reqStruct->requestMapID = reqMonitoring->requestMapID;
+    reqStruct->statisticsRequestID = reqMonitoring->requestStatisticsID;
+    reqStruct->savingMode = reqMonitoring->savingMode;
+    reqStruct->sampleFreq = reqMonitoring->samplingFrequency;
+    reqStruct->maxDelay = reqMonitoring->maxDelay;
+    reqStruct->startTime = malloc(sizeof(char) * strlen(reqMonitoring->startTime));
+    reqStruct->endTime = malloc(sizeof(char) * strlen(reqMonitoring->endTime));
+    reqStruct->durationTime = malloc(sizeof(char) * strlen(reqMonitoring->durationTime));
+    reqStruct->expireTime = malloc(sizeof(char) * strlen(reqMonitoring->expireTime));
+    strcpy(reqStruct->startTime, reqMonitoring->startTime);
+    strcpy(reqStruct->endTime, reqMonitoring->endTime);
+    strcpy(reqStruct->durationTime, reqMonitoring->durationTime);
+    strcpy(reqStruct->expireTime, reqMonitoring->expireTime);
+    reqStruct->maxNofSamples = reqMonitoring->maxNOfSamples;
+    reqStruct->lastSampleID = reqMonitoring->lastSampleID;
+    reqStruct->loopmode = reqMonitoring->loopMode;
+    reqStruct->nofSamples = reqMonitoring->nOfSamples;
+    reqStruct->status = reqMonitoring->status;
+    reqStruct->requestUser = malloc(sizeof(char) * strlen(reqMonitoring->requestUser));
+    strcpy(reqStruct->requestUser, reqMonitoring->requestUser);
     return reqStruct;
 }
 /**
  * This Function will check if the decodedCan message has a request already set for it. If so it will add/edit entries into the MIB
+ TODO: Update requestControlDataTable when samples are read
  */
-void checkSamples(char* signalname,double value,int signals,char* timestamp){
+void checkSamples(char *signalname, double value, int signals, char *timestamp, char *checksum)
+{
     netsnmp_iterator *it;
     netsnmp_index index;
     oid index_oid[2];
-    void* data;
-    requestMonitoringStruct * reqStruct=(requestMonitoringStruct*)malloc(sizeof(requestMonitoringStruct));
-    it=CONTAINER_ITERATOR(cb.container);
-    if(NULL==it){
+    void *data;
+    requestMonitoringStruct *reqStruct = (requestMonitoringStruct *)malloc(sizeof(requestMonitoringStruct));
+    it = CONTAINER_ITERATOR(cb.container);
+    if (NULL == it)
+    {
         exit;
     }
-    /*Inserçoes no requestStatistics/requestMonitoring estao a falhar*/
-    for(data=ITERATOR_FIRST(it);data;data=ITERATOR_NEXT(it)){
-        requestMonitoringDataTable_context *reqMonitoring =data;
+    for (data = ITERATOR_FIRST(it); data; data = ITERATOR_NEXT(it))
+    {
+        requestMonitoringDataTable_context *reqMonitoring = data;
         index_oid[0] = reqMonitoring->requestID;
         index.oids = (oid *)&index_oid;
         index.len = 1;
-        mapTypeTable_context* mapType;
+        mapTypeTable_context *mapType;
         char unit[32];
-        switch(reqMonitoring->status){
-            case 0:
-                /*Row is in Off mode, do nothing*/
-                break;
-            case 1:
-                /*Row is in On mode, read data from CAN interface and add to tables*/
-                mapType=findRow(reqMonitoring->requestMapID);
-                if(mapType!=NULL){
-                    if(strcmp(mapType->dataSource,signalname)==0){
-                        samplesStruct* ss=(samplesStruct*)malloc(sizeof(samplesStruct));
-                        int firstSampleTableEmptyID=firstSampleEntry();
-                        int firstSampledValuesEntry=firstSampledEntry();
-                        ss->sampleID=firstSampleTableEmptyID;
-                        ss->previousSampleID=reqMonitoring->lastSampleID;
-                        ss->requestSampleID=reqMonitoring->requestID;
-                        ss->sampleFrequency=reqMonitoring->samplingFrequency;
-                        //ss->sampleValueID=firstSampledValuesEntry;
-                        ss->timestamp=malloc(sizeof(char)*64);
-                        strcpy(ss->timestamp,timestamp);
-                        int insertSamples=insertSamplesRow(ss);
-                        free(ss);
-                        if(insertSamples!=0)
-                            printf("Samples insertion failed\n");
-                        /*Add sampledStruct*/
-                        /*
-                        sampledStruct* svs=(sampledStruct*)malloc(sizeof(sampledStruct));
-                        svs->nOfsampledValues=signals;
-                        svs->mapTypeSamplesID=mapType->mapTypeID;
-                        svs->relatedSampleValue=0;
-                        svs->sampledValueID=firstSampledValuesEntry;
-                        svs->sampleRecordedValue=value;
-                        svs->sampleType=1;
-                        int insertSampledValue=insertSampledValuesRow(svs);
-                        free(svs);
-                        if(insertSamples!=0)
-                            printf("SampledValue insertion failed\n");
+        switch (reqMonitoring->status)
+        {
+        case 0:
+            /*Row is in Off mode, do nothing*/
+            break;
+        case 1:
+            /*Row is in On mode, read data from CAN interface and add to tables*/
+            mapType = findRow(reqMonitoring->requestMapID);
+            if (mapType != NULL)
+            {
+                if (strcmp(mapType->dataSource, signalname) == 0)
+                {
+                    samplesStruct *ss = (samplesStruct *)malloc(sizeof(samplesStruct));
+                    int firstSampleTableEmptyID = firstSampleEntry();
+                    ss->sampleID = firstSampleTableEmptyID;
+                    ss->requestSampleID = reqMonitoring->requestID;
+                    ss->timestamp = malloc(sizeof(char) * 64);
+                    strcpy(ss->timestamp, timestamp);
+                    ss->sampleFrequency = reqMonitoring->samplingFrequency;
+                    ss->previousSampleID = reqMonitoring->lastSampleID;
+                    ss->sampleType = 1;
+                    ss->sampleRecordedValue = value;
+                    ss->mapTypeSamplesID = mapType->mapTypeID;
+                    /*TODO:
+                            Create a proper checksum function
                         */
-                        /*Update requestStatisticsDataTable*/
-                        if(reqMonitoring->requestStatisticsID!=0){
-                            requestStatisticsDataTable_context *statStruct=getStatisticsTable(reqMonitoring->requestStatisticsID);
-                            statisticsStruct* sS=(statisticsStruct*)malloc(sizeof(statisticsStruct));
-                            sS=convertStatStruct(statStruct,sS);
-                            if(sS->maxValue<value)
-                                sS->maxValue=value;
-                            else
-                                if(sS->minValue>value)
-                                    sS->minValue=value;
-                            double total=sS->avgValue*sS->nOfSamples;
-                            total+=value;
-                            sS->nOfSamples+=1;
-                            sS->avgValue=total/sS->nOfSamples;
-                            int inserted=insertStatisticsRow(sS);
-                            if(inserted!=0){
-                                printf("Statistics update failed\n");
-                            }
-                            free(sS);
+                    ss->sampleCheckSum = malloc(sizeof(char) * strlen(checksum));
+                    strcpy(ss->sampleCheckSum, checksum);
+                    int insertSamples = insertSamplesRow(ss);
+                    free(ss);
+                    if (insertSamples != 0)
+                        printf("Samples insertion failed\n");
+                    /*Update requestStatisticsDataTable*/
+                    if (reqMonitoring->requestStatisticsID != 0)
+                    {
+                        requestStatisticsDataTable_context *statStruct = getStatisticsTable(reqMonitoring->requestStatisticsID);
+                        statisticsStruct *sS = (statisticsStruct *)malloc(sizeof(statisticsStruct));
+                        sS = convertStatStruct(statStruct, sS);
+                        if (sS->maxValue < value)
+                            sS->maxValue = value;
+                        if (sS->minValue > value)
+                            sS->minValue = value;
+                        double total = sS->avgValue * sS->nOfSamples;
+                        total += value;
+                        sS->nOfSamples += 1;
+                        sS->avgValue = total / sS->nOfSamples;
+                        int inserted = insertStatisticsRow(sS);
+                        if (inserted != 0)
+                        {
+                            printf("Statistics update failed\n");
                         }
-                        /*Update requestMonitoringDataTable*/
-                        reqStruct=tableToStruct(reqMonitoring,reqStruct);
-                        reqStruct->lastSampleID=firstSampleTableEmptyID;
-                        reqStruct->nofSamples+=1;
-                        if(reqStruct->nofSamples==reqStruct->maxNofSamples){
-                            reqStruct->status=0;
-                            printf("Request %d finished\n",reqStruct->reqID);
-                        }
-                        int inserted=insertMonitoringRow(reqStruct);
-                        requestMonitoringDataTable_create_row(&index,reqStruct);
-                        /*TODO requestControl*/
+                        free(sS);
                     }
+                    /*Update requestMonitoringDataTable*/
+                    reqStruct = tableToStruct(reqMonitoring, reqStruct);
+                    reqStruct->lastSampleID = firstSampleTableEmptyID;
+                    reqStruct->nofSamples += 1;
+                    if (reqStruct->nofSamples == reqStruct->maxNofSamples)
+                    {
+                        reqStruct->status = 0;
+                        printf("Request %d finished\n", reqStruct->reqID);
+                    }
+                    int inserted = insertMonitoringRow(reqStruct);
+                    //requestMonitoringDataTable_create_row(&index, reqStruct);
+                    /*TODO requestControl*/
                 }
-                break;
-            case 2:
-                /*Row is in SET mode, do nothing*/
-                break;
-            case 3:
-                /*Row is in DELETE mode, do nothing*/
-                break;
-            default:
-                printf("Undefined status\n");
-                break;
+            }
+            break;
+        case 2:
+            /*Row is in SET mode, do nothing*/
+            break;
+        case 3:
+            /*Row is in DELETE mode, do nothing*/
+            break;
+        default:
+            printf("Undefined status\n");
+            break;
         }
     }
     ITERATOR_RELEASE(it);
@@ -251,129 +257,141 @@ void checkSamples(char* signalname,double value,int signals,char* timestamp){
 }
 /**
  * This Function will compare requestMonitoringDataTable with requestControlDataTable, to identify if and when modifications are made (sets/deletes).
+ TODO: Update dos "times" quando é feito um pedido a um objeto ao qual ja haja 
+            pedido e ao status quando nao há requestMonitoring deste pedido ativos
+ TODO: Only delete requestControl and samplesTable when theres no other request still active
+ TODO: Change from off to delete when endTime has passed
+ TODO: Insert SNMP user
  */
-void checkTables(){
+void checkTables()
+{
     netsnmp_iterator *it;
     netsnmp_index index;
     oid index_oid[2];
-    void* data;
+    void *data;
     int delete;
-    requestMonitoringStruct * reqStruct=(requestMonitoringStruct*)malloc(sizeof(requestMonitoringStruct));
-    it=CONTAINER_ITERATOR(cb.container);
-    if(NULL==it){
+    requestMonitoringStruct *reqStruct = (requestMonitoringStruct *)malloc(sizeof(requestMonitoringStruct));
+    it = CONTAINER_ITERATOR(cb.container);
+    if (NULL == it)
+    {
         exit;
     }
-    for(data=ITERATOR_FIRST(it);data;data=ITERATOR_NEXT(it)){
-        requestMonitoringDataTable_context *reqMonitoring =data;
-        //requestID e requestControlID têm de ser iguais
-        requestControlDataTable_context *reqControl=getControlTableID(reqMonitoring->requestID);
-        if(reqControl==NULL){
-            /*TODO req->valuesTable e req->waitTime*/
-            int insertControl=insertRowControl_Monitor(reqMonitoring);
-            if(insertControl==1)
+    for (data = ITERATOR_FIRST(it); data; data = ITERATOR_NEXT(it))
+    {
+        requestMonitoringDataTable_context *reqMonitoring = data;
+
+        requestControlDataTable_context *reqControl = getControlTableID(reqMonitoring->requestID);
+        if (reqControl == NULL)
+        {
+
+            int id = firstControlEntry();
+            reqMonitoring->requestControlID = (unsigned long)id;
+            int insertControl = insertRowControl_Monitor(reqMonitoring);
+            if (insertControl == 1)
                 exit;
             exit;
-        }else{
-            if(reqMonitoring->requestID==reqControl->requestControlID && reqMonitoring->status!=reqControl->statusControl){
-                //If requestControlID matches requestID but their contents differ, this will update the row in requestControlDataTable
-                int insertControl=insertRowControl_Monitor(reqMonitoring);
-                if(insertControl!=0){
+        }
+        else
+        {
+            /*TODO: Update dos "times" quando é feito um pedido a um objeto ao qual ja haja 
+            pedido e ao status quando nao há requestMonitoring deste pedido ativos*/
+            if (reqMonitoring->status == 1 && reqControl->statusControl == 2)
+            {
+                int insertControl = insertRowControl_Monitor(reqMonitoring);
+                if (insertControl != 0)
+                {
                     printf("Control update failed\n");
                     exit;
                 }
             }
         }
-        samplesTable_context* samplesTable;
-        switch(reqMonitoring->status){
-            case 0:
-                /*Row is in Off mode, check if it can be switched to Delete mode*/
-                break;
-            case 1:
-                /*Request is in On mode, do nothing*/
-                break;
-            case 2:
-                /*Row is in set mode*/
-                index_oid[0] = reqMonitoring->requestID;
-                index.oids = (oid *)&index_oid;
-                index.len = 1;
-                reqMonitoring->status=1;
-                if(reqMonitoring->requestStatisticsID!=0){
-                    statisticsStruct *statStruct=(statisticsStruct*)malloc(sizeof(statisticsStruct));
-                    statStruct->duration=malloc(sizeof(char)*reqMonitoring->durationTime_len);
-                    statStruct->statID=reqMonitoring->requestStatisticsID;
-                    strcpy(statStruct->duration,reqMonitoring->durationTime);
-                    statStruct->nOfSamples=0;
-                    statStruct->minValue=9999;
-                    statStruct->maxValue=-999;
-                    statStruct->avgValue=0;
-                    int stat=insertStatisticsRow(statStruct);
-                    free(statStruct);
-                    if(stat!=0)
-                        printf("Statistics insertion failed\n");
-                }else
-                    printf("No statistics\n");
 
-                reqStruct=tableToStruct(reqMonitoring,reqStruct);
-                requestMonitoringDataTable_create_row(&index,reqStruct);
-                break;
-            case 3:
-                /*Row is in Delete mode, delete this row and all other rows related to this one*/
-                /***********************Delete all samplesEntry***************************/
-                reqStruct=tableToStruct(reqMonitoring,reqStruct);
-                if(reqStruct->lastSampleID!=0){
-                    samplesTable=getSampleEntry(reqStruct->lastSampleID);
-                    while(samplesTable!=NULL){
-                        int aux=samplesTable->sampleID;
-                        
-                        /*****************Delete all sampledEntry***********/
-                        /*
-                        sampledValuesTable_context* sampledTable=getSampledEntry(samplesTable->sampleValueID);
-                        while(sampledTable!=NULL){
-                            int aux2=sampledTable->sampledValueID;
-                            sampledTable=getSampledEntry(sampledTable->relatedSampleValue);
-                            delete=deleteSampledEntry(aux2);
-                            if(delete!=0)
-                                printf("SampledValuesEntry deletion failed ID:%d\n",aux2);
-                        }
-                        */
-                        /***************************************************/
-                        samplesTable=getSampleEntry(samplesTable->previousSampleID);
-                        delete=deleteSamplesEntry(aux);
-                        if(delete!=0)
-                            printf("SampleEntry deletion Failed ID:%d\n",aux);
-                    }
+        samplesTable_context *samplesTable;
+        switch (reqMonitoring->status)
+        {
+        case 0:
+            /*Row is in Off mode, check if it can be switched to Delete mode*/
+            break;
+        case 1:
+            /*Request is in On mode, do nothing*/
+            break;
+        case 2:
+            /*Row is in set mode*/
+            index_oid[0] = reqMonitoring->requestID;
+            index.oids = (oid *)&index_oid;
+            index.len = 1;
+            reqMonitoring->status = 1;
+            if (reqMonitoring->requestStatisticsID != 0)
+            {
+                statisticsStruct *statStruct = (statisticsStruct *)malloc(sizeof(statisticsStruct));
+                statStruct->duration = malloc(sizeof(char) * reqMonitoring->durationTime_len);
+                statStruct->statID = reqMonitoring->requestStatisticsID;
+                strcpy(statStruct->duration, reqMonitoring->durationTime);
+                statStruct->nOfSamples = 0;
+                statStruct->minValue = 9999;
+                statStruct->maxValue = -999;
+                statStruct->avgValue = 0;
+                int stat = insertStatisticsRow(statStruct);
+                free(statStruct);
+                if (stat != 0)
+                    printf("Statistics insertion failed\n");
+            }
+            else
+                printf("No statistics\n");
+
+            reqStruct = tableToStruct(reqMonitoring, reqStruct);
+            requestMonitoringDataTable_create_row(&index, reqStruct);
+            break;
+        case 3:
+            /*Row is in Delete mode, delete this row and all other rows related to this one*/
+            /***********************Delete all samplesEntry***************************/
+            reqStruct = tableToStruct(reqMonitoring, reqStruct);
+            if (reqStruct->lastSampleID != 0)
+            {
+                samplesTable = getSampleEntry(reqStruct->lastSampleID);
+                while (samplesTable != NULL)
+                {
+                    int aux = samplesTable->sampleID;
+                    samplesTable = getSampleEntry(samplesTable->previousSampleID);
+                    delete = deleteSamplesEntry(aux);
+                    if (delete != 0)
+                        printf("SampleEntry deletion Failed ID:%d\n", aux);
                 }
-                /*************************************************************************/
-                /*Delete requestStatisticsDataEntry*/
-                delete=deleteStatisticsEntry(reqStruct->statisticsRequestID);
-                if(delete==1)
+            }
+            /*************************************************************************/
+            /*Delete requestStatisticsDataEntry*/
+            if (reqStruct->statisticsRequestID != 0)
+            {
+                delete = deleteStatisticsEntry(reqStruct->statisticsRequestID);
+                if (delete == 1)
                     printf("Deletion of requestStatisticsDataEntry failed\n");
-                else if(delete==2)
+                else if (delete == 2)
                     printf("RequestStatisticsDataEntry not found\n");
-                /*Delete requestControlDataEntry*/
-                delete=deleteControlEntry(reqStruct->reqID);
-                if(delete==1)
-                    printf("Deletion of requestControlDataEntry failed\n");
-                else if(delete==2)
-                    printf("RequestControlDataEntry not found\n");
-                /*Delete requestMonitoringDataEntry*/
-                delete=deleteRequestEntry(reqStruct);
-                if(delete==1)
-                    printf("Deletion of requestMonitoringDataEntry failed\n");
-                else if(delete==2)
-                    printf("RequestMonitoringDataEntry not found\n");
+            }
+            /*Delete requestControlDataEntry*/
+            //TODO: Only delete when theres no other request still active
+            delete = deleteControlEntry(reqStruct->reqID);
+            if (delete == 1)
+                printf("Deletion of requestControlDataEntry failed\n");
+            else if (delete == 2)
+                printf("RequestControlDataEntry not found\n");
+            /*Delete requestMonitoringDataEntry*/
+            delete = deleteRequestEntry(reqStruct);
+            if (delete == 1)
+                printf("Deletion of requestMonitoringDataEntry failed\n");
+            else if (delete == 2)
+                printf("RequestMonitoringDataEntry not found\n");
 
-                break;
-            default:
-                printf("Undefined status\n");
-                break;
+            break;
+        default:
+            printf("Undefined status\n");
+            break;
         }
     }
-    
+
     ITERATOR_RELEASE(it);
     free(reqStruct);
 }
-
 
 #ifdef requestMonitoringDataTable_CUSTOM_SORT
 /************************************************************
@@ -487,7 +505,7 @@ void init_requestMonitoringDataTable(void)
     req->loopmode = 1;
     req->nofSamples = 0;
     req->status = 2;
-    req->requestUser="Utilizador teste";
+    req->requestUser = "Utilizador teste";
     index_oid[0] = 0;
     index.oids = (oid *)&index_oid;
     index.len = 1;
@@ -662,14 +680,14 @@ void requestMonitoringDataTable_set_reserve1(netsnmp_request_group *rg)
             /** UNSIGNED32 = ASN_UNSIGNED */
             /* or possibly 'netsnmp_check_vb_int_range' */
             rc = netsnmp_check_vb_uint(var);
-            
+
             break;
 
-        case COLUMN_REQUESTCONTROLID:
+        case COLUMN_MONITORINGCONTROLID:
             /** UNSIGNED32 = ASN_UNSIGNED */
             /* or possibly 'netsnmp_check_vb_int_range' */
             rc = netsnmp_check_vb_uint(var);
-            
+
             break;
         case COLUMN_REQUESTMAPID:
             /** UNSIGNED32 = ASN_UNSIGNED */
@@ -810,7 +828,7 @@ void requestMonitoringDataTable_set_reserve2(netsnmp_request_group *rg)
                 * }
                 */
             break;
-        case COLUMN_REQUESTCONTROLID:
+        case COLUMN_MONITORINGCONTROLID:
             /** UNSIGNED32 = ASN_UNSIGNED */
             /*
                      * TODO: routine to check valid values
@@ -1064,7 +1082,7 @@ void requestMonitoringDataTable_set_action(netsnmp_request_group *rg)
             /** UNSIGNED32 = ASN_UNSIGNED */
             row_ctx->requestID = *var->val.integer;
             break;
-        case COLUMN_REQUESTCONTROLID:
+        case COLUMN_MONITORINGCONTROLID:
             /** UNSIGNED32 = ASN_UNSIGNED */
             row_ctx->requestControlID = *var->val.integer;
             break;
@@ -1193,7 +1211,7 @@ void requestMonitoringDataTable_set_commit(netsnmp_request_group *rg)
         case COLUMN_REQUESTID:
             /** UNSIGNED32 = ASN_UNSIGNED */
             break;
-        case COLUMN_REQUESTCONTROLID:
+        case COLUMN_MONITORINGCONTROLID:
             /** UNSIGNED32 = ASN_UNSIGNED */
             break;
         case COLUMN_REQUESTMAPID:
@@ -1290,7 +1308,7 @@ void requestMonitoringDataTable_set_free(netsnmp_request_group *rg)
             /** UNSIGNED32 = ASN_UNSIGNED */
             break;
 
-        case COLUMN_REQUESTCONTROLID:
+        case COLUMN_MONITORINGCONTROLID:
             /** UNSIGNED32 = ASN_UNSIGNED */
             break;
 
@@ -1394,7 +1412,7 @@ void requestMonitoringDataTable_set_undo(netsnmp_request_group *rg)
             /** UNSIGNED32 = ASN_UNSIGNED */
             break;
 
-        case COLUMN_REQUESTCONTROLID:
+        case COLUMN_MONITORINGCONTROLID:
             /** UNSIGNED32 = ASN_UNSIGNED */
             break;
 
@@ -1474,15 +1492,15 @@ requestMonitoringDataTable_context *requestMonitoringDataTable_create_row_defaul
         free(ctx);
         return NULL;
     }
-    ctx->status=2;
-    ctx->samplingFrequency=0;
-    ctx->maxDelay=0;
-    ctx->lastSampleID=0;
-    ctx->nOfSamples=0;
-    ctx->startTime_len=0;
-    ctx->endTime_len=0;
-    ctx->expireTime_len=0;
-    ctx->durationTime_len=0;
+    ctx->status = 2;
+    ctx->samplingFrequency = 0;
+    ctx->maxDelay = 0;
+    ctx->lastSampleID = 0;
+    ctx->nOfSamples = 0;
+    ctx->startTime_len = 0;
+    ctx->endTime_len = 0;
+    ctx->expireTime_len = 0;
+    ctx->durationTime_len = 0;
     return ctx;
 }
 /************************************************************
@@ -1552,7 +1570,7 @@ void initialize_table_requestMonitoringDataTable(void)
     cb.delete_row = (UserRowMethod *)requestMonitoringDataTable_delete_row;
     cb.row_copy = (Netsnmp_User_Row_Operation *)requestMonitoringDataTable_row_copy;
     cb.can_delete = (Netsnmp_User_Row_Action *)requestMonitoringDataTable_can_delete;
-    cb.create_row=(UserRowMethod *)requestMonitoringDataTable_create_row_default;
+    cb.create_row = (UserRowMethod *)requestMonitoringDataTable_create_row_default;
     cb.set_reserve1 = requestMonitoringDataTable_set_reserve1;
     cb.set_reserve2 = requestMonitoringDataTable_set_reserve2;
     cb.set_action = requestMonitoringDataTable_set_action;
@@ -1564,7 +1582,6 @@ void initialize_table_requestMonitoringDataTable(void)
                 "as a table array\n"));
     netsnmp_table_container_register(my_handler, table_info, &cb,
                                      cb.container, 1);
-    
 }
 
 /************************************************************
@@ -1591,7 +1608,7 @@ int requestMonitoringDataTable_get_value(
                                  (char *)&context->requestID,
                                  sizeof(context->requestID));
         break;
-    case COLUMN_REQUESTCONTROLID:
+    case COLUMN_MONITORINGCONTROLID:
         /** UNSIGNED32 = ASN_UNSIGNED */
         snmp_set_var_typed_value(var, ASN_UNSIGNED,
                                  (char *)&context->requestControlID,
@@ -1747,7 +1764,7 @@ requestMonitoringDataTable_context *requestMonitoringDataTable_create_row(netsnm
     ctx->oid_buf[0] = req->reqID;
     ctx->index.len = 1;
     ctx->requestID = (long unsigned int)req->reqID;
-    ctx->requestControlID= (long unsigned int) req->requestControlID;
+    ctx->requestControlID = (long unsigned int)req->requestControlID;
     ctx->requestMapID = (long unsigned int)req->requestMapID;
     ctx->requestStatisticsID = (long unsigned int)req->statisticsRequestID;
     ctx->savingMode = req->savingMode;
@@ -1766,8 +1783,8 @@ requestMonitoringDataTable_context *requestMonitoringDataTable_create_row(netsnm
     ctx->loopMode = req->loopmode;
     ctx->nOfSamples = req->nofSamples;
     ctx->status = req->status;
-    strcpy(ctx->requestUser,req->requestUser);
-    ctx->requestUser_len=strlen(req->requestUser);
+    strcpy(ctx->requestUser, req->requestUser);
+    ctx->requestUser_len = strlen(req->requestUser);
     return ctx;
 }
 /************************************************************
@@ -1818,7 +1835,7 @@ int requestMonitoringDataTable_row_copy(requestMonitoringDataTable_context *dst,
      * copy components into the context structure
      */
     dst->requestID = src->requestID;
-    dst->requestControlID=src->requestControlID;
+    dst->requestControlID = src->requestControlID;
     dst->requestMapID = src->requestMapID;
     dst->requestStatisticsID = src->requestStatisticsID;
     dst->savingMode = src->savingMode;

@@ -322,7 +322,6 @@ capabilitiesTable_context *capabilitiesTable_create_row(netsnmp_index *hdr, char
     ctx->specificCapabilitiesID = b;
     strcpy(ctx->capabilitieValue, descr);
     ctx->capabilitieValue_len = strlen(descr);
-    printf("Capability inserida: %ld, Set: %ld, Specific: %ld, Value: %s\n", ctx->capabilitiesID, ctx->setOfCapabilitiesID, ctx->specificCapabilitiesID, ctx->capabilitieValue);
     return ctx;
 }
 

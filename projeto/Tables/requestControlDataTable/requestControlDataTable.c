@@ -41,8 +41,28 @@ static netsnmp_table_array_callbacks cb;
 
 const oid requestControlDataTable_oid[] = {requestControlDataTable_TABLE_OID};
 const size_t requestControlDataTable_oid_len = OID_LENGTH(requestControlDataTable_oid);
+/*This function will return the first empty ID of requestControlDataTable*/
+int firstControlEntry()
+{
+    netsnmp_iterator *it;
+    void *data;
+    it = CONTAINER_ITERATOR(cb.container);
+    int res = 0;
+    if (NULL == it)
+    {
+        return res;
+    }
+    for (data = ITERATOR_FIRST(it); data; data = ITERATOR_NEXT(it))
+    {
+        requestControlDataTable_context *req = data;
+        if (req != NULL)
+            res = req->requestControlID + 1;
+    }
+    return res;
+}
 /*This function will delete an entry from requestControlDataTable*/
-int deleteControlEntry(int id){
+int deleteControlEntry(int id)
+{
     requestControlDataTable_context *ctx;
     netsnmp_index index;
     oid index_oid[2];
@@ -54,19 +74,22 @@ int deleteControlEntry(int id){
     ctx = CONTAINER_FIND(cb.container, &index);
     if (ctx)
     {
-        CONTAINER_REMOVE(cb.container,&index);
+        CONTAINER_REMOVE(cb.container, &index);
         requestControlDataTable_delete_row(ctx);
-    }else{
+    }
+    else
+    {
         return 2;
     }
     ctx = CONTAINER_FIND(cb.container, &index);
-    if(ctx)
+    if (ctx)
         return 1;
     else
         return 0;
 }
 /*This function will add a requestStruct to the snmp agent*/
-int insertControlRow(requestStruct *req){
+int insertControlRow(requestStruct *req)
+{
     requestControlDataTable_context *ctx;
     netsnmp_index index;
     oid index_oid[2];
@@ -78,12 +101,14 @@ int insertControlRow(requestStruct *req){
     ctx = CONTAINER_FIND(cb.container, &index);
     if (ctx)
     {
-        CONTAINER_REMOVE(cb.container,&index);
+        CONTAINER_REMOVE(cb.container, &index);
         requestControlDataTable_delete_row(ctx);
         ctx = requestControlDataTable_create_row(&index, req);
         CONTAINER_INSERT(cb.container, ctx);
         return 0;
-    }else{
+    }
+    else
+    {
         ctx = requestControlDataTable_create_row(&index, req);
         CONTAINER_INSERT(cb.container, ctx);
         return 0;
@@ -92,13 +117,14 @@ int insertControlRow(requestStruct *req){
 }
 
 /*Given an ID, this function will return a row with that ID*/
-void* getControlTableID(long unsigned int id){
+void *getControlTableID(long unsigned int id)
+{
     netsnmp_index index;
     oid index_oid[2];
     index_oid[0] = id;
     index.oids = (oid *)&index_oid;
     index.len = 1;
-    void *data=CONTAINER_FIND(cb.container,&index);
+    void *data = CONTAINER_FIND(cb.container, &index);
     return data;
 }
 #ifdef requestControlDataTable_CUSTOM_SORT

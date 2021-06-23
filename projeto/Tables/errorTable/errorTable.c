@@ -197,7 +197,7 @@ int errorTable_row_copy(errorTable_context *dst,
 
     memcpy(dst->errorExpireTime, src->errorExpireTime, src->errorExpireTime_len);
     dst->errorExpireTime_len = src->errorExpireTime_len;
-    
+
     return 0;
 }
 
@@ -990,6 +990,5 @@ errorTable_context *errorTable_create_row(netsnmp_index *hdr, errorStruct *req)
     ctx->errorUser_len = strlen(req->errorUser);
     strcpy(ctx->errorExpireTime, req->errorExpireTime);
     ctx->errorExpireTime_len = strlen(req->errorExpireTime);
-    printf("ErrorTable inserida: %ld\n", ctx->errorID);
     return ctx;
 }

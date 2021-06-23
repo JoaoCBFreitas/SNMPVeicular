@@ -41,7 +41,6 @@ static netsnmp_table_array_callbacks cb;
 
 const oid errorDescriptionTable_oid[] = {errorDescriptionTable_TABLE_OID};
 const size_t errorDescriptionTable_oid_len = OID_LENGTH(errorDescriptionTable_oid);
-
 #ifdef errorDescriptionTable_CUSTOM_SORT
 /************************************************************
  * keep binary tree to find context by name
@@ -131,28 +130,56 @@ errorDescriptionTable_get(const char *name, int len)
 /************************************************************
  * Initializes the errorDescriptionTable module
  */
-void init_errorDescriptionTable(errorDescrList *error)
+void init_errorDescriptionTable()
 {
     errorDescriptionTable_context *ctx;
     netsnmp_index index;
     oid index_oid[2];
     initialize_table_errorDescriptionTable();
-    for (int i = 0; i < error->current; i++)
+    FILE *fp;
+    char *line = NULL;
+    size_t len = 0;
+    ssize_t read;
+    int i = 0, k = 0;
+    char *token;
+    fp = fopen("././Files/errorCodes.txt", "r");
+    if (fp == NULL)
     {
-        errorDescrStruct req = error->errorList[i];
-        index_oid[0] = i;
-        index.oids = (oid *)&index_oid;
-        index.len = 1;
-        ctx = NULL;
-        /* Search for it first. */
-        ctx = CONTAINER_FIND(cb.container, &index);
-        if (!ctx)
-        {
-            // No dice. We add the new row
-            ctx = errorDescriptionTable_create_row(&index, req);
-            CONTAINER_INSERT(cb.container, ctx);
-        }
+        printf("ERROR FILE NOT FOUND\n");
+        exit(EXIT_FAILURE);
     }
+    while ((read = getline(&line, &len, fp)) != -1)
+    {
+        if (i > 0)
+        {
+            errorDescrStruct *req = (errorDescrStruct *)malloc(sizeof(errorDescrStruct));
+            req->errorDescrID = k;
+            if (line[strlen(line) - 1] == '\n')
+                line[strlen(line) - 1] = '\0';
+            req->errorDescrID = k;
+            req->errorDescr = malloc(sizeof(char) + strlen(line));
+            strcpy(req->errorDescr, line);
+            req->errorCode = k + 3;
+            index_oid[0] = k;
+            index.oids = (oid *)&index_oid;
+            index.len = 1;
+            ctx = NULL;
+            /* Search for it first. */
+            ctx = CONTAINER_FIND(cb.container, &index);
+            if (!ctx)
+            {
+                // No dice. We add the new row
+                ctx = errorDescriptionTable_create_row(&index, *req);
+                CONTAINER_INSERT(cb.container, ctx);
+                k++;
+            }
+            free(req);
+        }
+        i++;
+    }
+    fclose(fp);
+    if (line)
+        free(line);
 }
 
 /************************************************************
@@ -312,7 +339,7 @@ errorDescriptionTable_context *errorDescriptionTable_create_row(netsnmp_index *h
     ctx->errorDescrID = (long unsigned int)req.errorDescrID;
     strcpy(ctx->errorDescr, req.errorDescr);
     ctx->errorDescr_len = strlen(req.errorDescr);
-    ctx->errorCode = (long unsigned int)req.errorCode;
+    ctx->errorCode = req.errorCode;
     return ctx;
 }
 /**

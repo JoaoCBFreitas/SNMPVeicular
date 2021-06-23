@@ -33,10 +33,10 @@ extern "C"
         unsigned long errorID;                           /** UNSIGNED32 = ASN_UNSIGNED */
         unsigned char errorTimeStamp[MAXSNMPSTRINGSIZE]; /** OBUDateandTime = ASN_OCTET_STR */
         long errorTimeStamp_len;
-        unsigned long errorDescriptionID;                /** UNSIGNED32 = ASN_UNSIGNED */
-        unsigned char errorUser[MAXSNMPSTRINGSIZE];      /** OCTET STRING = ASN_OCTET_STR */
+        unsigned long errorDescriptionID;           /** UNSIGNED32 = ASN_UNSIGNED */
+        unsigned char errorUser[MAXSNMPSTRINGSIZE]; /** OCTET STRING = ASN_OCTET_STR */
         long errorUser_len;
-        unsigned char errorExpireTime[MAXSNMPSTRINGSIZE];/** OCTET STRING = ASN_OCTET_STR */
+        unsigned char errorExpireTime[MAXSNMPSTRINGSIZE]; /** OCTET STRING = ASN_OCTET_STR */
         long errorExpireTime_len;
         int valid;
         void *data;
@@ -59,7 +59,7 @@ extern "C"
     extern const oid errorTable_oid[];
     extern const size_t errorTable_oid_len;
 
-#define errorTable_TABLE_OID 1, 3, 6, 1, 3, 8888, 10
+#define errorTable_TABLE_OID 1, 3, 6, 1, 3, 8888, 9
 
 /*************************************************************
  * column number definitions for table errorTable

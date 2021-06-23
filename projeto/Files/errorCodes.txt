@@ -1,10 +1,10 @@
 ErrorCode:Error Description
-0:Invalid start time
-1:Invalid duration time
-2:Invalid expire time
-3:Invalid max number of recordings 
-4:Invalid saving mode
-5:User has already set a request for samples recorded from this sensor
-6:Invalid statistics set (0=No statistics, 1=Statistics)
-7:Invalid sensor
-8:Invalid loopMode
+Invalid start time
+Invalid duration time
+Invalid expire time
+Invalid max number of recordings 
+Invalid saving mode
+User has already set a request for samples recorded from this sensor
+Invalid statistics set (0=No statistics, 1=Statistics)
+Invalid sensor
+Invalid loopMode

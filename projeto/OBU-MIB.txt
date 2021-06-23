@@ -554,7 +554,7 @@ SamplesEntry ::= SEQUENCE {
 	sampleType          INTEGER,
 	sampleRecordedValue INTEGER,
 	mapTypeSamplesID    Unsigned32,
-	sampleCheckSum      INTEGER }
+	sampleCheckSum      OCTET STRING }
 
 sampleID OBJECT-TYPE
 	SYNTAX  Unsigned32 (1..99999999)
@@ -640,7 +640,7 @@ mapTypeSamplesID OBJECT-TYPE
 
 
 sampleCheckSum OBJECT-TYPE
-	SYNTAX  INTEGER
+	SYNTAX  OCTET STRING
 	MAX-ACCESS read-only
 	STATUS  current
 	DESCRIPTION
@@ -1219,7 +1219,6 @@ sensorGroup OBJECT-GROUP
 		sampleID,
 		requestSampleID,
 		timeStamp,
-		sampleValueID,
 		sampleFrequency,
 		previousSampleID,
 		mapTypeID,
@@ -1239,11 +1238,8 @@ sensorGroup OBJECT-GROUP
 		sampleType,
 		mapTypeSamplesID,
 		maxNOfSamples,
-		controlNofSamples,
 		requestStatisticsID,
-		requestMonitoringID,
-		sampleCheckSum,
-		requestControlUser }
+		sampleCheckSum }
 	STATUS  current
 	DESCRIPTION
 		"This group includes all objects related to sensor data retrieval"

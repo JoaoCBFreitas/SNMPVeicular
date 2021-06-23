@@ -35,9 +35,9 @@ extern "C"
     {
         netsnmp_index index; /** THIS MUST BE FIRST!!! */
         oid oid_buf[2];
-        unsigned long errorDescrID;                 /** UNSIGNED32 = ASN_UNSIGNED */
-        unsigned char errorDescr[MAXSNMPSTRINGSIZE];/** OCTETSTR = ASN_OCTET_STR */
-        long errorDescr_len;                        /** UNSIGNED32 = ASN_UNSIGNED */
+        unsigned long errorDescrID;                  /** UNSIGNED32 = ASN_UNSIGNED */
+        unsigned char errorDescr[MAXSNMPSTRINGSIZE]; /** OCTETSTR = ASN_OCTET_STR */
+        long errorDescr_len;                         /** UNSIGNED32 = ASN_UNSIGNED */
         unsigned long errorCode;
         int valid;
         void *data;
@@ -46,7 +46,7 @@ extern "C"
     /*************************************************************
  * function declarations
  */
-    void init_errorDescriptionTable(errorDescrList *);
+    void init_errorDescriptionTable(void);
     void initialize_table_errorDescriptionTable(void);
     const errorDescriptionTable_context *errorDescriptionTable_get_by_idx(netsnmp_index *);
     const errorDescriptionTable_context *errorDescriptionTable_get_by_idx_rs(netsnmp_index *,
@@ -59,7 +59,7 @@ extern "C"
     extern const oid errorDescriptionTable_oid[];
     extern const size_t errorDescriptionTable_oid_len;
 
-#define errorDescriptionTable_TABLE_OID 1, 3, 6, 1, 3, 8888, 11
+#define errorDescriptionTable_TABLE_OID 1, 3, 6, 1, 3, 8888, 10
 
 /*************************************************************
  * column number definitions for table errorDescriptionTable

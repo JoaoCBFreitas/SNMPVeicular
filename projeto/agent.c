@@ -2,12 +2,12 @@
 
 static int keep_running;
 //child process to decode CAN messages
-pid_t canDecoder=-1;
+pid_t canDecoder = -1;
 RETSIGTYPE
 stop_server(int a)
 {
     keep_running = 0;
-    kill(canDecoder,SIGKILL);
+    kill(canDecoder, SIGKILL);
 }
 int main(int argc, char **argv)
 {
@@ -41,9 +41,8 @@ int main(int argc, char **argv)
     /* initialize mib code here */
 
     /*Initializing structs that contain dbc decoding rules*/
-    BO_List* boList=readDBC("SocketCAN/J1939/J1939.dbc");
-
-    init_errorSensorTable();
+    BO_List *boList = readDBC("SocketCAN/J1939/J1939.dbc");
+    init_errorDescriptionTable();
     /*********************************/
     init_mapTypeTable(boList);
     init_capabilitiesTable();
@@ -51,7 +50,6 @@ int main(int argc, char **argv)
     init_requestMonitoringDataTable();
     init_requestStatisticsDataTable();
     init_samplesTable();
-    init_sampledValuesTable();
     init_errorTable();
     init_snmp("veicular-daemon");
     /* If we're going to be a snmp master agent, initial the ports */
@@ -63,17 +61,21 @@ int main(int argc, char **argv)
     keep_running = 1;
     signal(SIGTERM, stop_server);
     signal(SIGINT, stop_server);
-    signal(SIGCHLD,SIG_IGN);
-    ssize_t r=0;
+    signal(SIGCHLD, SIG_IGN);
+    ssize_t r = 0;
     int fd[2];
-    if(pipe(fd)<0)
+    if (pipe(fd) < 0)
         exit(1);
-
-    canDecoder=fork();
+    //nMessage will be used in the creation of checksum, incase 2 messages from same node arrive in close proximity, it's type is long due to it's higher maximum number
+    long long nMessage;
+    canDecoder = fork();
     /* you're main loop here... */
-    if(canDecoder==0){
-        parseCAN(boList,fd);
-    }else{
+    if (canDecoder == 0)
+    {
+        parseCAN(boList, fd);
+    }
+    else
+    {
         while (keep_running)
         {
             checkTables();
@@ -81,20 +83,41 @@ int main(int argc, char **argv)
             /*     --- OR ---  */
             agent_check_and_process(0); /* 0 == don't block */
             decodedCAN dc;
-            int retval=fcntl(fd[0],F_SETFL,fcntl(fd[0],F_GETFL)| O_NONBLOCK);
-            r=read(fd[0],&dc,sizeof(decodedCAN));
-            if(r<=0){
-                dc.signals=-1;
-            }else{
-                time_t t=time(NULL);
-                struct tm *tm=localtime(&t);
-                char s[64];
-                assert(strftime(s,sizeof(s),"%c",tm));
-                for(int i=0;i<dc.signals;i++)
-                    checkSamples(dc.signalname[i],dc.value[i],dc.signals,s);
+            int retval = fcntl(fd[0], F_SETFL, fcntl(fd[0], F_GETFL) | O_NONBLOCK);
+            r = read(fd[0], &dc, sizeof(decodedCAN));
+            if (r <= 0)
+            {
+                dc.signals = -1;
+            }
+            else
+            {
+                if (dc.signals >= 0)
+                {
+                    char nMessageString[19];
+                    sprintf(nMessageString, "%lld", nMessage);
+                    nMessage++;
+                    time_t t = time(NULL);
+                    struct tm *tm = localtime(&t);
+                    char s[64];
+                    assert(strftime(s, sizeof(s), "%c", tm));
+                    char *aux = malloc(sizeof(char) * (strlen(s) + strlen(dc.name) + strlen(nMessageString) + 1));
+                    strcpy(aux, s);
+                    strcat(aux, nMessageString);
+                    strcat(aux, dc.name);
+                    char *check = createChecksum(aux);
+                    free(aux);
+                    for (int i = 0; i < dc.signals; i++)
+                    {
+                        char *signalname = malloc(sizeof(char) * strlen(dc.signalname[i]) + strlen(dc.name) + 1);
+                        strcpy(signalname, dc.name);
+                        strcat(signalname, dc.signalname[i]);
+                        checkSamples(signalname, dc.value[i], dc.signals, s, check);
+                        free(signalname);
+                    }
+                }
             }
         }
-    }    
+    }
     /* at shutdown time */
     snmp_shutdown("veicular-daemon");
     SOCK_CLEANUP;
