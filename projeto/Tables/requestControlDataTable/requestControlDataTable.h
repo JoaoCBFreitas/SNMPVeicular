@@ -69,6 +69,8 @@ extern "C"
     int insertControlRow(requestStruct *);
     int deleteControlEntry(int);
     int firstControlEntry(void);
+    requestStruct *reqControlConvert(requestControlDataTable_context *, requestStruct *);
+    int checkControlExist(unsigned long id);
     /*************************************************************
  * oid declarations
  */

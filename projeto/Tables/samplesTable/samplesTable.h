@@ -32,22 +32,22 @@ extern "C"
         int sampleType;
         double sampleRecordedValue;
         int mapTypeSamplesID;
-        char* sampleCheckSum;
+        char *sampleCheckSum;
     } samplesStruct;
     typedef struct samplesTable_context_s
     {
         netsnmp_index index; /** THIS MUST BE FIRST!!! */
         oid oid_buf[2];
-        unsigned long sampleID;                         /** UNSIGNED32 = ASN_UNSIGNED */
-        unsigned long requestSampleID;                  /** UNSIGNED32 = ASN_UNSIGNED */
-        unsigned char timeStamp[MAXSNMPSTRINGSIZE];     /** OBUDateandTime = ASN_OCTET_STR */
+        unsigned long sampleID;                     /** UNSIGNED32 = ASN_UNSIGNED */
+        unsigned long requestSampleID;              /** UNSIGNED32 = ASN_UNSIGNED */
+        unsigned char timeStamp[MAXSNMPSTRINGSIZE]; /** OBUDateandTime = ASN_OCTET_STR */
         long timeStamp_len;
-        unsigned long sampleFrequency;                  /** UNSIGNED32 = ASN_UNSIGNED */
-        unsigned long previousSampleID;                 /** UNSIGNED32 = ASN_UNSIGNED */
+        unsigned long sampleFrequency;  /** UNSIGNED32 = ASN_UNSIGNED */
+        unsigned long previousSampleID; /** UNSIGNED32 = ASN_UNSIGNED */
         unsigned long sampleType;
-        unsigned long sampleRecordedValue;              /** INTEGER = ASN_INTEGER */
-        unsigned long mapTypeSamplesID;                 /** UNSIGNED32 = ASN_UNSIGNED */
-        unsigned char sampleChecksum[MAXSNMPSTRINGSIZE];/** OCTET STRING = ASN_OCTET_STR */
+        unsigned long sampleRecordedValue;               /** INTEGER = ASN_INTEGER */
+        unsigned long mapTypeSamplesID;                  /** UNSIGNED32 = ASN_UNSIGNED */
+        unsigned char sampleChecksum[MAXSNMPSTRINGSIZE]; /** OCTET STRING = ASN_OCTET_STR */
         long sampleChecksum_len;
         int valid;
         void *data;
@@ -63,10 +63,13 @@ extern "C"
     const samplesTable_context *samplesTable_get_by_idx_rs(netsnmp_index *,
                                                            int row_status);
     int samplesTable_get_value(netsnmp_request_info *, netsnmp_index *, netsnmp_table_request_info *);
-    int insertSamplesRow(samplesStruct*);
+    int insertSamplesRow(samplesStruct *);
     int firstSampleEntry();
     int deleteSamplesEntry(int);
-    samplesTable_context* getSampleEntry(int);
+    samplesTable_context *getSampleEntry(int);
+    samplesStruct *sampleTableToStruct(samplesTable_context *, samplesStruct *);
+    int checkSampleChecksum(char *, unsigned long);
+    void sampleZero(int);
     /*************************************************************
  * oid declarations
  */

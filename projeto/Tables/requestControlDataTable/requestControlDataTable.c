@@ -41,6 +41,49 @@ static netsnmp_table_array_callbacks cb;
 
 const oid requestControlDataTable_oid[] = {requestControlDataTable_TABLE_OID};
 const size_t requestControlDataTable_oid_len = OID_LENGTH(requestControlDataTable_oid);
+/*This function will check if there are requests already set for an object*/
+int checkControlExist(long unsigned int requestMapID)
+{
+    netsnmp_iterator *it;
+    void *data;
+    it = CONTAINER_ITERATOR(cb.container);
+    int res = -1;
+    if (NULL == it)
+    {
+        return res;
+    }
+    for (data = ITERATOR_FIRST(it); data; data = ITERATOR_NEXT(it))
+    {
+        requestControlDataTable_context *req = data;
+        if (req->requestControlMapID == requestMapID)
+        {
+            res = req->requestControlID;
+            break;
+        }
+    }
+    ITERATOR_RELEASE(it);
+    return res;
+}
+/*This function will convert a requestControlDataTable_context to requestStruct_s*/
+requestStruct *reqControlConvert(requestControlDataTable_context *reqControl, requestStruct *req)
+{
+    req->reqID = reqControl->requestControlID;
+    req->requestControlMapID = reqControl->requestControlMapID;
+    req->settingMode = reqControl->settingMode;
+    req->commitTime = malloc(sizeof(char) * reqControl->commitTime_len);
+    strcpy(req->commitTime, reqControl->commitTime);
+    req->waitTime = malloc(sizeof(char) * reqControl->waitTime_len);
+    strcpy(req->waitTime, reqControl->waitTime);
+    req->endTime = malloc(sizeof(char) * reqControl->endControlTime_len);
+    strcpy(req->endTime, reqControl->endControlTime);
+    req->duration = malloc(sizeof(char) * reqControl->durationControlTime_len);
+    strcpy(req->duration, reqControl->durationControlTime);
+    req->expireTime = malloc(sizeof(char) * reqControl->expireControlTime_len);
+    strcpy(req->expireTime, reqControl->expireControlTime);
+    req->valuesTable = reqControl->valuesTableID;
+    req->status = reqControl->statusControl;
+    return req;
+}
 /*This function will return the first empty ID of requestControlDataTable*/
 int firstControlEntry()
 {
@@ -58,6 +101,7 @@ int firstControlEntry()
         if (req != NULL)
             res = req->requestControlID + 1;
     }
+    ITERATOR_RELEASE(it);
     return res;
 }
 /*This function will delete an entry from requestControlDataTable*/

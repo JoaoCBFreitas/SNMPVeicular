@@ -41,8 +41,65 @@ static netsnmp_table_array_callbacks cb;
 
 const oid samplesTable_oid[] = {samplesTable_TABLE_OID};
 const size_t samplesTable_oid_len = OID_LENGTH(samplesTable_oid);
+/*This function will loop through samples and when it finds a sample pointing to a null value it will change it to zero*/
+void sampleZero(int id)
+{
+    samplesTable_context *samplesTable;
+    int aux = 0;
+    for (samplesTable = getSampleEntry(id); samplesTable != NULL; samplesTable = getSampleEntry(samplesTable->previousSampleID))
+        aux = samplesTable->sampleID;
+
+    /*Last element found*/
+    samplesTable = getSampleEntry(aux);
+    samplesTable->previousSampleID = 0;
+    samplesStruct *ss = (samplesStruct *)malloc(sizeof(samplesStruct));
+    ss = sampleTableToStruct(samplesTable, ss);
+    deleteSamplesEntry(aux);
+    insertSamplesRow(ss);
+    free(ss);
+}
+/*This function will check if a sample was already added to the table by comparing the checksum, if it exists it's index will be returned*/
+int checkSampleChecksum(char *checksum, unsigned long id)
+{
+    int res = 0;
+    void *data;
+    netsnmp_iterator *it;
+    it = CONTAINER_ITERATOR(cb.container);
+    if (NULL == it)
+    {
+        exit;
+    }
+    for (data = ITERATOR_FIRST(it); data; data = ITERATOR_NEXT(it))
+    {
+        samplesTable_context *samples = data;
+        if (strcmp(checksum, samples->sampleChecksum) == 0 && id == samples->mapTypeSamplesID)
+        {
+            res = samples->sampleID;
+            break;
+        }
+    }
+    ITERATOR_RELEASE(it);
+    return res;
+}
+/*This function will convert a sampleTable_context to sampleStruct*/
+samplesStruct *sampleTableToStruct(samplesTable_context *req, samplesStruct *sample)
+{
+    sample->sampleID = req->sampleID;
+    sample->requestSampleID = req->requestSampleID;
+    sample->timestamp = malloc(sizeof(char) * req->timeStamp_len);
+    strcpy(sample->timestamp, req->timeStamp);
+    sample->sampleFrequency = req->sampleFrequency;
+    sample->previousSampleID = req->previousSampleID;
+    sample->sampleType = req->sampleType;
+    sample->sampleRecordedValue = req->sampleRecordedValue;
+    sample->mapTypeSamplesID = req->mapTypeSamplesID;
+    sample->sampleCheckSum = malloc(sizeof(char) * req->sampleChecksum_len);
+    strcpy(sample->sampleCheckSum, req->sampleChecksum);
+    return sample;
+}
 /*This function will return an entry from samplesTable by it's id*/
-samplesTable_context* getSampleEntry(int id){
+samplesTable_context *getSampleEntry(int id)
+{
     samplesTable_context *ctx;
     netsnmp_index index;
     oid index_oid[2];
@@ -54,7 +111,8 @@ samplesTable_context* getSampleEntry(int id){
     return ctx;
 }
 /*This function will delete an entry from samplesTable*/
-int deleteSamplesEntry(int id){
+int deleteSamplesEntry(int id)
+{
     samplesTable_context *ctx;
     netsnmp_index index;
     oid index_oid[2];
@@ -66,38 +124,44 @@ int deleteSamplesEntry(int id){
     ctx = CONTAINER_FIND(cb.container, &index);
     if (ctx)
     {
-        CONTAINER_REMOVE(cb.container,&index);
+        CONTAINER_REMOVE(cb.container, &index);
         samplesTable_delete_row(ctx);
-    }else{
+    }
+    else
+    {
         return 2;
     }
     ctx = CONTAINER_FIND(cb.container, &index);
-    if(ctx)
+    if (ctx)
         return 1;
     else
         return 0;
 }
 /*This function will return the first empty ID of samplesTable*/
-int firstSampleEntry(){
+int firstSampleEntry()
+{
     netsnmp_iterator *it;
-    void* data;
-    it=CONTAINER_ITERATOR(cb.container);
-    int res=0;
-    if(NULL==it){
+    void *data;
+    it = CONTAINER_ITERATOR(cb.container);
+    int res = 0;
+    if (NULL == it)
+    {
         return res;
     }
-    res=1;
-    for(data=ITERATOR_FIRST(it);data;data=ITERATOR_NEXT(it)){
-        samplesTable_context *samplesTable =data;
-        if(samplesTable!=NULL)
-            res=samplesTable->sampleID+1;
+    res = 1;
+    for (data = ITERATOR_FIRST(it); data; data = ITERATOR_NEXT(it))
+    {
+        samplesTable_context *samplesTable = data;
+        if (samplesTable != NULL)
+            res = samplesTable->sampleID + 1;
     }
     return res;
 }
 /************************************************************
  * This function inserts a samplesStruct into the samplesTable
  */
-int insertSamplesRow(samplesStruct* req){
+int insertSamplesRow(samplesStruct *req)
+{
     samplesTable_context *ctx;
     netsnmp_index index;
     oid index_oid[2];
@@ -249,7 +313,7 @@ int samplesTable_row_copy(samplesTable_context *dst,
     dst->sampleRecordedValue = src->sampleRecordedValue;
 
     dst->mapTypeSamplesID = src->mapTypeSamplesID;
-    
+
     memcpy(dst->sampleChecksum, src->sampleChecksum, src->sampleChecksum_len);
     dst->sampleChecksum_len = src->sampleChecksum_len;
     return 0;
@@ -464,19 +528,19 @@ void samplesTable_set_reserve1(netsnmp_request_group *rg)
             /* or possibly 'netsnmp_check_vb_int_range' */
             rc = netsnmp_check_vb_uint(var);
             break;
-        
+
         case COLUMN_SAMPLETYPE:
             /** INTEGER = ASN_INTEGER */
             /* or possibly 'netsnmp_check_vb_int_range' */
             rc = netsnmp_check_vb_int(var);
             break;
-        
+
         case COLUMN_SAMPLERECODEDVALUE:
             /** INTEGER = ASN_INTEGER */
             /* or possibly 'netsnmp_check_vb_int_range' */
             rc = netsnmp_check_vb_int(var);
             break;
-        
+
         case COLUMN_MAPTYPESAMPLESID:
             /** UNSIGNED32 = ASN_UNSIGNED */
             /* or possibly 'netsnmp_check_vb_int_range' */

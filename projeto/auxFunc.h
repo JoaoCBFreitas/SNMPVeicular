@@ -24,6 +24,6 @@ int addToSampleUnits(sampleUnitsList *, long, char *);
 int addToGenericTypes(genericTypeList *, long, char *);
 /*This function will return a 32bit integer checksum encoded as an string containing its hex values, courtesy of user schnaader at stackoverflow
   It's a weak checksum however it should serve it's purpose, allowing identification of values obtained from the same message, but different signals.
-  It will use the timestamp and message name to create the checksum
+  It will use the timestamp, message number and message name to create the checksum
 */
 char *createChecksum(char *);

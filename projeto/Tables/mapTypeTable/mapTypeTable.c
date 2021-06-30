@@ -143,6 +143,7 @@ mapTypeTable_get(const char *name, int len)
 
 /************************************************************
  * Initializes the mapTypeTable module
+ * TODO: Find solution for DM messages, atm they are ignored
  */
 void init_mapTypeTable(BO_List *boList)
 {
