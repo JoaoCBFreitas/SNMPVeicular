@@ -98,8 +98,8 @@ int main(int argc, char **argv)
                     nMessage++;
                     time_t t = time(NULL);
                     struct tm *tm = localtime(&t);
-                    char s[64];
-                    assert(strftime(s, sizeof(s), "%c", tm));
+                    char s[100];
+                    snprintf(s, 100, "%02d/%02d/%04d %02d:%02d:%02d", tm->tm_mday, tm->tm_mon + 1, tm->tm_year + 1900, tm->tm_hour, tm->tm_min, tm->tm_sec);
                     char *aux = malloc(sizeof(char) * (strlen(s) + strlen(dc.name) + strlen(nMessageString) + 1));
                     strcpy(aux, s);
                     strcat(aux, nMessageString);
