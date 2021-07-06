@@ -143,8 +143,6 @@ int insertRowControl_Monitor(requestMonitoringDataTable_context *reqMonitoring)
     strcpy(req->commitTime, reqMonitoring->startTime);
     req->endTime = malloc(sizeof(char) * reqMonitoring->endTime_len + 1);
     strcpy(req->endTime, reqMonitoring->endTime);
-    req->waitTime = malloc(sizeof(char) * strlen("00:10:00") + 1);
-    strcpy(req->waitTime, "00:10:00");
     req->duration = malloc(sizeof(char) * reqMonitoring->durationTime_len + 1);
     strcpy(req->duration, reqMonitoring->durationTime);
     req->expireTime = malloc(sizeof(char) * reqMonitoring->expireTime_len + 1);
@@ -167,10 +165,12 @@ requestMonitoringStruct *tableToStruct(requestMonitoringDataTable_context *reqMo
     reqStruct->maxDelay = reqMonitoring->maxDelay;
     reqStruct->startTime = malloc(sizeof(char) * reqMonitoring->startTime_len);
     reqStruct->endTime = malloc(sizeof(char) * reqMonitoring->endTime_len);
+    reqStruct->waitTime = malloc(sizeof(char) * reqMonitoring->waitTime_len);
     reqStruct->durationTime = malloc(sizeof(char) * reqMonitoring->durationTime_len);
     reqStruct->expireTime = malloc(sizeof(char) * reqMonitoring->expireTime_len);
     strcpy(reqStruct->startTime, reqMonitoring->startTime);
     strcpy(reqStruct->endTime, reqMonitoring->endTime);
+    strcpy(reqStruct->waitTime, reqMonitoring->waitTime);
     strcpy(reqStruct->durationTime, reqMonitoring->durationTime);
     strcpy(reqStruct->expireTime, reqMonitoring->expireTime);
     reqStruct->maxNofSamples = reqMonitoring->maxNOfSamples;
@@ -307,11 +307,9 @@ void checkSamples(char *signalname, double value, int signals, char *timestamp, 
  * This Function will compare requestMonitoringDataTable with requestControlDataTable, to identify if and when modifications are made (sets/deletes).
  TODO: Update dos "times" quando é feito um pedido a um objeto ao qual ja haja 
             pedido e ao status quando nao há requestMonitoring deste pedido ativos (perguntar ao prof)
- TODO: Change rows from set to on when waitTime has passed (perguntar)
  TODO: Add rows to errorTable when user input is incorrect
  TODO: Delete rows from errorTable when expiretime for the error is over
  TODO: Check if there's already an request for this object, if so check if the user is the same or not
- TODO: requestMonitoring_create_row_default needs change due to timestamps
  */
 void checkTables()
 {
@@ -373,14 +371,14 @@ void checkTables()
         samplesTable_context *samplesTable;
         char *timestamp = malloc(sizeof(char) * reqMonitoring->endTime_len + 1);
         struct tm *tm2 = (struct tm *)malloc(sizeof(struct tm));
+        char *hour = malloc(sizeof(char) * 3);
+        char *min = malloc(sizeof(char) * 3);
         switch (reqMonitoring->status)
         {
         case 0:
             /*Row is in Off mode, compare current timestamp with endTime+expireTime*/
             strcpy(timestamp, reqMonitoring->endTime);
             tm2 = convertTime(tm2, timestamp);
-            char *hour = malloc(sizeof(char) * 3);
-            char *min = malloc(sizeof(char) * 3);
             strncpy(hour, reqMonitoring->expireTime, 2);
             strncpy(min, reqMonitoring->expireTime + 3, 2);
             min[2] = '\0';
@@ -393,14 +391,12 @@ void checkTables()
                 reqStruct->status = 3;
                 insertMonitoringRow(reqStruct);
             }
-            free(min);
-            free(hour);
             break;
         case 1:
             /*Request is in On mode, compare current timestamp with endTime*/
             strcpy(timestamp, reqMonitoring->endTime);
             tm2 = convertTime(tm2, timestamp);
-            if (compareTimeStamp(tm, tm2) == 0 || compareTimeStamp(tm, tm2) == 2)
+            if (compareTimeStamp(tm, tm2) != 1)
             {
                 /*Duration time is reached, set row to off*/
                 reqStruct = tableToStruct(reqMonitoring, reqStruct);
@@ -409,31 +405,64 @@ void checkTables()
             }
             break;
         case 2:
-            /*Row is in set mode,TODO: compare current timestamp with starttime+waittime*/
-            index_oid[0] = reqMonitoring->requestID;
-            index.oids = (oid *)&index_oid;
-            index.len = 1;
-            reqMonitoring->status = 1;
-            if (reqMonitoring->requestStatisticsID != 0)
+            /*Row is in set mode, change status from Set to Off when startTime+waitTime has passed*/
+            if (reqMonitoring->endTime_len == 0)
             {
-                statisticsStruct *statStruct = (statisticsStruct *)malloc(sizeof(statisticsStruct));
-                statStruct->duration = malloc(sizeof(char) * reqMonitoring->durationTime_len);
-                statStruct->statID = reqMonitoring->requestStatisticsID;
-                strcpy(statStruct->duration, reqMonitoring->durationTime);
-                statStruct->nOfSamples = 0;
-                statStruct->minValue = 9999;
-                statStruct->maxValue = -999;
-                statStruct->avgValue = 0;
-                int stat = insertStatisticsRow(statStruct);
-                free(statStruct);
-                if (stat != 0)
-                    printf("Statistics insertion failed\n");
+                /*If column EndTime is empty, it will be calculated by adding startTime+waitTime+durationTime*/
+                strncpy(hour, reqMonitoring->waitTime, 2);
+                strncpy(min, reqMonitoring->waitTime + 3, 2);
+                min[2] = '\0';
+                hour[2] = '\0';
+                strcpy(timestamp, reqMonitoring->startTime);
+                tm2 = convertTime(tm2, timestamp);
+                tm2 = addToTime(tm2, atoi(hour), atoi(min));
+                strncpy(hour, reqMonitoring->durationTime, 2);
+                strncpy(min, reqMonitoring->durationTime + 3, 2);
+                min[2] = '\0';
+                hour[2] = '\0';
+                tm2 = addToTime(tm2, atoi(hour), atoi(min));
+                char s[100];
+                snprintf(s, 100, "%02d/%02d/%04d %02d:%02d:%02d", tm2->tm_mday, tm2->tm_mon + 1, tm2->tm_year + 1900, tm2->tm_hour, tm2->tm_min, tm2->tm_sec);
+                reqMonitoring->endTime_len = strlen(s);
+                strcpy(reqMonitoring->endTime, s);
+                reqStruct = tableToStruct(reqMonitoring, reqStruct);
+                requestMonitoringDataTable_create_row(&index, reqStruct);
             }
-            else
-                printf("No statistics\n");
+            strncpy(hour, reqMonitoring->waitTime, 2);
+            strncpy(min, reqMonitoring->waitTime + 3, 2);
+            min[2] = '\0';
+            hour[2] = '\0';
+            strcpy(timestamp, reqMonitoring->startTime);
+            tm2 = convertTime(tm2, timestamp);
+            tm2 = addToTime(tm2, atoi(hour), atoi(min));
+            /*WaitTime is reached, proceed with setting*/
+            if (compareTimeStamp(tm, tm2) != 1)
+            {
+                index_oid[0] = reqMonitoring->requestID;
+                index.oids = (oid *)&index_oid;
+                index.len = 1;
+                reqMonitoring->status = 1;
+                if (reqMonitoring->requestStatisticsID != 0)
+                {
+                    statisticsStruct *statStruct = (statisticsStruct *)malloc(sizeof(statisticsStruct));
+                    statStruct->duration = malloc(sizeof(char) * reqMonitoring->durationTime_len);
+                    statStruct->statID = reqMonitoring->requestStatisticsID;
+                    strcpy(statStruct->duration, reqMonitoring->durationTime);
+                    statStruct->nOfSamples = 0;
+                    statStruct->minValue = 9999;
+                    statStruct->maxValue = -999;
+                    statStruct->avgValue = 0;
+                    int stat = insertStatisticsRow(statStruct);
+                    free(statStruct);
+                    if (stat != 0)
+                        printf("Statistics insertion failed\n");
+                }
+                else
+                    printf("No statistics\n");
 
-            reqStruct = tableToStruct(reqMonitoring, reqStruct);
-            requestMonitoringDataTable_create_row(&index, reqStruct);
+                reqStruct = tableToStruct(reqMonitoring, reqStruct);
+                requestMonitoringDataTable_create_row(&index, reqStruct);
+            }
             break;
         case 3:
             /*Row is in Delete mode, delete this row and all other rows related to this one*/
@@ -512,6 +541,8 @@ void checkTables()
             printf("Undefined status\n");
             break;
         }
+        free(min);
+        free(hour);
         free(timestamp);
         free(tm2);
     }
@@ -623,6 +654,7 @@ void init_requestMonitoringDataTable(void)
     req->savingMode = 0;
     req->sampleFreq = 10;
     req->maxDelay = -10;
+    req->waitTime = "00:00:00";
     req->durationTime = "01:00:00";
     req->expireTime = "02:00:00";
     req->maxNofSamples = 10;
@@ -858,6 +890,13 @@ void requestMonitoringDataTable_set_reserve1(netsnmp_request_group *rg)
                                                     sizeof(row_ctx->endTime));
             break;
 
+        case COLUMN_WAITTIME:
+            /** OBUDateandTime = ASN_OCTET_STR */
+            /* or possibly 'netsnmp_check_vb_type_and_size' */
+            rc = netsnmp_check_vb_type_and_max_size(var, ASN_OCTET_STR,
+                                                    sizeof(row_ctx->waitTime));
+            break;
+
         case COLUMN_DURATIONTIME:
             /** OBUDateandTime = ASN_OCTET_STR */
             /* or possibly 'netsnmp_check_vb_type_and_size' */
@@ -1064,6 +1103,20 @@ void requestMonitoringDataTable_set_reserve2(netsnmp_request_group *rg)
                 */
             break;
 
+        case COLUMN_WAITTIME:
+            /** OBUDateandTime = ASN_OCTET_STR */
+            /*
+                     * TODO: routine to check valid values
+                     *
+                     * EXAMPLE:
+                     *
+                    * if ( XXX_check_value( var->val.string, XXX ) ) {
+                *    rc = SNMP_ERR_INCONSISTENTVALUE;
+                *    rc = SNMP_ERR_BADVALUE;
+                * }
+                */
+            break;
+
         case COLUMN_DURATIONTIME:
             /** OBUDateandTime = ASN_OCTET_STR */
             /*
@@ -1248,6 +1301,12 @@ void requestMonitoringDataTable_set_action(netsnmp_request_group *rg)
             row_ctx->endTime_len = var->val_len;
             break;
 
+        case COLUMN_WAITTIME:
+            /** OBUDateandTime = ASN_OCTET_STR */
+            memcpy(row_ctx->waitTime, var->val.string, var->val_len);
+            row_ctx->waitTime_len = var->val_len;
+            break;
+
         case COLUMN_DURATIONTIME:
             /** OBUDateandTime = ASN_OCTET_STR */
             memcpy(row_ctx->durationTime, var->val.string, var->val_len);
@@ -1367,6 +1426,10 @@ void requestMonitoringDataTable_set_commit(netsnmp_request_group *rg)
             /** OBUDateandTime = ASN_OCTET_STR */
             break;
 
+        case COLUMN_WAITTIME:
+            /** OBUDateandTime = ASN_OCTET_STR */
+            break;
+
         case COLUMN_DURATIONTIME:
             /** OBUDateandTime = ASN_OCTET_STR */
             break;
@@ -1462,6 +1525,10 @@ void requestMonitoringDataTable_set_free(netsnmp_request_group *rg)
             break;
 
         case COLUMN_ENDTIME:
+            /** OBUDateandTime = ASN_OCTET_STR */
+            break;
+
+        case COLUMN_WAITTIME:
             /** OBUDateandTime = ASN_OCTET_STR */
             break;
 
@@ -1569,6 +1636,10 @@ void requestMonitoringDataTable_set_undo(netsnmp_request_group *rg)
             /** OBUDateandTime = ASN_OCTET_STR */
             break;
 
+        case COLUMN_WAITTIME:
+            /** OBUDateandTime = ASN_OCTET_STR */
+            break;
+
         case COLUMN_DURATIONTIME:
             /** OBUDateandTime = ASN_OCTET_STR */
             break;
@@ -1622,8 +1693,14 @@ requestMonitoringDataTable_context *requestMonitoringDataTable_create_row_defaul
     ctx->maxDelay = 0;
     ctx->lastSampleID = 0;
     ctx->nOfSamples = 0;
-    ctx->startTime_len = 0;
     ctx->endTime_len = 0;
+    time_t t = time(NULL);
+    struct tm *tm = localtime(&t);
+    char s[100];
+    snprintf(s, 100, "%02d/%02d/%04d %02d:%02d:%02d", tm->tm_mday, tm->tm_mon + 1, tm->tm_year + 1900, tm->tm_hour, tm->tm_min, tm->tm_sec);
+    strcpy(ctx->startTime, s);
+    ctx->startTime_len = strlen(s);
+    ctx->waitTime_len = 0;
     ctx->expireTime_len = 0;
     ctx->durationTime_len = 0;
     return ctx;
@@ -1788,6 +1865,13 @@ int requestMonitoringDataTable_get_value(
                                  context->endTime_len);
         break;
 
+    case COLUMN_WAITTIME:
+        /** OBUDateandTime = ASN_OCTET_STR */
+        snmp_set_var_typed_value(var, ASN_OCTET_STR,
+                                 (char *)&context->waitTime,
+                                 context->waitTime_len);
+        break;
+
     case COLUMN_DURATIONTIME:
         /** OBUDateandTime = ASN_OCTET_STR */
         snmp_set_var_typed_value(var, ASN_OCTET_STR,
@@ -1895,6 +1979,7 @@ requestMonitoringDataTable_context *requestMonitoringDataTable_create_row(netsnm
     ctx->savingMode = req->savingMode;
     ctx->samplingFrequency = req->sampleFreq;
     ctx->maxDelay = req->maxDelay;
+
     time_t t = time(NULL);
     struct tm *tm = localtime(&t);
     char s[100];
@@ -1912,15 +1997,18 @@ requestMonitoringDataTable_context *requestMonitoringDataTable_create_row(netsnm
     tm2 = deepCopyTM(tm, tm2);
     tm2 = addToTime(tm2, atoi(hour), atoi(min));
     snprintf(s1, 100, "%02d/%02d/%04d %02d:%02d:%02d", tm2->tm_mday, tm2->tm_mon + 1, tm2->tm_year + 1900, tm2->tm_hour, tm2->tm_min, tm2->tm_sec);
-    free(min);
-    free(hour);
-    free(tm2);
     strcpy(ctx->endTime, s1);
     ctx->endTime_len = strlen(s1);
+    strcpy(ctx->waitTime, req->waitTime);
+    ctx->waitTime_len = strlen(req->waitTime);
     strcpy(ctx->durationTime, req->durationTime);
     ctx->durationTime_len = strlen(req->durationTime);
     strcpy(ctx->expireTime, req->expireTime);
     ctx->expireTime_len = strlen(req->expireTime);
+    free(min);
+    free(hour);
+    free(tm2);
+
     ctx->maxNOfSamples = (long unsigned int)req->maxNofSamples;
     ctx->lastSampleID = (long unsigned int)req->lastSampleID;
     ctx->loopMode = req->loopmode;
@@ -1988,6 +2076,8 @@ int requestMonitoringDataTable_row_copy(requestMonitoringDataTable_context *dst,
     dst->startTime_len = src->startTime_len;
     memcpy(dst->endTime, src->endTime, src->endTime_len);
     dst->endTime_len = src->endTime_len;
+    memcpy(dst->waitTime, src->waitTime, src->waitTime_len);
+    dst->waitTime_len = src->waitTime_len;
     memcpy(dst->durationTime, src->durationTime, src->durationTime_len);
     dst->durationTime_len = src->durationTime_len;
     memcpy(dst->expireTime, src->expireTime, src->expireTime_len);

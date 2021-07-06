@@ -36,6 +36,7 @@ extern "C"
         int maxDelay;
         char *startTime;
         char *endTime;
+        char *waitTime;
         char *durationTime;
         char *expireTime;
         int maxNofSamples;
@@ -63,6 +64,8 @@ extern "C"
         long startTime_len;
         unsigned char endTime[MAXSNMPSTRINGSIZE]; /** OBUDateandTime = ASN_OCTET_STR */
         long endTime_len;
+        unsigned char waitTime[MAXSNMPSTRINGSIZE]; /** OBUDateandTime = ASN_OCTET_STR */
+        long waitTime_len;
         unsigned char durationTime[MAXSNMPSTRINGSIZE]; /** OBUDateandTime = ASN_OCTET_STR */
         long durationTime_len;
         unsigned char expireTime[MAXSNMPSTRINGSIZE]; /** OBUDateandTime = ASN_OCTET_STR */
@@ -110,16 +113,17 @@ extern "C"
 #define COLUMN_MAXDELAY 7
 #define COLUMN_STARTTIME 8
 #define COLUMN_ENDTIME 9
-#define COLUMN_DURATIONTIME 10
-#define COLUMN_EXPIRETIME 11
-#define COLUMN_LASTSAMPLEID 12
-#define COLUMN_NOFSAMPLES 13
-#define COLUMN_MAXNOFSAMPLES 14
-#define COLUMN_LOOPMODE 15
-#define COLUMN_STATUS 16
-#define COLUMN_REQUESTUSER 17
+#define COLUMN_WAITTIME 10
+#define COLUMN_DURATIONTIME 11
+#define COLUMN_EXPIRETIME 12
+#define COLUMN_LASTSAMPLEID 13
+#define COLUMN_NOFSAMPLES 14
+#define COLUMN_MAXNOFSAMPLES 15
+#define COLUMN_LOOPMODE 16
+#define COLUMN_STATUS 17
+#define COLUMN_REQUESTUSER 18
 #define requestMonitoringDataTable_COL_MIN 1
-#define requestMonitoringDataTable_COL_MAX 17
+#define requestMonitoringDataTable_COL_MAX 18
 
 /* comment out the following line if you don't handle SET-REQUEST for requestMonitoringDataTable */
 #define requestMonitoringDataTable_SET_HANDLING

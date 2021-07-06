@@ -23,7 +23,6 @@ extern "C"
         int requestControlMapID;
         int settingMode;
         char *commitTime;
-        char *waitTime;
         char *endTime;
         char *duration;
         char *expireTime;
@@ -42,8 +41,6 @@ extern "C"
         long settingMode;                            /** INTEGER = ASN_INTEGER */
         unsigned char commitTime[MAXSNMPSTRINGSIZE]; /** OBUDateandTime = ASN_OCTET_STR */
         long commitTime_len;
-        unsigned char waitTime[MAXSNMPSTRINGSIZE]; /** OBUDateandTime = ASN_OCTET_STR */
-        long waitTime_len;
         unsigned char endControlTime[MAXSNMPSTRINGSIZE]; /** OBUDateandTime = ASN_OCTET_STR */
         long endControlTime_len;
         unsigned char durationControlTime[MAXSNMPSTRINGSIZE]; /** OBUDateandTime = ASN_OCTET_STR */
@@ -86,14 +83,13 @@ extern "C"
 #define COLUMN_REQUESTCONTROLMAPID 2
 #define COLUMN_SETTINGMODE 3
 #define COLUMN_COMMITTIME 4
-#define COLUMN_WAITTIME 5
-#define COLUMN_ENDCONTROLTIME 6
-#define COLUMN_DURATIONCONTROLTIME 7
-#define COLUMN_EXPIRECONTROLTIME 8
-#define COLUMN_VALUESTABLEID 9
-#define COLUMN_STATUSCONTROL 10
+#define COLUMN_ENDCONTROLTIME 5
+#define COLUMN_DURATIONCONTROLTIME 6
+#define COLUMN_EXPIRECONTROLTIME 7
+#define COLUMN_VALUESTABLEID 8
+#define COLUMN_STATUSCONTROL 9
 #define requestControlDataTable_COL_MIN 1
-#define requestControlDataTable_COL_MAX 10
+#define requestControlDataTable_COL_MAX 9
 
 /* comment out the following line if you don't handle SET-REQUEST for requestControlDataTable */
 #define requestControlDataTable_SET_HANDLING

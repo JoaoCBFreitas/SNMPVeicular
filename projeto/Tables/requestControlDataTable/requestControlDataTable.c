@@ -72,8 +72,6 @@ requestStruct *reqControlConvert(requestControlDataTable_context *reqControl, re
     req->settingMode = reqControl->settingMode;
     req->commitTime = malloc(sizeof(char) * reqControl->commitTime_len);
     strcpy(req->commitTime, reqControl->commitTime);
-    req->waitTime = malloc(sizeof(char) * reqControl->waitTime_len);
-    strcpy(req->waitTime, reqControl->waitTime);
     req->endTime = malloc(sizeof(char) * reqControl->endControlTime_len);
     strcpy(req->endTime, reqControl->endControlTime);
     req->duration = malloc(sizeof(char) * reqControl->durationControlTime_len);
@@ -381,13 +379,6 @@ int requestControlDataTable_get_value(
                                  context->commitTime_len);
         break;
 
-    case COLUMN_WAITTIME:
-        /** OBUDateandTime = ASN_OCTET_STR */
-        snmp_set_var_typed_value(var, ASN_OCTET_STR,
-                                 (char *)&context->waitTime,
-                                 context->waitTime_len);
-        break;
-
     case COLUMN_ENDCONTROLTIME:
         /** OBUDateandTime = ASN_OCTET_STR */
         snmp_set_var_typed_value(var, ASN_OCTET_STR,
@@ -473,8 +464,6 @@ requestControlDataTable_context *requestControlDataTable_create_row(netsnmp_inde
     ctx->settingMode = req->settingMode;
     strcpy(ctx->commitTime, req->commitTime);
     ctx->commitTime_len = strlen(req->commitTime);
-    strcpy(ctx->waitTime, req->waitTime);
-    ctx->waitTime_len = strlen(req->waitTime);
     strcpy(ctx->endControlTime, req->endTime);
     ctx->endControlTime_len = strlen(req->endTime);
     strcpy(ctx->durationControlTime, req->duration);
@@ -607,8 +596,6 @@ int requestControlDataTable_row_copy(requestControlDataTable_context *dst, reque
 
     memcpy(dst->commitTime, src->commitTime, src->commitTime_len);
     dst->commitTime_len = src->commitTime_len;
-    memcpy(dst->waitTime, src->waitTime, src->waitTime_len);
-    dst->waitTime_len = src->waitTime_len;
     memcpy(dst->endControlTime, src->endControlTime, src->endControlTime_len);
     dst->endControlTime_len = src->endControlTime_len;
     memcpy(dst->durationControlTime, src->durationControlTime, src->durationControlTime_len);
