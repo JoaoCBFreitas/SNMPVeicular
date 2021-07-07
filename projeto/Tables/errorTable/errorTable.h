@@ -16,6 +16,7 @@ extern "C"
 #include <net-snmp/net-snmp-config.h>
 #include <net-snmp/library/container.h>
 #include <net-snmp/agent/table_array.h>
+#include "../../auxFunc.h"
 #define MAXSNMPSTRINGSIZE 65525
     typedef struct errorStruct
     {
@@ -52,7 +53,8 @@ extern "C"
     const errorTable_context *errorTable_get_by_idx_rs(netsnmp_index *,
                                                        int row_status);
     int errorTable_get_value(netsnmp_request_info *, netsnmp_index *, netsnmp_table_request_info *);
-
+    int addError(char *user, int id);
+    void checkError();
     /*************************************************************
  * oid declarations
  */

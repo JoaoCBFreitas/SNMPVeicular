@@ -41,6 +41,31 @@ static netsnmp_table_array_callbacks cb;
 
 const oid requestMonitoringDataTable_oid[] = {requestMonitoringDataTable_TABLE_OID};
 const size_t requestMonitoringDataTable_oid_len = OID_LENGTH(requestMonitoringDataTable_oid);
+/*This function will check if an user has already made a request on an object*/
+int checkUserExists(unsigned long id, char *user, unsigned long requestMapID)
+{
+    netsnmp_iterator *it;
+    void *data;
+    it = CONTAINER_ITERATOR(cb.container);
+    int res = 0;
+    if (NULL == it)
+    {
+        return res;
+    }
+    for (data = ITERATOR_FIRST(it); data; data = ITERATOR_NEXT(it))
+    {
+        requestMonitoringDataTable_context *req = data;
+        if (req->requestID != id)
+            if (req->requestMapID == requestMapID)
+                if (strcmp(req->requestUser, user) == 0)
+                {
+                    res = 1;
+                    break;
+                }
+    }
+    ITERATOR_RELEASE(it);
+    return res;
+}
 /*This function will return the number of samples that can be deleted when a request is in "delete" mode.
   There are 3 possible outcomes from this function
   1º There's only one request->delete everything -- returns nOfSamples
@@ -307,9 +332,6 @@ void checkSamples(char *signalname, double value, int signals, char *timestamp, 
  * This Function will compare requestMonitoringDataTable with requestControlDataTable, to identify if and when modifications are made (sets/deletes).
  TODO: Update dos "times" quando é feito um pedido a um objeto ao qual ja haja 
             pedido e ao status quando nao há requestMonitoring deste pedido ativos (perguntar ao prof)
- TODO: Add rows to errorTable when user input is incorrect
- TODO: Delete rows from errorTable when expiretime for the error is over
- TODO: Check if there's already an request for this object, if so check if the user is the same or not
  */
 void checkTables()
 {
@@ -321,6 +343,7 @@ void checkTables()
     time_t t = time(NULL);
     struct tm *tm = localtime(&t);
     requestMonitoringStruct *reqStruct = (requestMonitoringStruct *)malloc(sizeof(requestMonitoringStruct));
+    checkError();
     it = CONTAINER_ITERATOR(cb.container);
     if (NULL == it)
     {
@@ -329,12 +352,82 @@ void checkTables()
     for (data = ITERATOR_FIRST(it); data; data = ITERATOR_NEXT(it))
     {
         requestMonitoringDataTable_context *reqMonitoring = data;
-
         requestControlDataTable_context *reqControl = getControlTableID(reqMonitoring->requestID);
+        if (reqMonitoring->status == 2)
+        {
+            int f = 0;
+            int insert = 0;
+            int errorID = -1;
+            if (validateTime(reqMonitoring->waitTime) != 0)
+            {
+                /*Invalid waitTime, errorID=0*/
+                errorID = 0;
+                f = 1;
+            }
+            else if (validateTime(reqMonitoring->durationTime) != 0)
+            {
+                /*Invalid durationTime, errorID=1*/
+                errorID = 1;
+                f = 1;
+            }
+            else if (validateTime(reqMonitoring->expireTime) != 0)
+            {
+                /*Invalid expireTime, errorID=2*/
+                errorID = 2;
+                f = 1;
+            }
+            else if (reqMonitoring->maxNOfSamples <= 0)
+            {
+                /*Invalid maxNOfSamples, errorID=3*/
+                errorID = 3;
+                f = 1;
+            }
+            else if (reqMonitoring->savingMode != 0 && reqMonitoring->savingMode != 1)
+            {
+                /*Invalid saving Mode, errorID=4*/
+                errorID = 4;
+                f = 1;
+            }
+            else if (reqControl != NULL)
+            {
+                /*There's currently an active request on this object*/
+                if (checkUserExists(reqMonitoring->requestID, reqMonitoring->requestUser, reqMonitoring->requestMapID) != 0)
+                {
+                    /*There's already a request on this object made by this user, errorID=5*/
+                    errorID = 5;
+                    f = 1;
+                }
+            }
+            else if (reqMonitoring->requestStatisticsID != 0 && reqMonitoring->requestStatisticsID != 1)
+            {
+                /*Invalid Statistics,errorID=6*/
+                errorID = 6;
+                f = 1;
+            }
+            else if (reqMonitoring->requestMapID < 0 || findRow(reqMonitoring->requestMapID) == NULL)
+            {
+                /*Invalid Sensor, errorID=7*/
+                errorID = 7;
+                f = 1;
+            }
+            else if (reqMonitoring->loopMode != 1 && reqMonitoring->loopMode != 2)
+            {
+                /*Invalid loop Mode,erroID=8*/
+                errorID = 8;
+                f = 1;
+            }
+            if (f == 1 && errorID >= 0)
+            {
+                insert = addError(reqMonitoring->requestUser, errorID);
+                if (insert != 0)
+                    printf("Error Insertion failed\n");
+                reqMonitoring->status = 3;
+            }
+        }
         if (reqControl == NULL)
         {
             /*check if there's already a requestControl for this object
-              if not create new row*/
+                if not create new row*/
             int controlExists = checkControlExist(reqMonitoring->requestMapID);
             if (controlExists == -1)
             {
@@ -346,11 +439,6 @@ void checkTables()
                     printf("Control insertion failed\n");
                     exit;
                 }
-            }
-            else
-            {
-                /*check user first, if user is the same create row in error table*/
-                reqMonitoring->requestControlID = (unsigned long)controlExists;
             }
         }
         else
@@ -446,6 +534,8 @@ void checkTables()
                 {
                     statisticsStruct *statStruct = (statisticsStruct *)malloc(sizeof(statisticsStruct));
                     statStruct->duration = malloc(sizeof(char) * reqMonitoring->durationTime_len);
+                    /*Find first free statistics ID*/
+                    reqMonitoring->requestStatisticsID = firstStatisticsEntry();
                     statStruct->statID = reqMonitoring->requestStatisticsID;
                     strcpy(statStruct->duration, reqMonitoring->durationTime);
                     statStruct->nOfSamples = 0;
@@ -517,8 +607,6 @@ void checkTables()
                 delete = deleteStatisticsEntry(reqStruct->statisticsRequestID);
                 if (delete == 1)
                     printf("Deletion of requestStatisticsDataEntry failed\n");
-                else if (delete == 2)
-                    printf("RequestStatisticsDataEntry not found\n");
             }
             /*Delete requestControlDataEntry*/
             if (n == reqStruct->nofSamples)
@@ -526,8 +614,6 @@ void checkTables()
                 delete = deleteControlEntry(reqStruct->requestControlID);
                 if (delete == 1)
                     printf("Deletion of requestControlDataEntry failed\n");
-                else if (delete == 2)
-                    printf("RequestControlDataEntry not found\n");
             }
             /*Delete requestMonitoringDataEntry*/
             delete = deleteRequestEntry(reqStruct);
@@ -546,7 +632,6 @@ void checkTables()
         free(timestamp);
         free(tm2);
     }
-
     ITERATOR_RELEASE(it);
     free(reqStruct);
 }

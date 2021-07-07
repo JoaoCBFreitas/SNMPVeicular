@@ -41,7 +41,6 @@ static netsnmp_table_array_callbacks cb;
 
 const oid mapTypeTable_oid[] = {mapTypeTable_TABLE_OID};
 const size_t mapTypeTable_oid_len = OID_LENGTH(mapTypeTable_oid);
-
 /*This function will return the table with a certain id*/
 mapTypeTable_context *findRow(unsigned long id)
 {

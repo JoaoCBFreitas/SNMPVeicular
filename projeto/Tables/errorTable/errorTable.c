@@ -41,6 +41,134 @@ static netsnmp_table_array_callbacks cb;
 
 const oid errorTable_oid[] = {errorTable_TABLE_OID};
 const size_t errorTable_oid_len = OID_LENGTH(errorTable_oid);
+/*This function will delete an entry from errorTable*/
+int deleteErrorEntry(long unsigned int id)
+{
+    errorTable_context *ctx;
+    netsnmp_index index;
+    oid index_oid[2];
+    index_oid[0] = id;
+    index.oids = (oid *)&index_oid;
+    index.len = 1;
+    ctx = NULL;
+    /* Search for it first. */
+    ctx = CONTAINER_FIND(cb.container, &index);
+    if (ctx)
+    {
+        CONTAINER_REMOVE(cb.container, &index);
+        errorTable_delete_row(ctx);
+    }
+    else
+    {
+        return 2;
+    }
+    ctx = CONTAINER_FIND(cb.container, &index);
+    if (ctx)
+        return 1;
+    else
+        return 0;
+}
+/*This function will check every entry on errorTable and delete the entries whose expireTime has past*/
+void checkError()
+{
+    netsnmp_iterator *it;
+    void *data;
+    it = CONTAINER_ITERATOR(cb.container);
+    if (NULL == it)
+    {
+        exit(0);
+    }
+    for (data = ITERATOR_FIRST(it); data; data = ITERATOR_NEXT(it))
+    {
+        errorTable_context *req = data;
+        time_t t = time(NULL);
+        struct tm *tm = localtime(&t);
+        struct tm *tm2 = (struct tm *)malloc(sizeof(struct tm));
+        char *timestamp = malloc(sizeof(char) * req->errorTimeStamp_len + 1);
+        strcpy(timestamp, req->errorTimeStamp);
+        tm2 = convertTime(tm2, timestamp);
+
+        char *hour = malloc(sizeof(char) * 3);
+        char *min = malloc(sizeof(char) * 3);
+        strncpy(hour, req->errorExpireTime, 2);
+        strncpy(min, req->errorExpireTime + 3, 2);
+        min[2] = '\0';
+        hour[2] = '\0';
+        tm2 = addToTime(tm2, atoi(hour), atoi(min));
+        if (compareTimeStamp(tm, tm2) != 1)
+        {
+            /*ExpireTime has passed, delete row*/
+            int delete = deleteErrorEntry(req->errorID);
+            if (delete == 1)
+                printf("Error entry deletion failed: %ld\n", req->errorID);
+            else if (delete == 2)
+                printf("Error entry not found: %ld\n", req->errorID);
+        }
+        free(min);
+        free(hour);
+        free(tm2);
+        free(timestamp);
+    }
+    ITERATOR_RELEASE(it);
+}
+/*This function will return the first empty ID of errorTable*/
+int firstErrorEntry()
+{
+    netsnmp_iterator *it;
+    void *data;
+    it = CONTAINER_ITERATOR(cb.container);
+    int res = 0;
+    if (NULL == it)
+    {
+        return res;
+    }
+    for (data = ITERATOR_FIRST(it); data; data = ITERATOR_NEXT(it))
+    {
+        errorTable_context *req = data;
+        if (req != NULL)
+            res = req->errorID + 1;
+    }
+    ITERATOR_RELEASE(it);
+    return res;
+}
+/*This function will add an error to errorTable*/
+int addError(char *user, int id)
+{
+    errorTable_context *ctx;
+    netsnmp_index index;
+    oid index_oid[2];
+    errorStruct *req = (errorStruct *)malloc(sizeof(errorStruct));
+    req->errorID = firstErrorEntry();
+    time_t t = time(NULL);
+    struct tm *tm = localtime(&t);
+    char s[100];
+    snprintf(s, 100, "%02d/%02d/%04d %02d:%02d:%02d", tm->tm_mday, tm->tm_mon + 1, tm->tm_year + 1900, tm->tm_hour, tm->tm_min, tm->tm_sec);
+    req->errorTimeStamp = malloc(sizeof(char) * strlen(s));
+    strcpy(req->errorTimeStamp, s);
+    req->errorDescriptionID = id;
+    req->errorUser = malloc(sizeof(char) * strlen(user) + 1);
+    strcpy(req->errorUser, user);
+    req->errorExpireTime = "00:01:00";
+    index_oid[0] = req->errorID;
+    index.oids = (oid *)&index_oid;
+    index.len = 1;
+    ctx = NULL;
+    /* Search for it first. */
+    ctx = CONTAINER_FIND(cb.container, &index);
+    if (!ctx)
+    {
+        // No dice. We add the new row
+        ctx = errorTable_create_row(&index, req);
+        CONTAINER_INSERT(cb.container, ctx);
+        free(req);
+    }
+    else
+    {
+        free(req);
+        return 1;
+    }
+    return 0;
+}
 
 #ifdef errorTable_CUSTOM_SORT
 /************************************************************
@@ -133,28 +261,7 @@ errorTable_get(const char *name, int len)
  */
 void init_errorTable(void)
 {
-    errorTable_context *ctx;
-    netsnmp_index index;
-    oid index_oid[2];
     initialize_table_errorTable();
-    errorStruct *req = (errorStruct *)malloc(sizeof(errorStruct));
-    req->errorID = 0;
-    req->errorTimeStamp = "2017-01-23 15:22:60.357000";
-    req->errorDescriptionID = 12;
-    req->errorUser = "Utilizador teste";
-    req->errorExpireTime = "00:02:00";
-    index_oid[0] = 0;
-    index.oids = (oid *)&index_oid;
-    index.len = 1;
-    ctx = NULL;
-    /* Search for it first. */
-    ctx = CONTAINER_FIND(cb.container, &index);
-    if (!ctx)
-    {
-        // No dice. We add the new row
-        ctx = errorTable_create_row(&index, req);
-        CONTAINER_INSERT(cb.container, ctx);
-    }
 }
 
 /************************************************************
@@ -326,13 +433,11 @@ errorTable_duplicate_row(errorTable_context *row_ctx)
 netsnmp_index *errorTable_delete_row(errorTable_context *ctx)
 {
     /* netsnmp_mutex_destroy(ctx->lock); */
-
+    /*
     if (ctx->index.oids)
         free(ctx->index.oids);
-
-    /*
-     * TODO: release any memory you allocated here...
-     */
+    */
+    free(ctx->data);
 
     /*
      * release header

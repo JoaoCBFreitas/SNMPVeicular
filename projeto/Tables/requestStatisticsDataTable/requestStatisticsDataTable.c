@@ -41,8 +41,29 @@ static netsnmp_table_array_callbacks cb;
 
 const oid requestStatisticsDataTable_oid[] = {requestStatisticsDataTable_TABLE_OID};
 const size_t requestStatisticsDataTable_oid_len = OID_LENGTH(requestStatisticsDataTable_oid);
+/*This function will return the first empty ID of requestStatisticsDataTable*/
+int firstStatisticsEntry()
+{
+    netsnmp_iterator *it;
+    void *data;
+    it = CONTAINER_ITERATOR(cb.container);
+    int res = 0;
+    if (NULL == it)
+    {
+        return res;
+    }
+    for (data = ITERATOR_FIRST(it); data; data = ITERATOR_NEXT(it))
+    {
+        requestStatisticsDataTable_context *req = data;
+        if (req != NULL)
+            res = req->statisticsID + 1;
+    }
+    ITERATOR_RELEASE(it);
+    return res;
+}
 /*This function will delete an entry from requestStatisticsDataTable*/
-int deleteStatisticsEntry(int id){
+int deleteStatisticsEntry(int id)
+{
     requestStatisticsDataTable_context *ctx;
     netsnmp_index index;
     oid index_oid[2];
@@ -54,45 +75,47 @@ int deleteStatisticsEntry(int id){
     ctx = CONTAINER_FIND(cb.container, &index);
     if (ctx)
     {
-        CONTAINER_REMOVE(cb.container,&index);
+        CONTAINER_REMOVE(cb.container, &index);
         requestStatisticsDataTable_delete_row(ctx);
-    }else{
+    }
+    else
+    {
         return 2;
     }
     ctx = CONTAINER_FIND(cb.container, &index);
-    if(ctx)
+    if (ctx)
         return 1;
     else
         return 0;
 }
 
-
-
 /*This function will convert from requestStatisticsDataTable_context to statisticsStruct*/
-statisticsStruct* convertStatStruct(requestStatisticsDataTable_context* statStruct,statisticsStruct* sS){
-    sS->avgValue=statStruct->avgValue;
-    sS->nOfSamples=statStruct->nOfSamplesStatistics;
-    sS->duration=malloc(sizeof(char)*statStruct->durationTimeStatistics_len);
-    strcpy(sS->duration,statStruct->durationTimeStatistics);
-    sS->minValue=statStruct->minValue;
-    sS->maxValue=statStruct->maxValue;
-    sS->statID=statStruct->statisticsID;    
+statisticsStruct *convertStatStruct(requestStatisticsDataTable_context *statStruct, statisticsStruct *sS)
+{
+    sS->avgValue = statStruct->avgValue;
+    sS->nOfSamples = statStruct->nOfSamplesStatistics;
+    sS->duration = malloc(sizeof(char) * statStruct->durationTimeStatistics_len);
+    strcpy(sS->duration, statStruct->durationTimeStatistics);
+    sS->minValue = statStruct->minValue;
+    sS->maxValue = statStruct->maxValue;
+    sS->statID = statStruct->statisticsID;
     return sS;
 }
 /*Given an ID, this function will return a row with that ID*/
-void* getStatisticsTable(long unsigned int id){
+void *getStatisticsTable(long unsigned int id)
+{
     netsnmp_index index;
     oid index_oid[2];
     index_oid[0] = id;
     index.oids = (oid *)&index_oid;
     index.len = 1;
-    void *data=CONTAINER_FIND(cb.container,&index);
+    void *data = CONTAINER_FIND(cb.container, &index);
     return data;
 }
 /************************************************************
  * This function inserts a statisticsStruct into the requestStatisticsDataTable
  */
-int insertStatisticsRow(statisticsStruct* req)
+int insertStatisticsRow(statisticsStruct *req)
 {
     requestStatisticsDataTable_context *ctx;
     netsnmp_index index;
@@ -104,13 +127,16 @@ int insertStatisticsRow(statisticsStruct* req)
     /* Search for it first. */
     ctx = CONTAINER_FIND(cb.container, &index);
     /*Delete previous entry if it already exists*/
-    if(ctx){
-        CONTAINER_REMOVE(cb.container,&index);
+    if (ctx)
+    {
+        CONTAINER_REMOVE(cb.container, &index);
         requestStatisticsDataTable_delete_row(ctx);
         ctx = requestStatisticsDataTable_create_row(&index, req);
         CONTAINER_INSERT(cb.container, ctx);
         return 0;
-    }else{
+    }
+    else
+    {
         ctx = requestStatisticsDataTable_create_row(&index, req);
         CONTAINER_INSERT(cb.container, ctx);
         return 0;

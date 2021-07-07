@@ -49,7 +49,7 @@ extern "C"
     const mapTypeTable_context *mapTypeTable_get_by_idx_rs(netsnmp_index *,
                                                            int row_status);
     int mapTypeTable_get_value(netsnmp_request_info *, netsnmp_index *, netsnmp_table_request_info *);
-    mapTypeTable_context* findRow(unsigned long );
+    mapTypeTable_context *findRow(unsigned long);
     /*************************************************************
  * oid declarations
  */

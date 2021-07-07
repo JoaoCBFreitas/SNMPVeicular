@@ -1,3 +1,6 @@
+#ifndef AUXFUNC_H
+#define AUXFUNC_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -38,3 +41,6 @@ int compareTimeStamp(struct tm *time1, struct tm *time2);
 struct tm *deepCopyTM(struct tm *src, struct tm *dst);
 /*This function will convert a timestamp into a struct tm* */
 struct tm *convertTime(struct tm *tm, char *timestamp);
+/*This function will be used to validate times given by the user*/
+int validateTime(char *time);
+#endif

@@ -231,3 +231,24 @@ struct tm *addToTime(struct tm *time, int hour, int minutes)
     }
     return time;
 }
+int validateTime(char *time)
+{
+    printf("Time %s\n", time);
+    if (strlen(time) != 8)
+        return 1;
+    char *hour = malloc(sizeof(char) * 3);
+    char *min = malloc(sizeof(char) * 3);
+    strncpy(hour, time, 2);
+    strncpy(min, time + 3, 2);
+    min[2] = '\0';
+    hour[2] = '\0';
+    int m = atoi(min);
+    int h = atoi(hour);
+    free(min);
+    free(hour);
+    if (m < 0 || m > 59)
+        return 1;
+    if (h < 0 || h > 23)
+        return 1;
+    return 0;
+}

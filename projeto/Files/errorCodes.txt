@@ -1,10 +1,10 @@
-ErrorCode:Error Description
-Invalid start time
-Invalid duration time
-Invalid expire time
-Invalid max number of recordings 
-Invalid saving mode
+Error Description
+Invalid wait time, hour must be set between [0,23] and minutes between [0,59]
+Invalid duration time, hour must be set between [0,23] and minutes between [0,59]
+Invalid expire time, hour must be set between [0,23] and minutes between [0,59]
+Invalid max number of recordings, number must be higher than 0
+Invalid saving mode (0=Permanent, 1=Volatile)
 User has already set a request for samples recorded from this sensor
 Invalid statistics set (0=No statistics, 1=Statistics)
-Invalid sensor
-Invalid loopMode
+Invalid sensor, check mapTypeTable for valid sensor id's
+Invalid loopMode, (1=Yes,2=No)

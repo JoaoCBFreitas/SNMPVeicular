@@ -32,7 +32,7 @@ extern "C"
     {
         netsnmp_index index; /** THIS MUST BE FIRST!!! */
         oid oid_buf[2];
-        unsigned long statisticsID;               /** UNSIGNED32 = ASN_UNSIGNED */
+        unsigned long statisticsID;                  /** UNSIGNED32 = ASN_UNSIGNED */
         unsigned char durationTimeStatistics[65535]; /** OBUDateandTime = ASN_OCTET_STR */
         long durationTimeStatistics_len;
         unsigned long nOfSamplesStatistics; /** COUNTER = ASN_COUNTER */
@@ -53,10 +53,11 @@ extern "C"
     const requestStatisticsDataTable_context *requestStatisticsDataTable_get_by_idx_rs(netsnmp_index *,
                                                                                        int row_status);
     int requestStatisticsDataTable_get_value(netsnmp_request_info *, netsnmp_index *, netsnmp_table_request_info *);
-    int insertStatisticsRow(statisticsStruct* );
-    void* getStatisticsTable(long unsigned int);
-    statisticsStruct* convertStatStruct(requestStatisticsDataTable_context* ,statisticsStruct* );
+    int insertStatisticsRow(statisticsStruct *);
+    void *getStatisticsTable(long unsigned int);
+    statisticsStruct *convertStatStruct(requestStatisticsDataTable_context *, statisticsStruct *);
     int deleteStatisticsEntry(int);
+    int firstStatisticsEntry();
     /*************************************************************
  * oid declarations
  */

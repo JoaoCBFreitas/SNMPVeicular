@@ -41,6 +41,7 @@ static netsnmp_table_array_callbacks cb;
 
 const oid requestControlDataTable_oid[] = {requestControlDataTable_TABLE_OID};
 const size_t requestControlDataTable_oid_len = OID_LENGTH(requestControlDataTable_oid);
+
 /*This function will check if there are requests already set for an object*/
 int checkControlExist(long unsigned int requestMapID)
 {

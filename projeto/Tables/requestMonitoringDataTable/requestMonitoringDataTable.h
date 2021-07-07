@@ -23,6 +23,7 @@ extern "C"
 #include "../requestControlDataTable/requestControlDataTable.h"
 #include "../requestStatisticsDataTable/requestStatisticsDataTable.h"
 #include "../samplesTable/samplesTable.h"
+#include "../errorTable/errorTable.h"
 
 #define MAXSNMPSTRINGSIZE 65525
     typedef struct requestMonitoringStruct
