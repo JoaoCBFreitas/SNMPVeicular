@@ -233,7 +233,6 @@ struct tm *addToTime(struct tm *time, int hour, int minutes)
 }
 int validateTime(char *time)
 {
-    printf("Time %s\n", time);
     if (strlen(time) != 8)
         return 1;
     char *hour = malloc(sizeof(char) * 3);

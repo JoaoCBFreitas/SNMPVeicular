@@ -57,11 +57,14 @@ int checkUserExists(unsigned long id, char *user, unsigned long requestMapID)
         requestMonitoringDataTable_context *req = data;
         if (req->requestID != id)
             if (req->requestMapID == requestMapID)
+            {
+                printf("%s %s", req->requestUser, user);
                 if (strcmp(req->requestUser, user) == 0)
                 {
                     res = 1;
                     break;
                 }
+            }
     }
     ITERATOR_RELEASE(it);
     return res;
@@ -329,9 +332,11 @@ void checkSamples(char *signalname, double value, int signals, char *timestamp, 
     free(reqControlStruct);
 }
 /**
- * This Function will compare requestMonitoringDataTable with requestControlDataTable, to identify if and when modifications are made (sets/deletes).
- TODO: Update dos "times" quando é feito um pedido a um objeto ao qual ja haja 
-            pedido e ao status quando nao há requestMonitoring deste pedido ativos (perguntar ao prof)
+ * This Function will activate, deactivate and delete requests on requestMonitoringDataTable.
+ * It will also create auxiliary entrys on other requestControlDataTable and requestStatisticsDataTable.
+ * When deleting a request entry, this function will delete all related entrys on other tables (samplesTable, requestControlDataTable and requestStatisticsDataTable). 
+ * It won't delete entrys on samplesTable and requestControlDataTable that are related to more than one request.
+ * Lastly it will also call for the function checkError, whose role is to manage errorTable.
  */
 void checkTables()
 {
@@ -388,15 +393,11 @@ void checkTables()
                 errorID = 4;
                 f = 1;
             }
-            else if (reqControl != NULL)
+            else if (checkUserExists(reqMonitoring->requestID, reqMonitoring->requestUser, reqMonitoring->requestMapID) != 0)
             {
-                /*There's currently an active request on this object*/
-                if (checkUserExists(reqMonitoring->requestID, reqMonitoring->requestUser, reqMonitoring->requestMapID) != 0)
-                {
-                    /*There's already a request on this object made by this user, errorID=5*/
-                    errorID = 5;
-                    f = 1;
-                }
+                /*There's already a request on this object made by this user, errorID=5*/
+                errorID = 5;
+                f = 1;
             }
             else if (reqMonitoring->requestStatisticsID != 0 && reqMonitoring->requestStatisticsID != 1)
             {
