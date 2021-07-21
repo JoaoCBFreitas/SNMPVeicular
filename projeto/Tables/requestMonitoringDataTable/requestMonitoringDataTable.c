@@ -41,6 +41,85 @@ static netsnmp_table_array_callbacks cb;
 
 const oid requestMonitoringDataTable_oid[] = {requestMonitoringDataTable_TABLE_OID};
 const size_t requestMonitoringDataTable_oid_len = OID_LENGTH(requestMonitoringDataTable_oid);
+/*This function will perform a deepcopy of requestMonitoringDataTable_context*/
+requestMonitoringDataTable_context *deepCopyReqMonitoring(requestMonitoringDataTable_context *dst, requestMonitoringDataTable_context *src)
+{
+    dst->requestID = src->requestID;
+    dst->requestControlID = src->requestControlID;
+    dst->requestMapID = src->requestMapID;
+    dst->requestStatisticsID = src->requestStatisticsID;
+    dst->savingMode = src->savingMode;
+    dst->samplingFrequency = src->samplingFrequency;
+    dst->maxDelay = src->maxDelay;
+    strcpy(dst->startTime, src->startTime);
+    dst->startTime_len = src->startTime_len;
+    strcpy(dst->endTime, src->endTime);
+    dst->endTime_len = src->endTime_len;
+    strcpy(dst->waitTime, src->waitTime);
+    dst->waitTime_len = src->waitTime_len;
+    strcpy(dst->durationTime, src->durationTime);
+    dst->durationTime_len = src->durationTime_len;
+    strcpy(dst->expireTime, src->expireTime);
+    dst->expireTime_len = src->expireTime_len;
+    dst->lastSampleID = src->lastSampleID;
+    dst->nOfSamples = src->nOfSamples;
+    dst->maxNOfSamples = src->maxNOfSamples;
+    dst->loopMode = src->loopMode;
+    dst->status = src->status;
+    strcpy(dst->requestUser, src->requestUser);
+    dst->requestUser_len = src->requestUser_len;
+    return dst;
+}
+/*This function will try to find a valid requestMonitoringDataEntry to update requestControlDataEntry*/
+void updateReqControl(requestControlDataTable_context *reqControl, requestMonitoringStruct *reqStruct)
+{
+    netsnmp_iterator *it;
+    void *data;
+    it = CONTAINER_ITERATOR(cb.container);
+    if (NULL == it)
+        exit;
+
+    requestMonitoringDataTable_context *aux = (requestMonitoringDataTable_context *)malloc(sizeof(requestMonitoringDataTable_context));
+    for (data = ITERATOR_FIRST(it); data; data = ITERATOR_NEXT(it))
+    {
+        requestMonitoringDataTable_context *req = data;
+        if (req->requestID != reqStruct->reqID && req->requestMapID == reqStruct->requestMapID)
+        {
+            if (aux == NULL)
+                aux = deepCopyReqMonitoring(aux, req);
+            else
+            {
+                struct tm *tm1 = (struct tm *)malloc(sizeof(struct tm));
+                struct tm *tm2 = (struct tm *)malloc(sizeof(struct tm));
+                tm1 = convertTime(tm1, aux->startTime);
+                tm2 = convertTime(tm2, req->startTime);
+                if (compareTimeStamp(tm1, tm2) == 2)
+                {
+                    aux = deepCopyReqMonitoring(aux, req);
+                }
+                free(tm1);
+                free(tm2);
+            }
+        }
+    }
+    if (aux != NULL)
+    {
+        requestStruct *req = (requestStruct *)malloc(sizeof(requestStruct));
+        req = reqControlConvert(reqControl, req);
+        req->commitTime = malloc(sizeof(char) * aux->startTime_len + 1);
+        strcpy(req->commitTime, aux->startTime);
+        req->endTime = malloc(sizeof(char) * aux->endTime_len + 1);
+        strcpy(req->endTime, aux->endTime);
+        req->duration = malloc(sizeof(char) * aux->durationTime_len + 1);
+        strcpy(req->duration, aux->durationTime);
+        req->expireTime = malloc(sizeof(char) * aux->expireTime_len + 1);
+        strcpy(req->expireTime, aux->expireTime);
+        int insert = insertControlRow(req);
+        free(req);
+    }
+    ITERATOR_RELEASE(it);
+    free(aux);
+}
 /*This function will check if an user has already made a request on an object*/
 int checkUserExists(unsigned long id, char *user, unsigned long requestMapID)
 {
@@ -58,7 +137,6 @@ int checkUserExists(unsigned long id, char *user, unsigned long requestMapID)
         if (req->requestID != id)
             if (req->requestMapID == requestMapID)
             {
-                printf("%s %s", req->requestUser, user);
                 if (strcmp(req->requestUser, user) == 0)
                 {
                     res = 1;
@@ -444,8 +522,6 @@ void checkTables()
         }
         else
         {
-            /*TODO: Update dos "times" quando é feito um pedido a um objeto ao qual ja haja 
-            pedido e ao status quando nao há requestMonitoring deste pedido ativos*/
             if (reqMonitoring->status == 1 && reqControl->statusControl == 2)
             {
                 int insertControl = insertRowControl_Monitor(reqMonitoring);
@@ -616,6 +692,11 @@ void checkTables()
                 if (delete == 1)
                     printf("Deletion of requestControlDataEntry failed\n");
             }
+            else
+            {
+                /*TODO:Update requestControlDataTable*/
+                updateReqControl(reqControl, reqStruct);
+            }
             /*Delete requestMonitoringDataEntry*/
             delete = deleteRequestEntry(reqStruct);
             if (delete == 1)
@@ -743,6 +824,28 @@ void init_requestMonitoringDataTable(void)
     req->waitTime = "00:00:00";
     req->durationTime = "01:00:00";
     req->expireTime = "02:00:00";
+    time_t t = time(NULL);
+    struct tm *tm = localtime(&t);
+    char s[100];
+    char s1[100];
+    snprintf(s, 100, "%02d/%02d/%04d %02d:%02d:%02d", tm->tm_mday, tm->tm_mon + 1, tm->tm_year + 1900, tm->tm_hour, tm->tm_min, tm->tm_sec);
+    req->startTime = malloc(sizeof(char) * strlen(s));
+    strcpy(req->startTime, s);
+    char *hour = malloc(sizeof(char) * 3);
+    char *min = malloc(sizeof(char) * 3);
+    strncpy(hour, req->durationTime, 2);
+    strncpy(min, req->durationTime + 3, 2);
+    min[2] = '\0';
+    hour[2] = '\0';
+    struct tm *tm2 = (struct tm *)malloc(sizeof(struct tm));
+    tm2 = deepCopyTM(tm, tm2);
+    tm2 = addToTime(tm2, atoi(hour), atoi(min));
+    snprintf(s1, 100, "%02d/%02d/%04d %02d:%02d:%02d", tm2->tm_mday, tm2->tm_mon + 1, tm2->tm_year + 1900, tm2->tm_hour, tm2->tm_min, tm2->tm_sec);
+    req->endTime = malloc(sizeof(char) * strlen(s1));
+    strcpy(req->endTime, s1);
+    free(hour);
+    free(min);
+    free(tm2);
     req->maxNofSamples = 10;
     req->lastSampleID = 0;
     req->loopmode = 1;
@@ -2066,34 +2169,16 @@ requestMonitoringDataTable_context *requestMonitoringDataTable_create_row(netsnm
     ctx->samplingFrequency = req->sampleFreq;
     ctx->maxDelay = req->maxDelay;
 
-    time_t t = time(NULL);
-    struct tm *tm = localtime(&t);
-    char s[100];
-    char s1[100];
-    snprintf(s, 100, "%02d/%02d/%04d %02d:%02d:%02d", tm->tm_mday, tm->tm_mon + 1, tm->tm_year + 1900, tm->tm_hour, tm->tm_min, tm->tm_sec);
-    strcpy(ctx->startTime, s);
-    ctx->startTime_len = strlen(s);
-    char *hour = malloc(sizeof(char) * 3);
-    char *min = malloc(sizeof(char) * 3);
-    strncpy(hour, req->durationTime, 2);
-    strncpy(min, req->durationTime + 3, 2);
-    min[2] = '\0';
-    hour[2] = '\0';
-    struct tm *tm2 = (struct tm *)malloc(sizeof(struct tm));
-    tm2 = deepCopyTM(tm, tm2);
-    tm2 = addToTime(tm2, atoi(hour), atoi(min));
-    snprintf(s1, 100, "%02d/%02d/%04d %02d:%02d:%02d", tm2->tm_mday, tm2->tm_mon + 1, tm2->tm_year + 1900, tm2->tm_hour, tm2->tm_min, tm2->tm_sec);
-    strcpy(ctx->endTime, s1);
-    ctx->endTime_len = strlen(s1);
+    strcpy(ctx->startTime, req->startTime);
+    ctx->startTime_len = strlen(req->startTime);
+    strcpy(ctx->endTime, req->endTime);
+    ctx->endTime_len = strlen(req->endTime);
     strcpy(ctx->waitTime, req->waitTime);
     ctx->waitTime_len = strlen(req->waitTime);
     strcpy(ctx->durationTime, req->durationTime);
     ctx->durationTime_len = strlen(req->durationTime);
     strcpy(ctx->expireTime, req->expireTime);
     ctx->expireTime_len = strlen(req->expireTime);
-    free(min);
-    free(hour);
-    free(tm2);
 
     ctx->maxNOfSamples = (long unsigned int)req->maxNofSamples;
     ctx->lastSampleID = (long unsigned int)req->lastSampleID;
