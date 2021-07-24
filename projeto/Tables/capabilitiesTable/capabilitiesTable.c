@@ -133,27 +133,67 @@ capabilitiesTable_get(const char *name, int len)
  */
 void init_capabilitiesTable(void)
 {
-    initialize_table_capabilitiesTable();
-    char *cap[] = {"Teste1", "Teste2", "Teste3"};
     capabilitiesTable_context *ctx;
     netsnmp_index index;
     oid index_oid[2];
-
-    for (int i = 0; i < sizeof(cap) / sizeof(cap[0]); i++)
+    initialize_table_capabilitiesTable();
+    char *cap[] = {"Teste1", "Teste2", "Teste3"};
+    FILE *fp;
+    char *line = NULL;
+    size_t len = 0;
+    ssize_t read;
+    int i = 0, k = 0;
+    char *token;
+    fp = fopen("././Files/capabilities.txt", "r");
+    if (fp == NULL)
     {
-        index_oid[0] = i;
-        index.oids = (oid *)&index_oid;
-        index.len = 1;
-        ctx = NULL;
-        /* Search for it first. */
-        ctx = CONTAINER_FIND(cb.container, &index);
-        if (!ctx)
-        {
-            // No dice. We add the new row
-            ctx = capabilitiesTable_create_row(&index, cap[i], i, i + 1, i + 2);
-            CONTAINER_INSERT(cb.container, ctx);
-        }
+        printf("ERROR FILE NOT FOUND\n");
+        exit(EXIT_FAILURE);
     }
+    while ((read = getline(&line, &len, fp)) != -1)
+    {
+        if (i > 0)
+        {
+            if (line[strlen(line) - 1] == '\n')
+                line[strlen(line) - 1] = '\0';
+            const char sep[2] = ":";
+            char *token;
+            token = strtok(line, sep);
+            int set = atoi(token);
+            int spec = 0;
+            int aux = 0;
+            char *descr;
+            while (token != NULL)
+            {
+                if (aux == 1)
+                    spec = atoi(token);
+                if (aux == 2)
+                {
+                    descr = malloc(sizeof(char) + strlen(token));
+                    strcpy(descr, token);
+                }
+                aux++;
+                token = strtok(NULL, sep);
+            }
+            index_oid[0] = k;
+            index.oids = (oid *)&index_oid;
+            index.len = 1;
+            ctx = NULL;
+            /* Search for it first. */
+            ctx = CONTAINER_FIND(cb.container, &index);
+            if (!ctx)
+            {
+                // No dice. We add the new row
+                ctx = capabilitiesTable_create_row(&index, descr, k, set, spec);
+                CONTAINER_INSERT(cb.container, ctx);
+                k++;
+            }
+        }
+        i++;
+    }
+    fclose(fp);
+    if (line)
+        free(line);
 }
 
 /************************************************************

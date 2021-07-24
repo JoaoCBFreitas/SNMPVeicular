@@ -441,58 +441,84 @@ void checkTables()
             int f = 0;
             int insert = 0;
             int errorID = -1;
-            if (validateTime(reqMonitoring->waitTime) != 0)
+            time_t t = time(NULL);
+            struct tm *tm = localtime(&t);
+            char s[100];
+            if (reqMonitoring->startTime_len == 0)
+            {
+                /*If the user set no start time, then start time will be current system time*/
+                snprintf(s, 100, "%02d/%02d/%04d %02d:%02d:%02d", tm->tm_mday, tm->tm_mon + 1, tm->tm_year + 1900, tm->tm_hour, tm->tm_min, tm->tm_sec);
+                strcpy(reqMonitoring->startTime, s);
+                reqMonitoring->startTime_len = strlen(s);
+            }
+            else if (reqMonitoring->startTime_len == 8)
+            {
+                /*If startTime is set by the user, it will be set with Hours:Min:Sec*/
+                snprintf(s, 100, "%02d/%02d/%04d ", tm->tm_mday, tm->tm_mon + 1, tm->tm_year + 1900);
+                strcat(s, reqMonitoring->startTime);
+                strcpy(reqMonitoring->startTime, s);
+                reqMonitoring->startTime_len = strlen(s);
+            }
+            /*tmAux will be used to validate startTime by comparing it to current time*/
+            struct tm *tmAux = (struct tm *)malloc(sizeof(struct tm));
+            tmAux = convertTime(tmAux, reqMonitoring->startTime);
+            if (validateTime(reqMonitoring->startTime + 11) != 0 || compareTimeStamp(tm, tmAux) == 2)
+            {
+                errorID = 0;
+                f = 1;
+            }
+            else if (validateTime(reqMonitoring->waitTime) != 0)
             {
                 /*Invalid waitTime, errorID=0*/
-                errorID = 0;
+                errorID = 1;
                 f = 1;
             }
             else if (validateTime(reqMonitoring->durationTime) != 0)
             {
                 /*Invalid durationTime, errorID=1*/
-                errorID = 1;
+                errorID = 2;
                 f = 1;
             }
             else if (validateTime(reqMonitoring->expireTime) != 0)
             {
                 /*Invalid expireTime, errorID=2*/
-                errorID = 2;
+                errorID = 3;
                 f = 1;
             }
             else if (reqMonitoring->maxNOfSamples <= 0)
             {
                 /*Invalid maxNOfSamples, errorID=3*/
-                errorID = 3;
+                errorID = 4;
                 f = 1;
             }
             else if (reqMonitoring->savingMode != 0 && reqMonitoring->savingMode != 1)
             {
                 /*Invalid saving Mode, errorID=4*/
-                errorID = 4;
+                errorID = 5;
                 f = 1;
             }
             else if (checkUserExists(reqMonitoring->requestID, reqMonitoring->requestUser, reqMonitoring->requestMapID) != 0)
             {
                 /*There's already a request on this object made by this user, errorID=5*/
-                errorID = 5;
+                errorID = 6;
                 f = 1;
             }
             else if (reqMonitoring->requestStatisticsID != 0 && reqMonitoring->requestStatisticsID != 1)
             {
                 /*Invalid Statistics,errorID=6*/
-                errorID = 6;
+                errorID = 7;
                 f = 1;
             }
             else if (reqMonitoring->requestMapID < 0 || findRow(reqMonitoring->requestMapID) == NULL)
             {
                 /*Invalid Sensor, errorID=7*/
-                errorID = 7;
+                errorID = 8;
                 f = 1;
             }
             else if (reqMonitoring->loopMode != 1 && reqMonitoring->loopMode != 2)
             {
                 /*Invalid loop Mode,erroID=8*/
-                errorID = 8;
+                errorID = 9;
                 f = 1;
             }
             if (f == 1 && errorID >= 0)
@@ -502,6 +528,8 @@ void checkTables()
                     printf("Error Insertion failed\n");
                 reqMonitoring->status = 3;
             }
+            reqMonitoring->status = 4;
+            free(tmAux);
         }
         if (reqControl == NULL)
         {
@@ -570,66 +598,7 @@ void checkTables()
             }
             break;
         case 2:
-            /*Row is in set mode, change status from Set to Off when startTime+waitTime has passed*/
-            if (reqMonitoring->endTime_len == 0)
-            {
-                /*If column EndTime is empty, it will be calculated by adding startTime+waitTime+durationTime*/
-                strncpy(hour, reqMonitoring->waitTime, 2);
-                strncpy(min, reqMonitoring->waitTime + 3, 2);
-                min[2] = '\0';
-                hour[2] = '\0';
-                strcpy(timestamp, reqMonitoring->startTime);
-                tm2 = convertTime(tm2, timestamp);
-                tm2 = addToTime(tm2, atoi(hour), atoi(min));
-                strncpy(hour, reqMonitoring->durationTime, 2);
-                strncpy(min, reqMonitoring->durationTime + 3, 2);
-                min[2] = '\0';
-                hour[2] = '\0';
-                tm2 = addToTime(tm2, atoi(hour), atoi(min));
-                char s[100];
-                snprintf(s, 100, "%02d/%02d/%04d %02d:%02d:%02d", tm2->tm_mday, tm2->tm_mon + 1, tm2->tm_year + 1900, tm2->tm_hour, tm2->tm_min, tm2->tm_sec);
-                reqMonitoring->endTime_len = strlen(s);
-                strcpy(reqMonitoring->endTime, s);
-                reqStruct = tableToStruct(reqMonitoring, reqStruct);
-                requestMonitoringDataTable_create_row(&index, reqStruct);
-            }
-            strncpy(hour, reqMonitoring->waitTime, 2);
-            strncpy(min, reqMonitoring->waitTime + 3, 2);
-            min[2] = '\0';
-            hour[2] = '\0';
-            strcpy(timestamp, reqMonitoring->startTime);
-            tm2 = convertTime(tm2, timestamp);
-            tm2 = addToTime(tm2, atoi(hour), atoi(min));
-            /*WaitTime is reached, proceed with setting*/
-            if (compareTimeStamp(tm, tm2) != 1)
-            {
-                index_oid[0] = reqMonitoring->requestID;
-                index.oids = (oid *)&index_oid;
-                index.len = 1;
-                reqMonitoring->status = 1;
-                if (reqMonitoring->requestStatisticsID != 0)
-                {
-                    statisticsStruct *statStruct = (statisticsStruct *)malloc(sizeof(statisticsStruct));
-                    statStruct->duration = malloc(sizeof(char) * reqMonitoring->durationTime_len);
-                    /*Find first free statistics ID*/
-                    reqMonitoring->requestStatisticsID = firstStatisticsEntry();
-                    statStruct->statID = reqMonitoring->requestStatisticsID;
-                    strcpy(statStruct->duration, reqMonitoring->durationTime);
-                    statStruct->nOfSamples = 0;
-                    statStruct->minValue = 9999;
-                    statStruct->maxValue = -999;
-                    statStruct->avgValue = 0;
-                    int stat = insertStatisticsRow(statStruct);
-                    free(statStruct);
-                    if (stat != 0)
-                        printf("Statistics insertion failed\n");
-                }
-                else
-                    printf("No statistics\n");
-
-                reqStruct = tableToStruct(reqMonitoring, reqStruct);
-                requestMonitoringDataTable_create_row(&index, reqStruct);
-            }
+            /*Row is in set mode, do nothing*/
             break;
         case 3:
             /*Row is in Delete mode, delete this row and all other rows related to this one*/
@@ -704,6 +673,68 @@ void checkTables()
             else if (delete == 2)
                 printf("RequestMonitoringDataEntry not found\n");
 
+            break;
+        case 4:
+            /*Row is in ready mode, change status from ready to Off when startTime+waitTime has passed*/
+            if (reqMonitoring->endTime_len == 0)
+            {
+                /*If column EndTime is empty, it will be calculated by adding startTime+waitTime+durationTime*/
+                strncpy(hour, reqMonitoring->waitTime, 2);
+                strncpy(min, reqMonitoring->waitTime + 3, 2);
+                min[2] = '\0';
+                hour[2] = '\0';
+                strcpy(timestamp, reqMonitoring->startTime);
+                tm2 = convertTime(tm2, timestamp);
+                tm2 = addToTime(tm2, atoi(hour), atoi(min));
+                strncpy(hour, reqMonitoring->durationTime, 2);
+                strncpy(min, reqMonitoring->durationTime + 3, 2);
+                min[2] = '\0';
+                hour[2] = '\0';
+                tm2 = addToTime(tm2, atoi(hour), atoi(min));
+                char s[100];
+                snprintf(s, 100, "%02d/%02d/%04d %02d:%02d:%02d", tm2->tm_mday, tm2->tm_mon + 1, tm2->tm_year + 1900, tm2->tm_hour, tm2->tm_min, tm2->tm_sec);
+                reqMonitoring->endTime_len = strlen(s);
+                strcpy(reqMonitoring->endTime, s);
+                reqStruct = tableToStruct(reqMonitoring, reqStruct);
+                requestMonitoringDataTable_create_row(&index, reqStruct);
+            }
+            strncpy(hour, reqMonitoring->waitTime, 2);
+            strncpy(min, reqMonitoring->waitTime + 3, 2);
+            min[2] = '\0';
+            hour[2] = '\0';
+            strcpy(timestamp, reqMonitoring->startTime);
+            tm2 = convertTime(tm2, timestamp);
+            tm2 = addToTime(tm2, atoi(hour), atoi(min));
+            /*WaitTime is reached, proceed with setting*/
+            if (compareTimeStamp(tm, tm2) != 1)
+            {
+                index_oid[0] = reqMonitoring->requestID;
+                index.oids = (oid *)&index_oid;
+                index.len = 1;
+                reqMonitoring->status = 1;
+                if (reqMonitoring->requestStatisticsID != 0)
+                {
+                    statisticsStruct *statStruct = (statisticsStruct *)malloc(sizeof(statisticsStruct));
+                    statStruct->duration = malloc(sizeof(char) * reqMonitoring->durationTime_len);
+                    /*Find first free statistics ID*/
+                    reqMonitoring->requestStatisticsID = firstStatisticsEntry();
+                    statStruct->statID = reqMonitoring->requestStatisticsID;
+                    strcpy(statStruct->duration, reqMonitoring->durationTime);
+                    statStruct->nOfSamples = 0;
+                    statStruct->minValue = 9999;
+                    statStruct->maxValue = -999;
+                    statStruct->avgValue = 0;
+                    int stat = insertStatisticsRow(statStruct);
+                    free(statStruct);
+                    if (stat != 0)
+                        printf("Statistics insertion failed\n");
+                }
+                else
+                    printf("No statistics\n");
+
+                reqStruct = tableToStruct(reqMonitoring, reqStruct);
+                requestMonitoringDataTable_create_row(&index, reqStruct);
+            }
             break;
         default:
             printf("Undefined status\n");
@@ -1883,12 +1914,7 @@ requestMonitoringDataTable_context *requestMonitoringDataTable_create_row_defaul
     ctx->lastSampleID = 0;
     ctx->nOfSamples = 0;
     ctx->endTime_len = 0;
-    time_t t = time(NULL);
-    struct tm *tm = localtime(&t);
-    char s[100];
-    snprintf(s, 100, "%02d/%02d/%04d %02d:%02d:%02d", tm->tm_mday, tm->tm_mon + 1, tm->tm_year + 1900, tm->tm_hour, tm->tm_min, tm->tm_sec);
-    strcpy(ctx->startTime, s);
-    ctx->startTime_len = strlen(s);
+    ctx->startTime_len = 0;
     ctx->waitTime_len = 0;
     ctx->expireTime_len = 0;
     ctx->durationTime_len = 0;

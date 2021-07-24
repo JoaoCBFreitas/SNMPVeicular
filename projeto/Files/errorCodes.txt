@@ -1,4 +1,5 @@
 Error Description
+Invalid start time, hour must be set between [0,23], minutes between [0,59] and can't be set before current system time
 Invalid wait time, hour must be set between [0,23] and minutes between [0,59]
 Invalid duration time, hour must be set between [0,23] and minutes between [0,59]
 Invalid expire time, hour must be set between [0,23] and minutes between [0,59]

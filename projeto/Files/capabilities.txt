@@ -1,0 +1,5 @@
+SetOfCapabilitiesID:SpecificCapabilitiesID:CapabilitiesDescription
+0:0:Cruise Control
+1:1:ABS
+2:2:Speed Monitoring
+2:3:RPM Monitoring
