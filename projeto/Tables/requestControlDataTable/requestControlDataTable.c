@@ -83,7 +83,7 @@ requestStruct *reqControlConvert(requestControlDataTable_context *reqControl, re
     req->status = reqControl->statusControl;
     return req;
 }
-/*This function will return the first empty ID of requestControlDataTable*/
+/*This function will return the next empty ID of requestControlDataTable*/
 int firstControlEntry()
 {
     netsnmp_iterator *it;

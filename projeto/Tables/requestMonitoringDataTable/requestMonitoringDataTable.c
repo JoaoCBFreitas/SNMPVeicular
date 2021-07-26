@@ -41,6 +41,82 @@ static netsnmp_table_array_callbacks cb;
 
 const oid requestMonitoringDataTable_oid[] = {requestMonitoringDataTable_TABLE_OID};
 const size_t requestMonitoringDataTable_oid_len = OID_LENGTH(requestMonitoringDataTable_oid);
+/*This function will return the next empty ID of requestMonitoringDataTable*/
+int firstMonitoringEntry()
+{
+    netsnmp_iterator *it;
+    void *data;
+    it = CONTAINER_ITERATOR(cb.container);
+    int res = 0;
+    if (NULL == it)
+    {
+        return res;
+    }
+    for (data = ITERATOR_FIRST(it); data; data = ITERATOR_NEXT(it))
+    {
+        requestMonitoringDataTable_context *req = data;
+        if (req != NULL)
+            res = req->requestID + 1;
+    }
+    ITERATOR_RELEASE(it);
+    return res;
+}
+/*This function will check if there's any request on a certain object whose savingMode is "permanent"
+ 0=Permanent requests found
+ 1=No permanent requests found
+*/
+int checkPermanentRequests(long unsigned int requestControlID, long unsigned int requestID)
+{
+    netsnmp_iterator *it;
+    void *data;
+    it = CONTAINER_ITERATOR(cb.container);
+    if (NULL == it)
+        exit;
+    int res = 1;
+    requestMonitoringDataTable_context *aux = (requestMonitoringDataTable_context *)malloc(sizeof(requestMonitoringDataTable_context));
+    for (data = ITERATOR_FIRST(it); data; data = ITERATOR_NEXT(it))
+    {
+        requestMonitoringDataTable_context *req = data;
+        if (req->requestID != requestID && req->requestControlID == requestControlID)
+        {
+            if (req->savingMode == 0)
+            {
+                res = 0;
+                break;
+            }
+        }
+    }
+    ITERATOR_RELEASE(it);
+    return res;
+}
+/*This function will check if there's any request on a certain object whose status is "set", "ready" or "on"
+ 0=Active requests found
+ 1=No active requests found
+*/
+int checkActiveRequests(long unsigned int requestControlID, long unsigned int requestID)
+{
+    netsnmp_iterator *it;
+    void *data;
+    it = CONTAINER_ITERATOR(cb.container);
+    if (NULL == it)
+        exit;
+    int res = 1;
+    requestMonitoringDataTable_context *aux = (requestMonitoringDataTable_context *)malloc(sizeof(requestMonitoringDataTable_context));
+    for (data = ITERATOR_FIRST(it); data; data = ITERATOR_NEXT(it))
+    {
+        requestMonitoringDataTable_context *req = data;
+        if (req->requestID != requestID && req->requestControlID == requestControlID)
+        {
+            if (req->status == 1 || req->status == 2 || req->status == 4)
+            {
+                res = 0;
+                break;
+            }
+        }
+    }
+    ITERATOR_RELEASE(it);
+    return res;
+}
 /*This function will perform a deepcopy of requestMonitoringDataTable_context*/
 requestMonitoringDataTable_context *deepCopyReqMonitoring(requestMonitoringDataTable_context *dst, requestMonitoringDataTable_context *src)
 {
@@ -253,7 +329,10 @@ int insertRowControl_Monitor(requestMonitoringDataTable_context *reqMonitoring)
     strcpy(req->duration, reqMonitoring->durationTime);
     req->expireTime = malloc(sizeof(char) * reqMonitoring->expireTime_len + 1);
     strcpy(req->expireTime, reqMonitoring->expireTime);
-    req->status = reqMonitoring->status;
+    if (reqMonitoring->status == 1 || reqMonitoring->status == 2 || reqMonitoring->status == 4)
+        req->status = 1;
+    if (reqMonitoring->status == 0)
+        req->status = 0;
     req->valuesTable = 0;
     int insert = insertControlRow(req);
     free(req);
@@ -550,17 +629,84 @@ void checkTables()
         }
         else
         {
-            if (reqMonitoring->status == 1 && reqControl->statusControl == 2)
+            if (reqMonitoring->status != 0 && reqControl->statusControl != 1)
             {
-                int insertControl = insertRowControl_Monitor(reqMonitoring);
+                printf("Change to active\n");
+                /*If this requestMonitoring entry is either "set", "ready" or "on" 
+                and the corresponding requestControlEntry is "inactive", change status of requestControlEntry to "active" */
+                requestStruct *aux = (requestStruct *)malloc(sizeof(requestStruct));
+                aux = reqControlConvert(reqControl, aux);
+                aux->status = 1;
+                int insertControl = insertControlRow(aux);
+                reqControl = getControlTableID(reqMonitoring->requestID);
                 if (insertControl != 0)
                 {
                     printf("Control update failed\n");
                     exit;
                 }
+                free(aux);
+            }
+            if (reqMonitoring->status == 0 && reqControl->statusControl == 1)
+            {
+                /*If this requestMonitoring entry is "Off" check if there's any other request on this object whose status is either "set", "ready" or "on".
+                If none are found change status of requestControlEntry to "inactive"*/
+                int active = checkActiveRequests(reqMonitoring->requestControlID, reqMonitoring->requestID);
+                if (active == 1)
+                {
+                    printf("Change to inactive\n");
+                    /*No active requestMonitoringEntry's found*/
+                    requestStruct *aux = (requestStruct *)malloc(sizeof(requestStruct));
+                    aux = reqControlConvert(reqControl, aux);
+                    aux->status = 0;
+                    int insertControl = insertControlRow(aux);
+                    reqControl = getControlTableID(reqMonitoring->requestID);
+                    if (insertControl != 0)
+                    {
+                        printf("Control update failed\n");
+                        exit;
+                    }
+                    free(aux);
+                }
+            }
+            if (reqMonitoring->savingMode == 0 && reqControl->settingMode == 1)
+            {
+                /*If requestMonitoringEntry is set to "permanent" while requestControl is in "volatile" mode, change settingMode to "permanent"*/
+                printf("Change to permanent\n");
+                requestStruct *aux = (requestStruct *)malloc(sizeof(requestStruct));
+                aux = reqControlConvert(reqControl, aux);
+                aux->settingMode = 0;
+                int insertControl = insertControlRow(aux);
+                reqControl = getControlTableID(reqMonitoring->requestID);
+                if (insertControl != 0)
+                {
+                    printf("Control update failed\n");
+                    exit;
+                }
+                free(aux);
+            }
+            if (reqMonitoring->savingMode == 1 && reqControl->settingMode == 0)
+            {
+                /*If reqMonitoringEntry is "volatile" while requestControl is "permanent", check if there's any other request on this object with "permanent" saving mode
+                If there's none, change setting mode of requestControl to "volatile"*/
+                int permanent = checkPermanentRequests(reqMonitoring->requestControlID, reqMonitoring->requestID);
+                if (permanent == 1)
+                {
+                    printf("Change to volatile\n");
+                    /*No permanent requestMonitoringEntry's found*/
+                    requestStruct *aux = (requestStruct *)malloc(sizeof(requestStruct));
+                    aux = reqControlConvert(reqControl, aux);
+                    aux->settingMode = 1;
+                    int insertControl = insertControlRow(aux);
+                    reqControl = getControlTableID(reqMonitoring->requestID);
+                    if (insertControl != 0)
+                    {
+                        printf("Control update failed\n");
+                        exit;
+                    }
+                    free(aux);
+                }
             }
         }
-
         samplesTable_context *samplesTable;
         char *timestamp = malloc(sizeof(char) * reqMonitoring->endTime_len + 1);
         struct tm *tm2 = (struct tm *)malloc(sizeof(struct tm));
@@ -663,11 +809,25 @@ void checkTables()
             }
             else
             {
-                /*TODO:Update requestControlDataTable*/
+                /*Check if corresponding requestControl is in "volatile" or "permanent" mode, 
+                if there's atleast 1 "active" request that is permanent then change status to permanent, otherwise change to volatile*/
                 updateReqControl(reqControl, reqStruct);
             }
             /*Delete requestMonitoringDataEntry*/
             delete = deleteRequestEntry(reqStruct);
+            if (reqStruct->loopmode == 1)
+            {
+                /*This Entry has loopMode enabled, create new row*/
+                reqStruct->nofSamples = 0;
+                reqStruct->requestControlID = 0;
+                reqStruct->reqID = firstMonitoringEntry();
+                reqStruct->endTime = "";
+                reqStruct->startTime = "";
+                reqStruct->statisticsRequestID = 1;
+                reqStruct->lastSampleID = 0;
+                reqStruct->status = 2;
+                insertMonitoringRow(reqStruct);
+            }
             if (delete == 1)
                 printf("Deletion of requestMonitoringDataEntry failed\n");
             else if (delete == 2)

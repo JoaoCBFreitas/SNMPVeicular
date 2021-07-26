@@ -359,14 +359,12 @@ valuesTableID OBJECT-TYPE
 
 statusControl OBJECT-TYPE
 	SYNTAX  INTEGER {
-			off(0),
-			on(1),
-			set(2),
-			delete(3) }
+			inactive(0),
+			active(1) }
 	MAX-ACCESS read-only
 	STATUS  current
 	DESCRIPTION
-		"This object will identify the current status of the request"
+		"This object will be used to check if there's any request on this object still active"
 	-- 1.3.6.1.3.8888.2.1.9 --
 	::= { requestControlDataEntry 9 }
 
