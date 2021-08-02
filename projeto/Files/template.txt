@@ -1,0 +1,3 @@
+CommandDescription:TargetID:template
+This command will change status of brake actuators:AAAAAB:FF FF FF ** ** FF FF FF
+This command will change status lock actuators:AAAAAB:FF FF FF ** ** FF FF FF

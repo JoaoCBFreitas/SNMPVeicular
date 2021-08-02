@@ -34,31 +34,31 @@
 
 #include <net-snmp/library/snmp_assert.h>
 
-#include "capabilitiesTable.h"
+#include "commandTemplateTable.h"
 
 static netsnmp_handler_registration *my_handler = NULL;
 static netsnmp_table_array_callbacks cb;
 
-const oid capabilitiesTable_oid[] = {capabilitiesTable_TABLE_OID};
-const size_t capabilitiesTable_oid_len = OID_LENGTH(capabilitiesTable_oid);
+const oid commandTemplateTable_oid[] = {commandTemplateTable_TABLE_OID};
+const size_t commandTemplateTable_oid_len = OID_LENGTH(commandTemplateTable_oid);
 
-#ifdef capabilitiesTable_CUSTOM_SORT
+#ifdef commandTemplateTable_CUSTOM_SORT
 /************************************************************
  * keep binary tree to find context by name
  */
-static int capabilitiesTable_cmp(const void *lhs, const void *rhs);
+static int commandTemplateTable_cmp(const void *lhs, const void *rhs);
 
 /************************************************************
  * compare two context pointers here. Return -1 if lhs < rhs,
  * 0 if lhs == rhs, and 1 if lhs > rhs.
  */
 static int
-capabilitiesTable_cmp(const void *lhs, const void *rhs)
+commandTemplateTable_cmp(const void *lhs, const void *rhs)
 {
-    capabilitiesTable_context *context_l =
-        (capabilitiesTable_context *)lhs;
-    capabilitiesTable_context *context_r =
-        (capabilitiesTable_context *)rhs;
+    commandTemplateTable_context *context_l =
+        (commandTemplateTable_context *)lhs;
+    commandTemplateTable_context *context_r =
+        (commandTemplateTable_context *)rhs;
 
     /*
      * check primary key, then secondary. Add your own code if
@@ -72,7 +72,7 @@ capabilitiesTable_cmp(const void *lhs, const void *rhs)
      */
 #ifdef TABLE_CONTAINER_TODO
     snmp_log(LOG_ERR,
-             "capabilitiesTable_compare not implemented! Container order undefined\n");
+             "commandTemplateTable_compare not implemented! Container order undefined\n");
     return 0;
 #endif
 
@@ -97,10 +97,10 @@ capabilitiesTable_cmp(const void *lhs, const void *rhs)
  * search tree
  */
 /** TODO: set additional indexes as parameters */
-capabilitiesTable_context *
-capabilitiesTable_get(const char *name, int len)
+commandTemplateTable_context *
+commandTemplateTable_get(const char *name, int len)
 {
-    capabilitiesTable_context tmp;
+    commandTemplateTable_context tmp;
 
     /** we should have a custom container */
     netsnmp_assert(cb.container->next != NULL);
@@ -110,7 +110,7 @@ capabilitiesTable_get(const char *name, int len)
      * add your own code here.
      */
 #ifdef TABLE_CONTAINER_TODO
-    snmp_log(LOG_ERR, "capabilitiesTable_get not implemented!\n");
+    snmp_log(LOG_ERR, "commandTemplateTable_get not implemented!\n");
     return NULL;
 #endif
 
@@ -129,21 +129,21 @@ capabilitiesTable_get(const char *name, int len)
 #endif
 
 /************************************************************
- * Initializes the capabilitiesTable module
+ * Initializes the commandTemplateTable module
  */
-void init_capabilitiesTable(void)
+void init_commandTemplateTable(void)
 {
-    capabilitiesTable_context *ctx;
+    commandTemplateTable_context *ctx;
     netsnmp_index index;
     oid index_oid[2];
-    initialize_table_capabilitiesTable();
+    initialize_table_commandTemplateTable();
     FILE *fp;
     char *line = NULL;
     size_t len = 0;
     ssize_t read;
     int i = 0, k = 0;
     char *token;
-    fp = fopen("././Files/capabilities.txt", "r");
+    fp = fopen("././Files/template.txt", "r");
     if (fp == NULL)
     {
         printf("ERROR FILE NOT FOUND\n");
@@ -158,18 +158,26 @@ void init_capabilitiesTable(void)
             const char sep[2] = ":";
             char *token;
             token = strtok(line, sep);
-            int set = atoi(token);
-            int spec = 0;
             int aux = 0;
             char *descr;
+            char *target;
+            char *template;
             while (token != NULL)
             {
+                if (aux == 0)
+                {
+                    descr = malloc(sizeof(char) * strlen(token));
+                    strcpy(descr, token);
+                }
                 if (aux == 1)
-                    spec = atoi(token);
+                {
+                    target = malloc(sizeof(char) + strlen(token));
+                    strcpy(target, token);
+                }
                 if (aux == 2)
                 {
-                    descr = malloc(sizeof(char) + strlen(token));
-                    strcpy(descr, token);
+                    template = malloc(sizeof(char) * strlen(token));
+                    strcpy(template, token);
                 }
                 aux++;
                 token = strtok(NULL, sep);
@@ -183,7 +191,7 @@ void init_capabilitiesTable(void)
             if (!ctx)
             {
                 // No dice. We add the new row
-                ctx = capabilitiesTable_create_row(&index, descr, k, set, spec);
+                ctx = commandTemplateTable_create_row(&index, descr, k, target, template);
                 CONTAINER_INSERT(cb.container, ctx);
                 k++;
             }
@@ -197,15 +205,15 @@ void init_capabilitiesTable(void)
 
 /************************************************************
  *
- * Initialize the capabilitiesTable table by defining its contents and how it's structured
+ * Initialize the commandTemplateTable table by defining its contents and how it's structured
  */
-void initialize_table_capabilitiesTable(void)
+void initialize_table_commandTemplateTable(void)
 {
     netsnmp_table_registration_info *table_info;
 
     if (my_handler)
     {
-        snmp_log(LOG_ERR, "initialize_table_capabilitiesTable_handler called again\n");
+        snmp_log(LOG_ERR, "initialize_table_commandTemplateTable_handler called again\n");
         return;
     }
 
@@ -214,16 +222,16 @@ void initialize_table_capabilitiesTable(void)
     /** create the table structure itself */
     table_info = SNMP_MALLOC_TYPEDEF(netsnmp_table_registration_info);
 
-    my_handler = netsnmp_create_handler_registration("capabilitiesTable",
+    my_handler = netsnmp_create_handler_registration("commandTemplateTable",
                                                      netsnmp_table_array_helper_handler,
-                                                     capabilitiesTable_oid,
-                                                     capabilitiesTable_oid_len,
+                                                     commandTemplateTable_oid,
+                                                     commandTemplateTable_oid_len,
                                                      HANDLER_CAN_RONLY);
 
     if (!my_handler || !table_info)
     {
         snmp_log(LOG_ERR, "malloc failed in "
-                          "initialize_table_capabilitiesTable_handler\n");
+                          "initialize_table_commandTemplateTable_handler\n");
         return; /** mallocs failed */
     }
 
@@ -237,95 +245,95 @@ void initialize_table_capabilitiesTable(void)
     /*
      * internal indexes
      */
-    /** index: capabilitiesID */
+    /** index: commandTemplateID */
     netsnmp_table_helper_add_index(table_info, ASN_UNSIGNED);
 
-    table_info->min_column = capabilitiesTable_COL_MIN;
-    table_info->max_column = capabilitiesTable_COL_MAX;
+    table_info->min_column = commandTemplateTable_COL_MIN;
+    table_info->max_column = commandTemplateTable_COL_MAX;
 
     /***************************************************
      * registering the table with the master agent
      */
-    cb.get_value = capabilitiesTable_get_value;
-    cb.container = netsnmp_container_find("capabilitiesTable_primary:"
-                                          "capabilitiesTable:"
+    cb.get_value = commandTemplateTable_get_value;
+    cb.container = netsnmp_container_find("commandTemplateTable_primary:"
+                                          "commandTemplateTable:"
                                           "table_container");
-#ifdef capabilitiesTable_CUSTOM_SORT
+#ifdef commandTemplateTable_CUSTOM_SORT
     netsnmp_container_add_index(cb.container,
-                                netsnmp_container_find("capabilitiesTable_custom:"
-                                                       "capabilitiesTable:"
+                                netsnmp_container_find("commandTemplateTable_custom:"
+                                                       "commandTemplateTable:"
                                                        "table_container"));
-    cb.container->next->compare = capabilitiesTable_cmp;
+    cb.container->next->compare = commandTemplateTable_cmp;
 #endif
-    DEBUGMSGTL(("initialize_table_capabilitiesTable",
-                "Registering table capabilitiesTable "
+    DEBUGMSGTL(("initialize_table_commandTemplateTable",
+                "Registering table commandTemplateTable "
                 "as a table array\n"));
     netsnmp_table_container_register(my_handler, table_info, &cb,
                                      cb.container, 1);
 }
 
 /************************************************************
- * capabilitiesTable_get_value
+ * commandTemplateTable_get_value
  *
  * This routine is called for get requests to copy the data
  * from the context to the varbind for the request. If the
  * context has been properly maintained, you don't need to
  * change in code in this fuction.
  */
-int capabilitiesTable_get_value(
+int commandTemplateTable_get_value(
     netsnmp_request_info *request,
     netsnmp_index *item,
     netsnmp_table_request_info *table_info)
 {
     netsnmp_variable_list *var = request->requestvb;
-    capabilitiesTable_context *context = (capabilitiesTable_context *)item;
+    commandTemplateTable_context *context = (commandTemplateTable_context *)item;
 
     switch (table_info->colnum)
     {
 
-    case COLUMN_CAPABILITIESID:
+    case COLUMN_COMMANDTEMPLATEID:
         /** UNSIGNED32 = ASN_UNSIGNED */
         snmp_set_var_typed_value(var, ASN_UNSIGNED,
-                                 (char *)&context->capabilitiesID,
-                                 sizeof(context->capabilitiesID));
+                                 (char *)&context->commandTemplateID,
+                                 sizeof(context->commandTemplateID));
         break;
 
-    case COLUMN_SETOFCAPABILITIESID:
-        /** UNSIGNED32 = ASN_UNSIGNED */
-        snmp_set_var_typed_value(var, ASN_UNSIGNED,
-                                 (char *)&context->setOfCapabilitiesID,
-                                 sizeof(context->setOfCapabilitiesID));
-        break;
-
-    case COLUMN_SPECIFICCAPABILITIESID:
-        /** UNSIGNED32 = ASN_UNSIGNED */
-        snmp_set_var_typed_value(var, ASN_UNSIGNED,
-                                 (char *)&context->specificCapabilitiesID,
-                                 sizeof(context->specificCapabilitiesID));
-        break;
-
-    case COLUMN_CAPABILITIEVALUE:
+    case COLUMN_COMMANDDESCRIPTIONID:
         /** OCTETSTR = ASN_OCTET_STR */
         snmp_set_var_typed_value(var, ASN_OCTET_STR,
-                                 (char *)&context->capabilitieValue,
-                                 context->capabilitieValue_len);
+                                 (char *)&context->commandDescription,
+                                 context->commandDescription_len);
+        break;
+
+    case COLUMN_TARGETNODE:
+        /** OCTETSTR = ASN_OCTET_STR */
+        snmp_set_var_typed_value(var, ASN_OCTET_STR,
+                                 (char *)&context->targetNode,
+                                 context->targetNode_len);
+        break;
+
+    case COLUMN_COMMANDTEMPLATE:
+        /** OCTETSTR = ASN_OCTET_STR */
+        snmp_set_var_typed_value(var, ASN_OCTET_STR,
+                                 (char *)&context->commandTemplate,
+                                 context->commandTemplate_len);
         break;
 
     default: /** We shouldn't get here */
         snmp_log(LOG_ERR, "unknown column in "
-                          "capabilitiesTable_get_value\n");
+                          "commandTemplateTable_get_value\n");
         return SNMP_ERR_GENERR;
     }
     return SNMP_ERR_NOERROR;
 }
 
 /************************************************************
- * capabilitiesTable_get_by_idx
+ * commandTemplateTable_get_by_idx
  */
-const capabilitiesTable_context *
-capabilitiesTable_get_by_idx(netsnmp_index *hdr)
+const commandTemplateTable_context *
+commandTemplateTable_get_by_idx(netsnmp_index *hdr)
 {
-    return (const capabilitiesTable_context *)
+    return (const commandTemplateTable_context *)
         CONTAINER_FIND(cb.container, hdr);
 }
 /************************************************************
@@ -338,16 +346,16 @@ capabilitiesTable_get_by_idx(netsnmp_index *hdr)
  * states of set processing. Simple check for a NULL undo_ctx
  * in those states and do detailed creation checking there.
  *
- * returns a newly allocated capabilitiesTable_context
+ * returns a newly allocated commandTemplateTable_context
  *   structure if the specified indexes are not illegal
  * returns NULL for errors or illegal index values.
  */
-capabilitiesTable_context *capabilitiesTable_create_row(netsnmp_index *hdr, char *descr, int id, int a, int b)
+commandTemplateTable_context *commandTemplateTable_create_row(netsnmp_index *hdr, char *descr, int id, char *target, char *template)
 {
-    capabilitiesTable_context *ctx = SNMP_MALLOC_TYPEDEF(capabilitiesTable_context);
+    commandTemplateTable_context *ctx = SNMP_MALLOC_TYPEDEF(commandTemplateTable_context);
     if (!ctx)
         return NULL;
-    if (capabilitiesTable_extract_index(ctx, hdr))
+    if (commandTemplateTable_extract_index(ctx, hdr))
     {
         free(ctx->index.oids);
         free(ctx);
@@ -356,23 +364,25 @@ capabilitiesTable_context *capabilitiesTable_create_row(netsnmp_index *hdr, char
     ctx->index.oids = ctx->oid_buf;
     ctx->oid_buf[0] = id;
     ctx->index.len = 1;
-    ctx->capabilitiesID = (long unsigned int)id;
-    ctx->setOfCapabilitiesID = a;
-    ctx->specificCapabilitiesID = b;
-    strcpy(ctx->capabilitieValue, descr);
-    ctx->capabilitieValue_len = strlen(descr);
+    ctx->commandTemplateID = (long unsigned int)id;
+    strcpy(ctx->commandDescription, descr);
+    ctx->commandDescription_len = strlen(descr);
+    strcpy(ctx->targetNode, target);
+    ctx->targetNode_len = strlen(target);
+    strcpy(ctx->commandTemplate, template);
+    ctx->commandTemplate_len = strlen(template);
     return ctx;
 }
 
 /*
  * the *_extract_index routine
  */
-int capabilitiesTable_extract_index(capabilitiesTable_context *ctx, netsnmp_index *hdr)
+int commandTemplateTable_extract_index(commandTemplateTable_context *ctx, netsnmp_index *hdr)
 {
     /*
      * temporary local storage for extracting oid index
      */
-    netsnmp_variable_list var_capabilitiesID;
+    netsnmp_variable_list var_commandTemplateID;
     int err;
 
     /*
@@ -390,35 +400,35 @@ int capabilitiesTable_extract_index(capabilitiesTable_context *ctx, netsnmp_inde
     /**
      * Create variable to hold each component of the index
      */
-    memset(&var_capabilitiesID, 0x00, sizeof(var_capabilitiesID));
-    var_capabilitiesID.type = ASN_GAUGE;
+    memset(&var_commandTemplateID, 0x00, sizeof(var_commandTemplateID));
+    var_commandTemplateID.type = ASN_GAUGE;
     /** TODO: link this index to the next, or NULL for the last one */
 #ifdef TABLE_CONTAINER_TODO
-    snmp_log(LOG_ERR, "capabilitiesTable_extract_index index list not implemented!\n");
+    snmp_log(LOG_ERR, "commandTemplateTable_extract_index index list not implemented!\n");
     return 0;
 #else
-    var_capabilitiesID.next_variable = NULL;
+    var_commandTemplateID.next_variable = NULL;
 #endif
 
     /*
      * parse the oid into the individual components
      */
-    err = parse_oid_indexes(hdr->oids, hdr->len, &var_capabilitiesID);
+    err = parse_oid_indexes(hdr->oids, hdr->len, &var_commandTemplateID);
     if (err == SNMP_ERR_NOERROR)
     {
         /*
         * copy components into the context structure
         */
-        /** skipping external index capabilitiesID */
-        if (var_capabilitiesID.val_len > sizeof(ctx->capabilitiesID))
+        /** skipping external index commandTemplateID */
+        if (var_commandTemplateID.val_len > sizeof(ctx->commandTemplateID))
             err = -1;
         else
-            ctx->capabilitiesID = (long unsigned int)var_capabilitiesID.val.integer;
+            ctx->commandTemplateID = (long unsigned int)var_commandTemplateID.val.integer;
 
         /*
             * TODO: check index for valid values. For EXAMPLE:
             *
-              * if ( XXX_check_value( var_capabilitiesID.val, XXX ) ) {
+              * if ( XXX_check_value( var_commandTemplateID.val, XXX ) ) {
           *    err = -1;
           * }
           */
@@ -427,26 +437,26 @@ int capabilitiesTable_extract_index(capabilitiesTable_context *ctx, netsnmp_inde
     /*
      * parsing may have allocated memory. free it.
      */
-    snmp_reset_var_buffers(&var_capabilitiesID);
+    snmp_reset_var_buffers(&var_commandTemplateID);
 
     return err;
 }
 /************************************************************
  * the *_duplicate row routine
  */
-capabilitiesTable_context *
-capabilitiesTable_duplicate_row(capabilitiesTable_context *row_ctx)
+commandTemplateTable_context *
+commandTemplateTable_duplicate_row(commandTemplateTable_context *row_ctx)
 {
-    capabilitiesTable_context *dup;
+    commandTemplateTable_context *dup;
 
     if (!row_ctx)
         return NULL;
 
-    dup = SNMP_MALLOC_TYPEDEF(capabilitiesTable_context);
+    dup = SNMP_MALLOC_TYPEDEF(commandTemplateTable_context);
     if (!dup)
         return NULL;
 
-    if (capabilitiesTable_row_copy(dup, row_ctx))
+    if (commandTemplateTable_row_copy(dup, row_ctx))
     {
         free(dup);
         dup = NULL;
@@ -457,7 +467,7 @@ capabilitiesTable_duplicate_row(capabilitiesTable_context *row_ctx)
 /************************************************************
  * the *_row_copy routine
  */
-int capabilitiesTable_row_copy(capabilitiesTable_context *dst, capabilitiesTable_context *src)
+int commandTemplateTable_row_copy(commandTemplateTable_context *dst, commandTemplateTable_context *src)
 {
     if (!dst || !src)
         return 1;
@@ -474,11 +484,13 @@ int capabilitiesTable_row_copy(capabilitiesTable_context *dst, capabilitiesTable
         return 1;
     }
     dst->index.len = src->index.len;
-    dst->capabilitiesID = src->capabilitiesID;
-    dst->setOfCapabilitiesID = src->setOfCapabilitiesID;
-    dst->specificCapabilitiesID = src->specificCapabilitiesID;
-    memcpy(dst->capabilitieValue, src->capabilitieValue, src->capabilitieValue_len);
-    dst->capabilitieValue_len = src->capabilitieValue_len;
+    dst->commandTemplateID = src->commandTemplateID;
+    memcpy(dst->commandDescription, src->commandDescription, src->commandDescription_len);
+    dst->commandDescription_len = src->commandDescription_len;
+    memcpy(dst->targetNode, src->targetNode, src->targetNode_len);
+    dst->targetNode_len = src->targetNode_len;
+    memcpy(dst->commandTemplate, src->commandTemplate, src->commandTemplate_len);
+    dst->commandTemplate_len = src->commandTemplate_len;
 
     return 0;
 }

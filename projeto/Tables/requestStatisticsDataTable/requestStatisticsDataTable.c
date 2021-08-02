@@ -47,7 +47,7 @@ int firstStatisticsEntry()
     netsnmp_iterator *it;
     void *data;
     it = CONTAINER_ITERATOR(cb.container);
-    int res = 0;
+    int res = 1;
     if (NULL == it)
     {
         return res;

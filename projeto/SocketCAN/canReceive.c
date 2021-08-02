@@ -260,10 +260,11 @@ BO *getBO(char *line)
 			break;
 		case 1:
 			idLine = atol(token);
+			/*Storing original ID*/
+			res->messageID = idLine;
 			/*Ids in dbc file appear to be offset by 254*/
 			idLine -= 254;
 			/*Decode ID*/
-			res->messageID = idLine + 254;
 			char *decodedID = unMask(idLine);
 			strcpy(res->id, decodedID);
 			break;

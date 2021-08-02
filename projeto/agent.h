@@ -25,6 +25,8 @@
 #include <Tables/requestMonitoringDataTable/requestMonitoringDataTable.h>
 #include <Tables/errorTable/errorTable.h>
 #include <Tables/errorDescriptionTable/errorDescriptionTable.h>
+#include <Tables/commandTemplateTable/commandTemplateTable.h>
+#include <Tables/commandTable/commandTable.h>
 
 #define DEMO_USE_SNMP_VERSION_3
 

@@ -19,8 +19,8 @@ genericTypesTable=Tables/genericTypesTable
 sampleUnitsTable=Tables/sampleUnitsTable
 errorTable=Tables/errorTable
 errorDescriptionTable=Tables/errorDescriptionTable
-
-
+commandTemplateTable=Tables/commandTemplateTable
+commandTable=Tables/commandTable
 
 
 OBJ=obj
@@ -49,6 +49,8 @@ agent: agent.c agent.h Makefile
 	cd $(samplesTable) && $(MAKE) all && mv samplesTable.o ../../obj/
 	cd $(errorTable) && $(MAKE) all && mv errorTable.o ../../obj/
 	cd $(errorDescriptionTable) && $(MAKE) all && mv errorDescriptionTable.o ../../obj/
+	cd $(commandTemplateTable) && $(MAKE) all && mv commandTemplateTable.o ../../obj/
+	cd $(commandTable) && $(MAKE) all && mv commandTable.o ../../obj/
 	$(CC) $(CFLAGS) -o $(OBJ)/auxFunc.o $(BUILDAGENTLIBS) -c auxFunc.c -lm
 	cd $(mapTypeTable) && $(MAKE) all && mv mapTypeTable.o ../../obj/
 	$(CC) $(CFLAGS) -o $(OBJ)/progAgent.o $(BUILDAGENTLIBS) -c agent.c

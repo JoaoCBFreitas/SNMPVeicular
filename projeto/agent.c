@@ -42,15 +42,22 @@ int main(int argc, char **argv)
 
     /*Initializing structs that contain dbc decoding rules*/
     BO_List *boList = readDBC("SocketCAN/J1939/J1939.dbc");
+    /*Error Group*/
     init_errorDescriptionTable();
+    init_errorTable();
     /*********************************/
+    /*Sensor Group*/
     init_mapTypeTable(boList);
     init_capabilitiesTable();
     init_requestControlDataTable();
     init_requestMonitoringDataTable();
     init_requestStatisticsDataTable();
     init_samplesTable();
-    init_errorTable();
+    /*********************************/
+    /*Actuator Group*/
+    init_commandTemplateTable();
+    init_commandTable();
+    /*********************************/
     init_snmp("veicular-daemon");
     /* If we're going to be a snmp master agent, initial the ports */
     if (!agentx_subagent)
