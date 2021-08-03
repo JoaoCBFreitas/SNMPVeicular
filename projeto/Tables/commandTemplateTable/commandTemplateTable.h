@@ -45,7 +45,7 @@ extern "C"
     const commandTemplateTable_context *commandTemplateTable_get_by_idx_rs(netsnmp_index *,
                                                                            int row_status);
     int commandTemplateTable_get_value(netsnmp_request_info *, netsnmp_index *, netsnmp_table_request_info *);
-
+    void *getTemplateEntry(long unsigned int id);
     /*************************************************************
  * oid declarations
  */

@@ -1,3 +1,4 @@
 CommandDescription:TargetID:template
 This command will change status of brake actuators:AAAAAB:FF FF FF ** ** FF FF FF
-This command will change status lock actuators:AAAAAB:FF FF FF ** ** FF FF FF
+This command will change status lock actuators:123456:A2 C5 88 ** ** 92 F0 EA
+This command will turn AC on at a set temperature:AC1111:AA BB CC DD EE ** ** H1

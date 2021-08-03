@@ -1087,7 +1087,8 @@ CommandEntry ::= SEQUENCE {
 
 	commandID  		Unsigned32,
 	templateID 		Unsigned32,
-	commandInput    OCTET STRING}
+	commandInput    INTEGER,
+	commandUser		OCTET STRING}
 
 
 commandID OBJECT-TYPE
@@ -1104,19 +1105,27 @@ templateID OBJECT-TYPE
 	MAX-ACCESS read-create
 	STATUS  current
 	DESCRIPTION
-		"This module will be used to store the ID of the commandTemplate to be used in this command"
+		"This object will be used to store the ID of the commandTemplate to be used in this command"
 	-- 1.3.6.1.3.8888.12.1.2 --
 	::= { commandEntry 2 }
 
 commandInput OBJECT-TYPE
+	SYNTAX  INTEGER
+	MAX-ACCESS read-create
+	STATUS  current
+	DESCRIPTION
+		"This object will be used to store the user inputs that are to be used in the command"
+	-- 1.3.6.1.3.8888.12.1.3 --
+	::= { commandEntry 3 }
+
+commandUser OBJECT-TYPE
 	SYNTAX  OCTET STRING
 	MAX-ACCESS read-create
 	STATUS  current
 	DESCRIPTION
-		"This module will be used to store the user inputs that are to be used in the command"
-	-- 1.3.6.1.3.8888.12.1.3 --
-	::= { commandEntry 3 }
-
+		"This object will store the username of the user that set this command"
+	-- 1.3.6.1.3.8888.12.1.4 --
+	::= { commandEntry 4 }
 
 sensorGroup OBJECT-GROUP
 	OBJECTS {
@@ -1206,6 +1215,7 @@ actuatorGroup OBJECT-GROUP
 		commandID,
 		templateID,
 		commandInput,
+		commandUser,
 		commandTemplateID,
 		commandDescription,
 		targetNode,

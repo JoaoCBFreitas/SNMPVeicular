@@ -547,60 +547,61 @@ void checkTables()
             tmAux = convertTime(tmAux, reqMonitoring->startTime);
             if (validateTime(reqMonitoring->startTime + 11) != 0 || compareTimeStamp(tm, tmAux) == 2)
             {
+                /*Invalid startTime,errorID=0*/
                 errorID = 0;
                 f = 1;
             }
             else if (validateTime(reqMonitoring->waitTime) != 0)
             {
-                /*Invalid waitTime, errorID=0*/
+                /*Invalid waitTime, errorID=1*/
                 errorID = 1;
                 f = 1;
             }
             else if (validateTime(reqMonitoring->durationTime) != 0)
             {
-                /*Invalid durationTime, errorID=1*/
+                /*Invalid durationTime, errorID=2*/
                 errorID = 2;
                 f = 1;
             }
             else if (validateTime(reqMonitoring->expireTime) != 0)
             {
-                /*Invalid expireTime, errorID=2*/
+                /*Invalid expireTime, errorID=3*/
                 errorID = 3;
                 f = 1;
             }
             else if (reqMonitoring->maxNOfSamples <= 0)
             {
-                /*Invalid maxNOfSamples, errorID=3*/
+                /*Invalid maxNOfSamples, errorID=4*/
                 errorID = 4;
                 f = 1;
             }
             else if (reqMonitoring->savingMode != 0 && reqMonitoring->savingMode != 1)
             {
-                /*Invalid saving Mode, errorID=4*/
+                /*Invalid saving Mode, errorID=5*/
                 errorID = 5;
                 f = 1;
             }
             else if (checkUserExists(reqMonitoring->requestID, reqMonitoring->requestUser, reqMonitoring->requestMapID) != 0)
             {
-                /*There's already a request on this object made by this user, errorID=5*/
+                /*There's already a request on this object made by this user, errorID=6*/
                 errorID = 6;
                 f = 1;
             }
             else if (reqMonitoring->requestStatisticsID != 0 && reqMonitoring->requestStatisticsID != 1)
             {
-                /*Invalid Statistics,errorID=6*/
+                /*Invalid Statistics,errorID=7*/
                 errorID = 7;
                 f = 1;
             }
             else if (reqMonitoring->requestMapID < 0 || findRow(reqMonitoring->requestMapID) == NULL)
             {
-                /*Invalid Sensor, errorID=7*/
+                /*Invalid Sensor, errorID=8*/
                 errorID = 8;
                 f = 1;
             }
             else if (reqMonitoring->loopMode != 1 && reqMonitoring->loopMode != 2)
             {
-                /*Invalid loop Mode,erroID=8*/
+                /*Invalid loop Mode,erroID=9*/
                 errorID = 9;
                 f = 1;
             }

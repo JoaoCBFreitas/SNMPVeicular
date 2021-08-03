@@ -41,7 +41,31 @@ static netsnmp_table_array_callbacks cb;
 
 const oid commandTemplateTable_oid[] = {commandTemplateTable_TABLE_OID};
 const size_t commandTemplateTable_oid_len = OID_LENGTH(commandTemplateTable_oid);
-
+/*This function will return the commandTemplateEntry of the given ID*/
+void *getTemplateEntry(long unsigned int id)
+{
+    netsnmp_iterator *it;
+    void *data;
+    it = CONTAINER_ITERATOR(cb.container);
+    int res = 1;
+    if (NULL == it)
+    {
+        return NULL;
+    }
+    for (data = ITERATOR_FIRST(it); data; data = ITERATOR_NEXT(it))
+    {
+        commandTemplateTable_context *req = data;
+        if (req->commandTemplateID == id)
+        {
+            res = 0;
+            break;
+        }
+    }
+    ITERATOR_RELEASE(it);
+    if (res == 1)
+        return NULL;
+    return data;
+}
 #ifdef commandTemplateTable_CUSTOM_SORT
 /************************************************************
  * keep binary tree to find context by name

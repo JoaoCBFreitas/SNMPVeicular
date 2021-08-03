@@ -9,3 +9,6 @@ User has already set a request for samples recorded from this sensor
 Invalid statistics set (0=No statistics, 1=Statistics)
 Invalid sensor, check mapTypeTable for valid sensor id's
 Invalid loopMode, (1=Yes,2=No)
+Invalid command template ID
+Invalid command input for target node
+Command transmission failed

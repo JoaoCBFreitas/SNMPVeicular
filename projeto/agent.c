@@ -55,7 +55,6 @@ int main(int argc, char **argv)
     init_samplesTable();
     /*********************************/
     /*Actuator Group*/
-    init_commandTemplateTable();
     init_commandTable();
     /*********************************/
     init_snmp("veicular-daemon");
@@ -85,6 +84,7 @@ int main(int argc, char **argv)
     {
         while (keep_running)
         {
+            checkActuators();
             checkTables();
             /* if you use select(), see snmp_select_info() in snmp_api(3) */
             /*     --- OR ---  */

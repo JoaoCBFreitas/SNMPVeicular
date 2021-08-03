@@ -16,19 +16,25 @@ extern "C"
 #include <net-snmp/net-snmp-config.h>
 #include <net-snmp/library/container.h>
 #include <net-snmp/agent/table_array.h>
-
-#define MAXSNMPSTRINGSIZE 65525
-
+#include <net/if.h>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <linux/can.h>
+#include <linux/can/raw.h>
+#include "../commandTemplateTable/commandTemplateTable.h"
+#include "../errorTable/errorTable.h"
     /** Index commandID is internal */
 
     typedef struct commandTable_context_s
     {
         netsnmp_index index; /** THIS MUST BE FIRST!!! */
         oid oid_buf[2];
-        unsigned long commandID;                       /** UNSIGNED32 = ASN_UNSIGNED */
-        unsigned long templateID;                      /** UNSIGNED32 = ASN_UNSIGNED */
-        unsigned char commandInput[MAXSNMPSTRINGSIZE]; /** OCTET STRING = ASN_OCTET_STR */
-        long commandInput_len;
+        unsigned long commandID;                      /** UNSIGNED32 = ASN_UNSIGNED */
+        unsigned long templateID;                     /** UNSIGNED32 = ASN_UNSIGNED */
+        long commandInput;                            /** INTEGER = ASN_INTEGER */
+        unsigned char commandUser[MAXSNMPSTRINGSIZE]; /** OBUDateandTime = ASN_OCTET_STR */
+        long commandUser_len;
         void *data;
         int valid;
     } commandTable_context;
@@ -42,6 +48,7 @@ extern "C"
     const commandTable_context *commandTable_get_by_idx_rs(netsnmp_index *,
                                                            int row_status);
     int commandTable_get_value(netsnmp_request_info *, netsnmp_index *, netsnmp_table_request_info *);
+    void checkActuators(void);
     /*************************************************************
  * oid declarations
  */
@@ -56,8 +63,9 @@ extern "C"
 #define COLUMN_COMMANDID 1
 #define COLUMN_TEMPLATEID 2
 #define COLUMN_COMMANDINPUT 3
+#define COLUMN_COMMANDUSER 4
 #define commandTable_COL_MIN 1
-#define commandTable_COL_MAX 3
+#define commandTable_COL_MAX 4
 
 /* comment out the following line if you don't handle SET-REQUEST for commandTable */
 #define commandTable_SET_HANDLING
@@ -87,9 +95,7 @@ extern "C"
                                 netsnmp_request_group *rg);
 
 #ifdef commandTable_ROW_CREATION
-    commandTable_context *commandTable_create_row_default(netsnmp_index *);
-
-    commandTable_context *commandTable_create_row(netsnmp_index *, int id, int templateID, char *commandInput);
+    commandTable_context *commandTable_create_row(netsnmp_index *);
 #endif
 #endif
 

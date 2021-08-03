@@ -41,7 +41,151 @@ static netsnmp_table_array_callbacks cb;
 
 const oid commandTable_oid[] = {commandTable_TABLE_OID};
 const size_t commandTable_oid_len = OID_LENGTH(commandTable_oid);
+/*Simple function that removes all spaces from a string*/
+void remove_spaces(char *s)
+{
+    const char *d = s;
+    do
+    {
+        while (*d == ' ')
+            ++d;
+    } while (*s++ = *d++);
+}
+/*This function will delete a commandTable entry based on the id*/
+int deleteCommandEntry(long unsigned int id)
+{
+    commandTable_context *ctx;
+    netsnmp_index index;
+    oid index_oid[2];
+    index_oid[0] = id;
+    index.oids = (oid *)&index_oid;
+    index.len = 1;
+    ctx = NULL;
+    /* Search for it first. */
+    ctx = CONTAINER_FIND(cb.container, &index);
+    if (ctx)
+    {
+        CONTAINER_REMOVE(cb.container, &index);
+        commandTable_delete_row(ctx);
+    }
+    else
+    {
+        return 2;
+    }
+    ctx = CONTAINER_FIND(cb.container, &index);
+    if (ctx)
+        return 1;
+    else
+        return 0;
+}
+/*This function will check all entries on commandTable, when an entry is found it will validate it, build a CAN message based on it's contents 
+and then transmit it, finnaly, it will delete the entry 
+If validation fails or message transmission failed for any reason a new error entry will be created on errorTable and the entry will be deleted*/
+void checkActuators()
+{
+    netsnmp_iterator *it;
+    void *data;
+    it = CONTAINER_ITERATOR(cb.container);
+    int res = 0;
+    int s;
+    struct sockaddr_can addr;
+    struct ifreq ifr;
+    struct can_frame frame;
 
+    if ((s = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0)
+    {
+        perror("Socket");
+        exit;
+    }
+
+    strcpy(ifr.ifr_name, "vcan0");
+    ioctl(s, SIOCGIFINDEX, &ifr);
+
+    memset(&addr, 0, sizeof(addr));
+    addr.can_family = AF_CAN;
+    addr.can_ifindex = ifr.ifr_ifindex;
+    if (bind(s, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+    {
+        perror("Bind");
+        exit;
+    }
+    if (NULL == it)
+    {
+        exit;
+    }
+    for (data = ITERATOR_FIRST(it); data; data = ITERATOR_NEXT(it))
+    {
+        commandTable_context *req = data;
+        commandTemplateTable_context *temp = getTemplateEntry(req->templateID);
+        if (temp != NULL)
+        {
+            /*Template exists, create CAN message based on this template*/
+            unsigned char *message = malloc(sizeof(unsigned char) * temp->commandTemplate_len);
+            /*Clear spaces from template*/
+            remove_spaces(temp->commandTemplate);
+            strcpy(message, temp->commandTemplate);
+            unsigned char *input = malloc(sizeof(unsigned char) * 5);
+            sprintf(input, "%04lX", (unsigned long)req->commandInput & 0xFFFF);
+            /*TODO:Check if commandInput is valid for the target Node
+            int insert = addError(req->commandUser, 11);
+            if (insert != 0)
+                printf("Error Insertion failed\n");
+            */
+            /*Create CAN message*/
+            for (int i = 0, j = 0; i < strlen(message) && j < strlen(input); i++)
+            {
+                if (message[i] == '*')
+                {
+                    message[i] = input[j];
+                    j++;
+                }
+            }
+            free(input);
+            /*CAN message created, send it to CAN network*/
+            frame.can_id = strtoul(temp->targetNode, NULL, 16);
+            frame.can_dlc = strlen(temp->commandTemplate) / 2;
+            long unsigned int aux = strtoul(message, NULL, 16);
+            printf("Command sent: %s %lX\n", temp->targetNode, aux);
+            memcpy(frame.data, &aux, sizeof(aux));
+            if (write(s, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame))
+            {
+                perror("Write");
+                exit;
+            }
+
+            /*TODO: Check if node received the message, if not create error entry
+            int insert = addError(req->commandUser, 12);
+            if (insert != 0)
+                printf("Error Insertion failed\n");
+            */
+            /*Delete entry*/
+            int delete = deleteCommandEntry(req->commandID);
+            if (delete == 1)
+                printf("Deletion of commandEntry failed\n");
+            else if (delete == 2)
+                printf("commandDataEntry not found\n");
+            free(message);
+        }
+        else
+        {
+            /*TemplateID does not exist, create error and delete entry*/
+            int insert = addError(req->commandUser, 10);
+            if (insert != 0)
+                printf("Error Insertion failed\n");
+            int delete = deleteCommandEntry(req->commandID);
+            if (delete == 1)
+                printf("Deletion of commandEntry failed\n");
+            else if (delete == 2)
+                printf("commandDataEntry not found\n");
+        }
+    }
+    ITERATOR_RELEASE(it);
+    if (close(s) < 0)
+    {
+        perror("Close");
+        exit;
+    }
+}
 #ifdef commandTable_CUSTOM_SORT
 /************************************************************
  * keep binary tree to find context by name
@@ -132,22 +276,8 @@ commandTable_get(const char *name, int len)
  */
 void init_commandTable(void)
 {
-    commandTable_context *ctx;
-    netsnmp_index index;
-    oid index_oid[2];
+    init_commandTemplateTable();
     initialize_table_commandTable();
-    index_oid[0] = 0;
-    index.oids = (oid *)&index_oid;
-    index.len = 1;
-    ctx = NULL;
-    /* Search for it first. */
-    ctx = CONTAINER_FIND(cb.container, &index);
-    if (!ctx)
-    {
-        // No dice. We add the new row
-        ctx = commandTable_create_row(&index, 0, 0, "teste");
-        CONTAINER_INSERT(cb.container, ctx);
-    }
 }
 
 /**
@@ -319,10 +449,15 @@ void commandTable_set_reserve1(netsnmp_request_group *rg)
 
             break;
         case COLUMN_COMMANDINPUT:
+            /** INTEGER = ASN_INTEGER */
+            /* or possibly 'netsnmp_check_vb_int_range' */
+            rc = netsnmp_check_vb_int(var);
+            break;
+        case COLUMN_COMMANDUSER:
             /** OCTET STRING = ASN_OCTET_STR */
             /* or possibly 'netsnmp_check_vb_type_and_size' */
             rc = netsnmp_check_vb_type_and_max_size(var, ASN_OCTET_STR,
-                                                    sizeof(row_ctx->commandInput));
+                                                    sizeof(row_ctx->commandUser));
             break;
         default: /** We shouldn't get here */
             rc = SNMP_ERR_GENERR;
@@ -391,6 +526,19 @@ void commandTable_set_reserve2(netsnmp_request_group *rg)
                 */
             break;
         case COLUMN_COMMANDINPUT:
+            /** INTEGER = ASN_INTEGER */
+            /*
+                     * TODO: routine to check valid values
+                     *
+                     * EXAMPLE:
+                     *
+                    * if ( *var->val.integer != XXX ) {
+                *    rc = SNMP_ERR_INCONSISTENTVALUE;
+                *    rc = SNMP_ERR_BADVALUE;
+                * }
+                */
+            break;
+        case COLUMN_COMMANDUSER:
             /** OCTET STRING = ASN_OCTET_STR */
             /*
                      * TODO: routine to check valid values
@@ -456,9 +604,13 @@ void commandTable_set_action(netsnmp_request_group *rg)
             row_ctx->templateID = *var->val.integer;
             break;
         case COLUMN_COMMANDINPUT:
+            /** INTEGER = ASN_INTEGER */
+            row_ctx->commandInput = *var->val.integer;
+            break;
+        case COLUMN_COMMANDUSER:
             /** OCTET STRING = ASN_OCTET_STR */
-            memcpy(row_ctx->commandInput, var->val.string, var->val_len);
-            row_ctx->commandInput_len = var->val_len;
+            memcpy(row_ctx->commandUser, var->val.string, var->val_len);
+            row_ctx->commandUser_len = var->val_len;
             break;
         default:               /** We shouldn't get here */
             netsnmp_assert(0); /** why wasn't this caught in reserve1? */
@@ -517,8 +669,13 @@ void commandTable_set_commit(netsnmp_request_group *rg)
             /** UNSIGNED32 = ASN_UNSIGNED */
             break;
         case COLUMN_COMMANDINPUT:
+            /** INTEGER = ASN_INTEGER */
+            break;
+
+        case COLUMN_COMMANDUSER:
             /** OCTET STRING = ASN_OCTET_STR */
             break;
+
         default:               /** We shouldn't get here */
             netsnmp_assert(0); /** why wasn't this caught in reserve1? */
         }
@@ -565,8 +722,13 @@ void commandTable_set_free(netsnmp_request_group *rg)
             break;
 
         case COLUMN_COMMANDINPUT:
+            /** INTEGER = ASN_INTEGER */
+            break;
+
+        case COLUMN_COMMANDUSER:
             /** OCTET STRING = ASN_OCTET_STR */
             break;
+
         default: /** We shouldn't get here */
             break;
             /** should have been logged in reserve1 */
@@ -619,9 +781,12 @@ void commandTable_set_undo(netsnmp_request_group *rg)
             break;
 
         case COLUMN_COMMANDINPUT:
-            /** OCTET STRING = ASN_OCTET_STR */
+            /** INTEGER = ASN_INTEGER */
             break;
 
+        case COLUMN_COMMANDUSER:
+            /** OCTET STRING = ASN_OCTET_STR */
+            break;
         default:               /** We shouldn't get here */
             netsnmp_assert(0); /** why wasn't this caught in reserve1? */
         }
@@ -632,7 +797,7 @@ void commandTable_set_undo(netsnmp_request_group *rg)
      * requirements here.
      */
 }
-commandTable_context *commandTable_create_row_default(netsnmp_index *hdr)
+commandTable_context *commandTable_create_row(netsnmp_index *hdr)
 {
     commandTable_context *ctx = SNMP_MALLOC_TYPEDEF(commandTable_context);
     if (!ctx)
@@ -643,7 +808,7 @@ commandTable_context *commandTable_create_row_default(netsnmp_index *hdr)
         free(ctx);
         return NULL;
     }
-    ctx->commandInput_len = 0;
+    ctx->commandUser_len = 0;
     return ctx;
 }
 /************************************************************
@@ -713,7 +878,7 @@ void initialize_table_commandTable(void)
     cb.delete_row = (UserRowMethod *)commandTable_delete_row;
     cb.row_copy = (Netsnmp_User_Row_Operation *)commandTable_row_copy;
     cb.can_delete = (Netsnmp_User_Row_Action *)commandTable_can_delete;
-    cb.create_row = (UserRowMethod *)commandTable_create_row_default;
+    cb.create_row = (UserRowMethod *)commandTable_create_row;
     cb.set_reserve1 = commandTable_set_reserve1;
     cb.set_reserve2 = commandTable_set_reserve2;
     cb.set_action = commandTable_set_action;
@@ -759,10 +924,16 @@ int commandTable_get_value(
         break;
 
     case COLUMN_COMMANDINPUT:
+        /** INTEGER = ASN_INTEGER */
+        snmp_set_var_typed_value(var, ASN_INTEGER,
+                                 (char *)&context->commandInput,
+                                 sizeof(context->commandInput));
+        break;
+    case COLUMN_COMMANDUSER:
         /** OCTET STRING = ASN_OCTET_STR */
         snmp_set_var_typed_value(var, ASN_OCTET_STR,
-                                 (char *)&context->commandInput,
-                                 context->commandInput_len);
+                                 (char *)&context->commandUser,
+                                 context->commandUser_len);
         break;
     default: /** We shouldn't get here */
         snmp_log(LOG_ERR, "unknown column in "
@@ -780,40 +951,6 @@ commandTable_get_by_idx(netsnmp_index *hdr)
 {
     return (const commandTable_context *)
         CONTAINER_FIND(cb.container, hdr);
-}
-/************************************************************
- * the *_create_row routine is called by the table handler
- * to create a new row for a given index. If you need more
- * information (such as column values) to make a decision
- * on creating rows, you must create an initial row here
- * (to hold the column values), and you can examine the
- * situation in more detail in the *_set_reserve1 or later
- * states of set processing. Simple check for a NULL undo_ctx
- * in those states and do detailed creation checking there.
- *
- * returns a newly allocated commandTable_context
- *   structure if the specified indexes are not illegal
- * returns NULL for errors or illegal index values.
- */
-commandTable_context *commandTable_create_row(netsnmp_index *hdr, int id, int templateID, char *command)
-{
-    commandTable_context *ctx = SNMP_MALLOC_TYPEDEF(commandTable_context);
-    if (!ctx)
-        return NULL;
-    if (commandTable_extract_index(ctx, hdr))
-    {
-        free(ctx->index.oids);
-        free(ctx);
-        return NULL;
-    }
-    ctx->index.oids = ctx->oid_buf;
-    ctx->oid_buf[0] = id;
-    ctx->index.len = 1;
-    ctx->commandID = (long unsigned int)id;
-    ctx->templateID = (long unsigned int)templateID;
-    strcpy(ctx->commandInput, command);
-    ctx->commandInput_len = strlen(command);
-    return ctx;
 }
 /************************************************************
  * the *_duplicate row routine
@@ -864,7 +1001,8 @@ int commandTable_row_copy(commandTable_context *dst, commandTable_context *src)
      */
     dst->commandID = src->commandID;
     dst->templateID = src->templateID;
-    memcpy(dst->commandInput, src->commandInput, src->commandInput_len);
-    dst->commandInput_len = src->commandInput_len;
+    dst->commandInput = src->commandInput;
+    memcpy(dst->commandUser, src->commandUser, src->commandUser_len);
+    dst->commandUser_len = src->commandUser_len;
     return 0;
 }

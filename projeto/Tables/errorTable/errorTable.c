@@ -146,8 +146,13 @@ int addError(char *user, int id)
     req->errorTimeStamp = malloc(sizeof(char) * strlen(s));
     strcpy(req->errorTimeStamp, s);
     req->errorDescriptionID = id;
-    req->errorUser = malloc(sizeof(char) * strlen(user) + 1);
-    strcpy(req->errorUser, user);
+    if (strlen(user) == 0)
+        req->errorUser = "N/A";
+    else
+    {
+        req->errorUser = malloc(sizeof(char) * strlen(user) + 1);
+        strcpy(req->errorUser, user);
+    }
     req->errorExpireTime = "00:01:00";
     index_oid[0] = req->errorID;
     index.oids = (oid *)&index_oid;
