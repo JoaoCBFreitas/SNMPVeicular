@@ -567,7 +567,7 @@ requestSampleID OBJECT-TYPE
 	MAX-ACCESS read-only
 	STATUS  current
 	DESCRIPTION
-		"This object will be used to identify the request on requestMonitoringDataTable"
+		"This object will be used to identify the request on requestControlDataTable"
 	-- 1.3.6.1.3.8888.5.1.2
 ::= { samplesEntry 2 }
 
