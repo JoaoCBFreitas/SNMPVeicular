@@ -867,7 +867,7 @@ void checkTables()
 
             break;
         case 4:
-            /*Row is in ready mode, change status from ready to Off when startTime+waitTime has passed*/
+            /*Row is in ready mode, change status from ready to On when startTime+waitTime has passed*/
             if (reqMonitoring->endTime_len == 0)
             {
                 /*If column EndTime is empty, it will be calculated by adding startTime+waitTime+durationTime*/
