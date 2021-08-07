@@ -94,10 +94,12 @@ int main(int argc, char **argv)
             r = read(fd[0], &dc, sizeof(decodedCAN));
             if (r <= 0)
             {
+                /*No CAN message received*/
                 dc.signals = -1;
             }
             else
             {
+                /*Some times a CAN message is received that can't be decoded, ence why this if exists*/
                 if (dc.signals >= 0)
                 {
                     char nMessageString[19];
