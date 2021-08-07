@@ -61,7 +61,12 @@ In the generator you can choose what file should be used to generate CAN message
 
 ### Changing columns
 
+Changing saving mode of a request
+
 - snmpset -Ir -v3 -a SHA -A SNMPVeicular -x AES -X SNMPV31cul4r -l authPriv -u snmpadmin localhost OBU-MIB::savingMode.0 = 0
+
+Deleting a request
+
 - snmpset -Ir -v2c -c public localhost OBU-MIB::status.0 = 3
 
 ### Adding a new command to commandTable
