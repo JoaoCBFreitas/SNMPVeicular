@@ -16,8 +16,8 @@ Prototype SNMP agent to be installed inside a vehicle OBU and allows outside ent
 This agent and manager were created with SNMPv3 in mind, while you can still use SNMPv2c with the manager included in snmpd it is advised to create a SNMPv3 user. This is done by the following command
 
 - sudo net-snmp-create-v3-user -A SNMPVeicular -a SHA -X SNMPV31cul4r -x AES snmpadmin
-- Confirm if the user was correctly created by checking if /usr/share/snmp/snmpd.conf contains this line "rwuser snmpadmin"  
-  If not, add it
+- Confirm if the user was correctly created by checking if /usr/share/snmp/snmpd.conf contains this line "rwuser snmpadmin"
+- If it does not contain that line, add it
 
 ## Install OBU-MIB.txt
 
@@ -26,9 +26,9 @@ Copy OBU-MIB.txt to that directory
 
 - sudo cp OBU-MIB.txt /home/$USER/.snmp/mibs
   Load MIB into snmpd with the following command
-- export MIBS=+OBU-MIB
+- export MIBS=+OBU-MIB  
   Otherwise, to make it load the MIB on start up simply add mibs +OBU-MIB to the following file $HOME/.snmp/snmp.conf
-  The line "mibs:" in /etc/snmp/snmp.conf should also be commented out
+- The line "mibs:" in /etc/snmp/snmp.conf should also be commented out
 
 ## MakeFile
 
