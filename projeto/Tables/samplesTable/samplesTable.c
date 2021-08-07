@@ -58,7 +58,7 @@ void sampleZero(int id)
     insertSamplesRow(ss);
     free(ss);
 }
-/*This function will check if a sample was already added to the table by comparing the checksum, if it exists it's index will be returned*/
+/*This function will check if a sample was already added to the table by comparing the checksum, if it exists its index will be returned*/
 int checkSampleChecksum(char *checksum, unsigned long id)
 {
     int res = 0;
