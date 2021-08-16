@@ -92,37 +92,29 @@ int main(int argc, char **argv)
             decodedCAN dc;
             int retval = fcntl(fd[0], F_SETFL, fcntl(fd[0], F_GETFL) | O_NONBLOCK);
             r = read(fd[0], &dc, sizeof(decodedCAN));
-            if (r <= 0)
+            if (r > 0 && dc.signals >= 0)
             {
-                /*No CAN message received*/
-                dc.signals = -1;
-            }
-            else
-            {
-                /*Some times a CAN message is received that can't be decoded, ence why this if exists*/
-                if (dc.signals >= 0)
+                /*if r<=0 that means that no data was read, while if dc.signals>=0 means that the decoder was able to decode the message*/
+                char nMessageString[19];
+                sprintf(nMessageString, "%lld", nMessage);
+                nMessage++;
+                time_t t = time(NULL);
+                struct tm *tm = localtime(&t);
+                char s[100];
+                snprintf(s, 100, "%02d/%02d/%04d %02d:%02d:%02d", tm->tm_mday, tm->tm_mon + 1, tm->tm_year + 1900, tm->tm_hour, tm->tm_min, tm->tm_sec);
+                char *aux = malloc(sizeof(char) * (strlen(s) + strlen(dc.name) + strlen(nMessageString) + 1));
+                strcpy(aux, s);
+                strcat(aux, nMessageString);
+                strcat(aux, dc.name);
+                char *check = createChecksum(aux);
+                free(aux);
+                for (int i = 0; i < dc.signals; i++)
                 {
-                    char nMessageString[19];
-                    sprintf(nMessageString, "%lld", nMessage);
-                    nMessage++;
-                    time_t t = time(NULL);
-                    struct tm *tm = localtime(&t);
-                    char s[100];
-                    snprintf(s, 100, "%02d/%02d/%04d %02d:%02d:%02d", tm->tm_mday, tm->tm_mon + 1, tm->tm_year + 1900, tm->tm_hour, tm->tm_min, tm->tm_sec);
-                    char *aux = malloc(sizeof(char) * (strlen(s) + strlen(dc.name) + strlen(nMessageString) + 1));
-                    strcpy(aux, s);
-                    strcat(aux, nMessageString);
-                    strcat(aux, dc.name);
-                    char *check = createChecksum(aux);
-                    free(aux);
-                    for (int i = 0; i < dc.signals; i++)
-                    {
-                        char *signalname = malloc(sizeof(char) * strlen(dc.signalname[i]) + strlen(dc.name) + 1);
-                        strcpy(signalname, dc.name);
-                        strcat(signalname, dc.signalname[i]);
-                        checkSamples(signalname, dc.value[i], dc.signals, s, check);
-                        free(signalname);
-                    }
+                    char *signalname = malloc(sizeof(char) * strlen(dc.signalname[i]) + strlen(dc.name) + 1);
+                    strcpy(signalname, dc.name);
+                    strcat(signalname, dc.signalname[i]);
+                    checkSamples(signalname, dc.value[i], dc.signals, s, check);
+                    free(signalname);
                 }
             }
         }

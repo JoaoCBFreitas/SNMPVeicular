@@ -74,48 +74,14 @@ oid genericTypesTableOid[] = {1, 3, 6, 1, 3, 8888, 7};
 char *sampleUnitsTable = ".1.3.6.1.3.8888.8";
 oid sampleUnitsTableOid[] = {1, 3, 6, 1, 3, 8888, 8};
 
-char *sampledValuesTable = ".1.3.6.1.3.8888.9";
-oid sampledValuesTableOid[] = {1, 3, 6, 1, 3, 8888, 9};
+char *errorTable = ".1.3.6.1.3.8888.9";
+oid errorTableOid[] = {1, 3, 6, 1, 3, 8888, 9};
 
-char *errorTable = ".1.3.6.1.3.8888.10";
-oid errorTableOid[] = {1, 3, 6, 1, 3, 8888, 10};
+char *errorDescriptionTable = ".1.3.6.1.3.8888.10";
+oid errorDescriptionTableOid[] = {1, 3, 6, 1, 3, 8888, 10};
 
-char *errorDescriptionTable = ".1.3.6.1.3.8888.11";
-oid errorDescriptionTableOid[] = {1, 3, 6, 1, 3, 8888, 11};
+char *commandTemplateTable = ".1.3.6.1.3.8888.11";
+oid commandTemplateTableOid[] = {1, 3, 6, 1, 3, 8888, 11};
 
-char *errorSensorTable = ".1.3.6.1.3.8888.12";
-oid errorSensorTableOid[] = {1, 3, 6, 1, 3, 8888, 12};
-
-char *moduleTable = ".1.3.6.1.3.8888.13";
-oid moduleTableOid[] = {1, 3, 6, 1, 3, 8888, 13};
-
-char *moduleDescriptionTable = ".1.3.6.1.3.8888.14";
-oid moduleDescriptionTableOid[] = {1, 3, 6, 1, 3, 8888, 14};
-
-char *componentTable = ".1.3.6.1.3.8888.15";
-oid componentTableOid[] = {1, 3, 6, 1, 3, 8888, 15};
-
-struct host
-{
-  char *name;
-  char *community;
-} hosts[] = {
-    {"test1", "public"},
-    {"test2", "public"},
-    {"test3", "public"},
-    {"test4", "public"},
-    {NULL}};
-
-/*
-  * a list of variables to query for
-  */
-struct oid
-{
-  char *Name;
-  oid anOid[MAX_OID_LEN];
-  int OidLen;
-} oids[] = {
-    {"mapTypeTable"},
-    {"interfaces.ifNumber.1"},
-    {"interfaces.ifNumber.0"},
-    {NULL}};
+char *commandTable = ".1.3.6.1.3.8888.12";
+oid commandTableOid[] = {1, 3, 6, 1, 3, 8888, 12};

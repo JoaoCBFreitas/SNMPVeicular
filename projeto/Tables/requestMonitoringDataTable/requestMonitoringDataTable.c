@@ -41,31 +41,7 @@ static netsnmp_table_array_callbacks cb;
 
 const oid requestMonitoringDataTable_oid[] = {requestMonitoringDataTable_TABLE_OID};
 const size_t requestMonitoringDataTable_oid_len = OID_LENGTH(requestMonitoringDataTable_oid);
-/*This function will return the requestMonitoringDataEntry of the given ID*/
-void *getMonitoringEntry(long unsigned int id)
-{
-    netsnmp_iterator *it;
-    void *data;
-    it = CONTAINER_ITERATOR(cb.container);
-    int res = 1;
-    if (NULL == it)
-    {
-        return NULL;
-    }
-    for (data = ITERATOR_FIRST(it); data; data = ITERATOR_NEXT(it))
-    {
-        requestMonitoringDataTable_context *req = data;
-        if (req->requestID == id)
-        {
-            res = 0;
-            break;
-        }
-    }
-    ITERATOR_RELEASE(it);
-    if (res == 1)
-        return NULL;
-    return data;
-}
+
 /*This function will return the next empty ID of requestMonitoringDataTable*/
 int firstMonitoringEntry()
 {
@@ -784,7 +760,15 @@ void checkTables()
                 if (reqTime >= 0)
                 {
                     /************Update requestControlEntry******************/
-                    requestMonitoringDataTable_context *reqAux = getMonitoringEntry(reqTime);
+                    requestMonitoringDataTable_context *reqAux;
+                    netsnmp_index index;
+                    oid index_oid[2];
+                    index_oid[0] = reqTime;
+                    index.oids = (oid *)&index_oid;
+                    index.len = 1;
+                    reqAux = NULL;
+                    /* Search for it first. */
+                    reqAux = CONTAINER_FIND(cb.container, &index);
                     if (reqAux != NULL)
                     {
                         requestStruct *aux = (requestStruct *)malloc(sizeof(requestStruct));

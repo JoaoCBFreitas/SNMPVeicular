@@ -1,54 +1,47 @@
 #include <manager.h>
-int set(netsnmp_session session, netsnmp_session *ss, oid *root, size_t rootlen, char *oidString, char type, const char *value)
+
+int set(netsnmp_session session, netsnmp_session *ss, oid *root, size_t rootlen, char **oidString, char *types, char **values, int current_name)
 {
-    /*
-     * Create the PDU for the data for our request.
-     *   1) We're going to GET the system.sysDescr.0 node.
-     */
-    netsnmp_pdu *pdu = snmp_pdu_create(SNMP_MSG_GET);
-    netsnmp_pdu *response;
-    int status;
     int count;
+    int failures = 0;
     int exitval = 0;
+    int status;
+    int quiet = 0;
     netsnmp_variable_list *vars;
-    
-    if (!snmp_parse_oid(oidString, root, &rootlen))
+    netsnmp_pdu *pdu, *response = NULL;
+    pdu = snmp_pdu_create(SNMP_MSG_SET);
+    /*
+     * create PDU for SET request and add object names and values to request 
+     */
+    for (count = 0; count < current_name; count++)
     {
-        snmp_perror(oidString);
+        get_node(oidString[count], root, &rootlen);
+        if (snmp_add_var(pdu, root, rootlen, types[count], values[count]))
+        {
+            snmp_perror(oidString[count]);
+            failures++;
+        }
+    }
+    if (failures)
+    {
+        snmp_close(ss);
         SOCK_CLEANUP;
         exit(1);
     }
-    
-#if OTHER_METHODS
     /*
-     *  These are alternatives to the 'snmp_parse_oid' call above,
-     *    e.g. specifying the OID by name rather than numerically.
-     */
-    /*
-    read_objid(".1.3.6.1.2.1.1.1.0", root, rootlen);
-    get_node("sysDescr.0", root, rootlen);
-    read_objid("system.sysDescr.0", root, rootlen);
-    */
-#endif
-
-    snmp_add_var(pdu, root, rootlen, type, value);
-
-    /*
-     * Send the Request out.
-     */
-    status = snmp_synch_response(ss, pdu, &response);
-
-    /*
-     * Process the response.
+     * do the request 
      */
     status = snmp_synch_response(ss, pdu, &response);
     if (status == STAT_SUCCESS)
     {
         if (response->errstat == SNMP_ERR_NOERROR)
         {
-            for (vars = response->variables; vars;
-                 vars = vars->next_variable)
-                print_variable(vars->name, vars->name_length, vars);
+            if (!quiet)
+            {
+                for (vars = response->variables; vars;
+                     vars = vars->next_variable)
+                    print_variable(vars->name, vars->name_length, vars);
+            }
         }
         else
         {
@@ -79,86 +72,12 @@ int set(netsnmp_session session, netsnmp_session *ss, oid *root, size_t rootlen,
         snmp_sess_perror("snmpset", ss);
         exitval = 1;
     }
+
     if (response)
         snmp_free_pdu(response);
     return exitval;
 }
-int get(netsnmp_session session, netsnmp_session *ss, oid *root, size_t rootlen, char *oidString)
-{
-    /*
-     * Create the PDU for the data for our request.
-     *   1) We're going to GET the system.sysDescr.0 node.
-     */
-    netsnmp_pdu *pdu = snmp_pdu_create(SNMP_MSG_GET);
-    netsnmp_pdu *response;
-    size_t anOID_len = MAX_OID_LEN;
-    int status;
-    int count;
-    int exitval = 0;
-    netsnmp_variable_list *vars;
-    if (!snmp_parse_oid(oidString, root, &anOID_len))
-    {
-        snmp_perror(oidString);
-        SOCK_CLEANUP;
-        exit(1);
-    }
-#if OTHER_METHODS
-    /*
-     *  These are alternatives to the 'snmp_parse_oid' call above,
-     *    e.g. specifying the OID by name rather than numerically.
-     */
-    read_objid(".1.3.6.1.2.1.1.1.0", anOID, &anOID_len);
-    get_node("sysDescr.0", anOID, &anOID_len);
-    read_objid("system.sysDescr.0", anOID, &anOID_len);
-#endif
-    snmp_add_null_var(pdu, root, anOID_len);
 
-    /*
-     * Send the Request out.
-     */
-    status = snmp_synch_response(ss, pdu, &response);
-
-    /*
-     * Process the response.
-     */
-    if (status == STAT_SUCCESS && response->errstat == SNMP_ERR_NOERROR)
-    {
-        /*
-       * SUCCESS: Print the result variables
-       */
-
-        for (vars = response->variables; vars; vars = vars->next_variable)
-            print_variable(vars->name, vars->name_length, vars);
-        exitval = 2;
-    }
-    else
-    {
-        /*
-       * FAILURE: print what went wrong!
-       */
-
-        if (status == STAT_SUCCESS)
-        {
-            fprintf(stderr, "Error in packet\nReason: %s\n",
-                    snmp_errstring(response->errstat));
-            exitval = 1;
-        }
-        else if (status == STAT_TIMEOUT)
-        {
-            fprintf(stderr, "Timeout: No response from %s.\n",
-                    session.peername);
-            exitval = 1;
-        }
-        else
-        {
-            snmp_sess_perror("snmpGet", ss);
-            exitval = 1;
-        }
-    }
-    if (response)
-        snmp_free_pdu(response);
-    return exitval;
-}
 int bulkget(netsnmp_session session, netsnmp_session *ss, oid *root, size_t rootlen)
 {
     netsnmp_pdu *pdu;
@@ -301,14 +220,11 @@ void printMenu()
     printf("*MapTypeTable               -6 *\n");
     printf("*GenericTypesTable          -7 *\n");
     printf("*SampleUnitsTable           -8 *\n");
-    printf("*SampledValuesTable         -9 *\n");
-    printf("*ErrorTable                 -10*\n");
-    printf("*ErrorDescriptionTable      -11*\n");
-    printf("*ErrorSensorTable           -12*\n");
-    printf("*ModuleTable                -13*TODO\n");
-    printf("*ModuleDescriptionTable     -14*TODO\n");
-    printf("*ComponentTable             -15*TODO\n");
-    printf("*Set Teste                  -16*TODO\n");
+    printf("*ErrorTable                 -9*\n");
+    printf("*ErrorDescriptionTable      -10*\n");
+    printf("*CommandTemplateTable       -11*\n");
+    printf("*CommandTable               -12*\n");
+    printf("*Set Teste                  -13*\n");
     printf("*Sair                       -0 *\n");
     printf("********************************\n");
 }
@@ -394,8 +310,11 @@ int main(int argc, char **argv)
         printMenu();
         int aux = scanf("%d", &escolha);
         int res;
-        char* modOidString;
-        oid* modOidList;
+        /*Set saving mode to 1*/
+        char *modOidString[] = {"SavingMode.0"};
+        char *types = "i";
+        char *values[] = {"1"};
+        oid modOidList[] = {1, 3, 6, 1, 3, 8888, 1, 1, 5, 0};
         switch (escolha)
         {
         case 0:
@@ -442,59 +361,29 @@ int main(int argc, char **argv)
             printf("\n\n");
             break;
         case 9:
-            printf("\nValores sampledValuesTable\n");
-            res = bulkget(session, ss, sampledValuesTableOid, OID_LENGTH(sampledValuesTableOid));
-            printf("\n\n");
-            break;
-        case 10:
             printf("\nValores errorTable\n");
             res = bulkget(session, ss, errorTableOid, OID_LENGTH(errorTableOid));
             printf("\n\n");
             break;
-        case 11:
+        case 10:
             printf("\nValores errorDescriptionTable\n");
             res = bulkget(session, ss, errorDescriptionTableOid, OID_LENGTH(errorDescriptionTableOid));
             printf("\n\n");
             break;
+        case 11:
+            printf("\nValores commandTemplateTable\n");
+            res = bulkget(session, ss, commandTemplateTableOid, OID_LENGTH(commandTemplateTableOid));
+            printf("\n\n");
+            break;
         case 12:
-            printf("\nValores errorSensorTable\n");
-            res = bulkget(session, ss, errorSensorTableOid, OID_LENGTH(errorSensorTableOid));
+            printf("\nValores commandTable\n");
+            res = bulkget(session, ss, commandTableOid, OID_LENGTH(commandTableOid));
             printf("\n\n");
             break;
         case 13:
-            printf("\nValores moduleTable\n");
-            res = bulkget(session, ss, moduleTableOid, OID_LENGTH(moduleTableOid));
+            res = set(session, ss, modOidList, OID_LENGTH(modOidList), modOidString, types, values, 1);
             printf("\n\n");
             break;
-        case 14:
-            printf("\nValores moduleDescriptionTable\n");
-            res = bulkget(session, ss, moduleDescriptionTableOid, OID_LENGTH(moduleDescriptionTableOid));
-            printf("\n\n");
-            break;
-        case 15:
-            printf("\nValores componentTable\n");
-            res = bulkget(session, ss, componentTableOid, OID_LENGTH(componentTableOid));
-            printf("\n\n");
-            break;
-        case 16:
-            modOidString=malloc(sizeof(char)*strlen(requestMonitoringDataTable)+7);
-            strcpy(modOidString,requestMonitoringDataTable);
-            modOidString[strlen(requestMonitoringDataTable)]='.';
-            modOidString[strlen(requestMonitoringDataTable)+1]='1';
-            modOidString[strlen(requestMonitoringDataTable)+2]='.';
-            modOidString[strlen(requestMonitoringDataTable)+3]='4';
-            modOidString[strlen(requestMonitoringDataTable)+4]='.';
-            modOidString[strlen(requestMonitoringDataTable)+5]='0';
-            modOidString[strlen(requestMonitoringDataTable)+6]='\0';
-            oid* modOidList=malloc(sizeof(oid)*OID_LENGTH(requestMonitoringDataTableOid)+3);
-            for(int j=0;j<OID_LENGTH(requestMonitoringDataTableOid);j++){
-                modOidList[j]=requestMonitoringDataTableOid[j];
-            }
-            modOidList[OID_LENGTH(requestMonitoringDataTableOid)]=1;
-            modOidList[OID_LENGTH(requestMonitoringDataTableOid)+1]=4;
-            modOidList[OID_LENGTH(requestMonitoringDataTableOid)+2]=0;
-            res=set(session,ss,modOidList,OID_LENGTH(modOidList),modOidString,'i',"1");
-            printf("\n\n");
         default:
             printf("\nInput Inválido\n");
             continue;
