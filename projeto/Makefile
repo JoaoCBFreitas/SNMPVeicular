@@ -56,10 +56,11 @@ agent: agent.c agent.h Makefile
 	$(CC) $(CFLAGS) -o $(OBJ)/progAgent.o $(BUILDAGENTLIBS) -c agent.c
 	$(CC) $(CFLAGS) -o agent $(OBJ)/*.o $(BUILDAGENTLIBS)
 	rm -r obj
-manager: manager.c manager.h Makefile
+manager: manager.c manager.h managerFunc.c managerFunc.h Makefile
 	mkdir obj
+	$(CC) $(CFLAGS) -o $(OBJ)/managerFunc.o $(BUILDLIBS) -c managerFunc.c	
 	$(CC) $(CFLAGS) -o $(OBJ)/progManager.o $(BUILDLIBS) -c manager.c	
-	$(CC) $(CFLAGS) -o manager $(OBJ)/progManager.o $(BUILDLIBS)
+	$(CC) $(CFLAGS) -o manager $(OBJ)/*.o $(BUILDLIBS)
 	rm -r obj
 clean:
 	rm $(TARGETS) generator -r obj
