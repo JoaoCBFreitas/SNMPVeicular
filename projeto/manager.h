@@ -8,5 +8,4 @@
 const char *our_v3_passphrase = "SNMPVeicular";
 const char *our_v3_encryptionphrase = "SNMPV31cul4r";
 #endif
-
 const char *snmpusername = "snmpadmin";

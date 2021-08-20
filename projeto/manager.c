@@ -116,12 +116,11 @@ int main(int argc, char **argv)
         case 4:
             /*View Active Errors*/
             activeErrors(session, ss);
-            printf("TODO\n");
             printf("\n\n");
             break;
         case 5:
             /*Send Command*/
-            printf("\nTODO\n");
+            sendCommand(session, ss);
             printf("\n\n");
             break;
         default:

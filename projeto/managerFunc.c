@@ -11,12 +11,11 @@ void viewTablesMenu()
     printf("*MapTypeTable               -6 *\n");
     printf("*GenericTypesTable          -7 *\n");
     printf("*SampleUnitsTable           -8 *\n");
-    printf("*ErrorTable                 -9*\n");
+    printf("*ErrorTable                 -9 *\n");
     printf("*ErrorDescriptionTable      -10*\n");
     printf("*CommandTemplateTable       -11*\n");
     printf("*CommandTable               -12*\n");
-    printf("*Set Teste                  -13*\n");
-    printf("*Sair                       -0 *\n");
+    printf("*Exit                       -0 *\n");
     printf("********************************\n");
 }
 
@@ -37,14 +36,38 @@ void appendContent(table_contents **tc, netsnmp_variable_list *vars)
     last->next = newNode;
     return;
 }
-
+/*This function will append an active error node ce to linked list ae*/
+void appendErrors(active_errors **ae, active_errors *ce)
+{
+    active_errors *last = *ae;
+    if (*ae == NULL)
+    {
+        *ae = ce;
+        return;
+    }
+    while (last->next != NULL)
+        last = last->next;
+    last->next = ce;
+    return;
+}
+/*This function will append an command_template in to linked list ct*/
+void appendCommand(command_template **ct, command_template *in)
+{
+    command_template *last = *ct;
+    if (*ct == NULL)
+    {
+        *ct = in;
+        return;
+    }
+    while (last->next != NULL)
+        last = last->next;
+    last->next = in;
+    return;
+}
 /*This function will iterate through tc and print its contents*/
 void printTable(table_contents *tc)
 {
-    /*
-        * check resulting variables 
-        */
-    while (tc->next != NULL)
+    while (tc)
     {
         for (; tc->data;
              tc->data = tc->data->next_variable)
@@ -57,7 +80,7 @@ void printTable(table_contents *tc)
 }
 
 /*This function will send set requests to the agent*/
-int set(netsnmp_session session, netsnmp_session *ss, oid *root, size_t rootlen, char **oidString, char *types, char **values, int current_name)
+int set(netsnmp_session session, netsnmp_session *ss, oid **root, char **oidString, char *types, char **values, int current_name)
 {
     int count;
     int failures = 0;
@@ -72,8 +95,9 @@ int set(netsnmp_session session, netsnmp_session *ss, oid *root, size_t rootlen,
      */
     for (count = 0; count < current_name; count++)
     {
-        get_node(oidString[count], root, &rootlen);
-        if (snmp_add_var(pdu, root, rootlen, types[count], values[count]))
+        size_t rootlen = OID_LENGTH(root[count]);
+        get_node(oidString[count], root[count], &rootlen);
+        if (snmp_add_var(pdu, root[count], rootlen, types[count], values[count]))
         {
             snmp_perror(oidString[count]);
             failures++;
@@ -280,11 +304,6 @@ void viewTables(netsnmp_session session, netsnmp_session *ss)
         int aux = scanf("%d", &escolha);
         int res;
         table_contents *tablecontent = NULL;
-        /*Set saving mode to 1*/
-        char *modOidString[] = {"SavingMode.0"};
-        char *types = "i";
-        char *values[] = {"1"};
-        oid modOidList[] = {1, 3, 6, 1, 3, 8888, 1, 1, 5, 0};
         switch (escolha)
         {
         case 0:
@@ -339,10 +358,6 @@ void viewTables(netsnmp_session session, netsnmp_session *ss)
             printf("\nCommandTable\n");
             res = bulkget(session, ss, commandTableOid, OID_LENGTH(commandTableOid), &tablecontent);
             break;
-        case 13:
-            res = set(session, ss, modOidList, OID_LENGTH(modOidList), modOidString, types, values, 1);
-            printf("\n\n");
-            break;
         default:
             printf("\nInvalid Input\n");
             escolha = 0;
@@ -371,9 +386,118 @@ void activeErrors(netsnmp_session session, netsnmp_session *ss)
 {
     table_contents *errorDescr = NULL;
     table_contents *error = NULL;
+    active_errors *ae = NULL;
+    active_errors *ce;
+    /*These configs will make contents of struct error->data more easy to use*/
+    int orig_config_val_qp = netsnmp_ds_get_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_QUICK_PRINT);
+    int orig_config_val_bv = netsnmp_ds_get_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_PRINT_BARE_VALUE);
+    netsnmp_ds_set_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_QUICK_PRINT, 1);
+    netsnmp_ds_set_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_PRINT_BARE_VALUE, 1);
+
+    /*Get the contents of error and errorDescr*/
     bulkget(session, ss, errorDescriptionTableOid, OID_LENGTH(errorDescriptionTableOid), &errorDescr);
     bulkget(session, ss, errorTableOid, OID_LENGTH(errorTableOid), &error);
+    /*These will be used to store the head of error and errorDescr*/
+    table_contents *headError = error;
+    table_contents *headErrorDescr = errorDescr;
+    printf("\n");
+    if (error)
+    {
+        while (error)
+        {
+            int currentIndex = error->data->name[error->data->name_length - 1];
+            active_errors *head = ae;
+            ce = NULL;
+            if (ae)
+            {
+                /*search for node with current Index*/
+                while (ae)
+                {
+                    /*Node found*/
+                    if (ae->id == currentIndex)
+                    {
+                        ce = ae;
+                        break;
+                    }
+                    ae = ae->next;
+                }
+                ae = head;
+            }
+            if (!ae || !ce)
+            {
+                /*Either there's no node in the linked list or node was not found, either way append new node*/
+                ce = (active_errors *)malloc(sizeof(active_errors));
+                ce->id = currentIndex;
+                ce->next = NULL;
+                appendErrors(&ae, ce);
+            }
+            switch (error->data->name[error->data->name_length - 2])
+            {
+            case 1:
+                /*Index*/
+                ce->index = malloc(sizeof(char) * 10);
+                snprint_value(ce->index, 10, error->data->name, error->data->name_length, error->data);
+                strcat(ce->index, "\0");
+                break;
+            case 2:
+                /*TimeStamp*/
+                ce->timestamp = malloc(1 + error->data->val_len);
+                memcpy(ce->timestamp, error->data->val.string, error->data->val_len);
+                ce->timestamp[error->data->val_len] = '\0';
+                break;
+            case 3:
+                /*Obtain errorCode and errorDescription from errorDescriptionTable using errorDescriptionID*/
+                ce->indexError = *error->data->val.integer;
+                table_contents *headtc = errorDescr;
+                while (errorDescr)
+                {
+                    /*Compare indexError with the index of the entry*/
+                    if (ce->indexError == errorDescr->data->name[errorDescr->data->name_length - 1])
+                    {
+                        /*errorDescr->data->name[errorDescr->data->name_length - 2] equals the column*/
+                        if (errorDescr->data->name[errorDescr->data->name_length - 2] == 2)
+                        {
+                            /*Get errorDescr*/
+                            ce->errorDesc = malloc(1 + errorDescr->data->val_len);
+                            memcpy(ce->errorDesc, errorDescr->data->val.string, errorDescr->data->val_len);
+                            ce->errorDesc[errorDescr->data->val_len] = '\0';
+                        }
+                        if (errorDescr->data->name[errorDescr->data->name_length - 2] == 3)
+                        {
+                            /*Get errorCode*/
+                            ce->errorCode = malloc(100);
+                            snprint_value(ce->errorCode, 100, error->data->name, error->data->name_length, error->data);
+                            strcat(ce->errorCode, "\0");
+                        }
+                    }
+                    errorDescr = errorDescr->next;
+                }
+                /*Go back to head of list*/
+                errorDescr = headtc;
+                break;
+            case 4:
+                /*Username*/
+                ce->username = malloc(1 + error->data->val_len);
+                memcpy(ce->username, error->data->val.string, error->data->val_len);
+                ce->username[error->data->val_len] = '\0';
+                break;
+            default:
+                break;
+            }
+            error = error->next;
+        }
+    }
+    else
+        printf("No active errors found\n");
+
+    /*Reset configs to original values*/
+    netsnmp_ds_set_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_QUICK_PRINT, orig_config_val_qp);
+    netsnmp_ds_set_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_PRINT_BARE_VALUE, orig_config_val_bv);
+    error = headError;
+    errorDescr = headErrorDescr;
+    /*tmp and errors will be used to free memory of errorDescr,error and ae*/
     table_contents *tmp;
+    active_errors *errors;
     while (errorDescr != NULL)
     {
         tmp = errorDescr;
@@ -386,4 +510,177 @@ void activeErrors(netsnmp_session session, netsnmp_session *ss)
         error = error->next;
         free(tmp);
     }
+    while (ae != NULL)
+    {
+        /*Traverse active_errors, print the contents of every node and then free the memory */
+        errors = ae;
+        ae = ae->next;
+        printf("Error %s=[%s] EC%s[%s] User[%s]\n", errors->index, errors->timestamp, errors->errorCode, errors->errorDesc, errors->username);
+        free(errors->index);
+        free(errors->timestamp);
+        free(errors->errorCode);
+        free(errors->errorDesc);
+        free(errors->username);
+        free(errors);
+    }
+    return;
+}
+
+void sendCommand(netsnmp_session session, netsnmp_session *ss)
+{
+    /*command will be used to find the ID with which to use set command*/
+    table_contents *command = NULL;
+    table_contents *commandTemplate = NULL;
+    /*These configs will make contents of struct command->data and commandTemplate->data more easy to use*/
+    int orig_config_val_qp = netsnmp_ds_get_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_QUICK_PRINT);
+    int orig_config_val_bv = netsnmp_ds_get_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_PRINT_BARE_VALUE);
+    netsnmp_ds_set_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_QUICK_PRINT, 1);
+    netsnmp_ds_set_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_PRINT_BARE_VALUE, 1);
+
+    /*Get the contents of commandTable and commandTemplateTable*/
+    bulkget(session, ss, commandTableOid, OID_LENGTH(commandTableOid), &command);
+    bulkget(session, ss, commandTemplateTableOid, OID_LENGTH(commandTemplateTableOid), &commandTemplate);
+    /*These will be used to store the heads of commandTemplate and command*/
+    table_contents *headCT = commandTemplate;
+    table_contents *headC = command;
+    printf("\n");
+    int commandIndex = 0;
+    /*Get next free index of commandTable*/
+    if (command)
+    {
+        while (command)
+        {
+            if (commandIndex <= command->data->name[command->data->name_length - 1])
+            {
+                commandIndex = command->data->name[command->data->name_length - 1] + 1;
+            }
+            command = command->next;
+        }
+    }
+    /*Print Available Commands on commandTemplateTable*/
+    command_template *ae = NULL;
+    command_template *ct;
+
+    if (commandTemplate)
+    {
+        while (commandTemplate)
+        {
+            int currentIndex = commandTemplate->data->name[commandTemplate->data->name_length - 1];
+            command_template *head = ae;
+            ct = NULL;
+            if (ae)
+            {
+                /*search for node with current Index*/
+                while (ae)
+                {
+                    /*Node found*/
+                    if (ae->id == currentIndex)
+                    {
+                        ct = ae;
+                        break;
+                    }
+                    ae = ae->next;
+                }
+                ae = head;
+            }
+            if (!ae || !ct)
+            {
+                /*Either there's no node in the linked list or node was not found, either way append new node*/
+                ct = (command_template *)malloc(sizeof(command_template));
+                ct->id = currentIndex;
+                ct->next = NULL;
+                appendCommand(&ae, ct);
+            }
+            switch (commandTemplate->data->name[commandTemplate->data->name_length - 2])
+            {
+            case 1:
+                /*Index*/
+                ct->id = *commandTemplate->data->val.integer;
+                break;
+            case 2:
+                /*Description*/
+                ct->descr = malloc(1 + commandTemplate->data->val_len);
+                memcpy(ct->descr, commandTemplate->data->val.string, commandTemplate->data->val_len);
+                ct->descr[commandTemplate->data->val_len] = '\0';
+                break;
+            case 3:
+                /*targetNode*/
+                ct->target = malloc(1 + commandTemplate->data->val_len);
+                memcpy(ct->target, commandTemplate->data->val.string, commandTemplate->data->val_len);
+                ct->target[commandTemplate->data->val_len] = '\0';
+                break;
+            case 4:
+                /*commandTemplate*/
+                break;
+            default:
+                break;
+            }
+            commandTemplate = commandTemplate->next;
+        }
+    }
+    command_template *com;
+    while (ae != NULL)
+    {
+        /*Traverse command_template, print the contents of every node and then free the memory */
+        com = ae;
+        ae = ae->next;
+        printf("Command %d -[Target=%s] %s\n", com->id, com->target, com->descr);
+        free(com->descr);
+        free(com->target);
+        free(com);
+    }
+    commandTemplate = headCT;
+    command = headC;
+    /*tmp will be used to free memory of command and commandTemplate*/
+    table_contents *tmp;
+    while (command != NULL)
+    {
+        tmp = command;
+        command = command->next;
+        free(tmp);
+    }
+    while (commandTemplate != NULL)
+    {
+        tmp = commandTemplate;
+        commandTemplate = commandTemplate->next;
+        free(tmp);
+    }
+    /*Get user Input*/
+    int templateID;
+    int input;
+    int aux;
+    aux = scanf("Choose template to be used: %d", &templateID);
+    aux = scanf("Insert Input: %d", &input);
+    char *username = malloc(sizeof(char) * strlen("snmpadmin"));
+    /*Convert from integer to string*/
+    char strTemplate[(int)log(templateID) + 2];
+    sprintf(strTemplate, "%d", templateID);
+    char strInput[(int)log(input) + 2];
+    sprintf(strInput, "%d", input);
+    char strIndex[(int)log(commandIndex) + 2];
+    sprintf(strIndex, "%d", commandIndex);
+    char *values[] = {strTemplate, strInput, username};
+    /*Send Command*/
+    oid **modOidList = oidListCommand;
+    for (int i = 0; i < 3; i++)
+        modOidList[i][OID_LENGTH(modOidList[i])] = commandIndex;
+
+    char **modOidString;
+    modOidString = malloc(3 * sizeof(char *));
+    for (int i = 0; i < 3; i++)
+    {
+        modOidString[i] = malloc(sizeof(char) * strlen(oidStringCommand[i]) + strlen(strIndex));
+        strcpy(modOidString[i], oidStringCommand[i]);
+        strcat(modOidString[i], strIndex);
+    }
+    int res = set(session, ss, modOidList, modOidString, typesCommand, values, 3);
+
+    /*Set saving mode to 1*/
+    /*
+    char *modOidString[] = {"SavingMode.0"};
+    char *types = "i";
+    char *values[] = {"1"};
+    oid *modOidList[] = {1, 3, 6, 1, 3, 8888, 1, 1, 5, 0};
+    */
+    //res = set(session, ss, modOidList, modOidString, types, values, 3);
 }

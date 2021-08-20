@@ -588,7 +588,8 @@ void checkTables()
                     printf("Error Insertion failed\n");
                 reqMonitoring->status = 3;
             }
-            reqMonitoring->status = 4;
+            else
+                reqMonitoring->status = 4;
             free(tmAux);
         }
         if (reqControl == NULL || reqControl->requestControlMapID != reqMonitoring->requestMapID)

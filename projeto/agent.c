@@ -84,11 +84,13 @@ int main(int argc, char **argv)
     {
         while (keep_running)
         {
-            checkActuators();
             checkTables();
             /* if you use select(), see snmp_select_info() in snmp_api(3) */
             /*     --- OR ---  */
-            agent_check_and_process(0); /* 0 == don't block */
+            if (agent_check_and_process(0) > 0) /* 0 == don't block */
+                /*agent_check_and_process will return 1 when it receives a packet, there's no need to check actuator table if no
+                packet is received*/
+                checkActuators();
             decodedCAN dc;
             int retval = fcntl(fd[0], F_SETFL, fcntl(fd[0], F_GETFL) | O_NONBLOCK);
             r = read(fd[0], &dc, sizeof(decodedCAN));

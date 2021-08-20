@@ -39,7 +39,7 @@
 #include <arpa/inet.h>
 #endif
 #include <net-snmp/net-snmp-includes.h>
-
+#include <math.h>
 /*
   Table OIDs
 */
@@ -79,13 +79,42 @@ static oid commandTemplateTableOid[] = {1, 3, 6, 1, 3, 8888, 11};
 static char *commandTable = ".1.3.6.1.3.8888.12";
 static oid commandTableOid[] = {1, 3, 6, 1, 3, 8888, 12};
 
+static oid *oidListCommand[3] = {{1, 3, 6, 1, 3, 8888, 12, 1, 2, 0}, {1, 3, 6, 1, 3, 8888, 12, 1, 3, 0}, {1, 3, 6, 1, 3, 8888, 12, 1, 4, 0}};
+static char *oidStringCommand[] = {"templateID.", "commandInput.", "commandUser."};
+static char *typesCommand = "uis";
+static char *oidStringRequest[] = {"requestMapID.", "requestStatisticsID.", "savingMode.", "waitTime.", "durationTime.", "expireTime.", "maxNOfSamples.", "loopMode.", "requestUser."};
+static char *typesRequest = "uuusssuus";
+static char *oidStringEditRequest[] = {"savingMode.", "maxNOfSamples.", "loopMode.", "status."};
+static char *typesEditRequest = "uuuu";
+
 typedef struct table_contents
 {
-    struct table_contents *next;
-    netsnmp_variable_list *data;
+  struct table_contents *next;
+  netsnmp_variable_list *data;
 } table_contents;
 
+typedef struct active_errors
+{
+  struct active_errors *next;
+  int id;
+  char *index;
+  int indexError;
+  char *timestamp;
+  char *errorDesc;
+  char *errorCode;
+  char *username;
+} active_errors;
+
+typedef struct command_template
+{
+  struct command_template *next;
+  int id;
+  char *descr;
+  char *target;
+} command_template;
 /*This function will, based on user input, send bulkget requests to the agent so as to obtain table contents*/
 void viewTables(netsnmp_session session, netsnmp_session *ss);
 /*This function will display all currently active errors in the system*/
 void activeErrors(netsnmp_session session, netsnmp_session *ss);
+/*This function send a new command into the system*/
+void sendCommand(netsnmp_session session, netsnmp_session *ss);
