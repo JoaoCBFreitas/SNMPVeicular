@@ -80,7 +80,7 @@ void printTable(table_contents *tc)
 }
 
 /*This function will send set requests to the agent*/
-int set(netsnmp_session session, netsnmp_session *ss, oid **root, char **oidString, char *types, char **values, int current_name)
+int set(netsnmp_session session, netsnmp_session *ss, oid **root, size_t *rootlen, char **oidString, char *types, char **values, int total_oids)
 {
     int count;
     int failures = 0;
@@ -93,11 +93,10 @@ int set(netsnmp_session session, netsnmp_session *ss, oid **root, char **oidStri
     /*
      * create PDU for SET request and add object names and values to request 
      */
-    for (count = 0; count < current_name; count++)
+    for (count = 0; count < total_oids; count++)
     {
-        size_t rootlen = OID_LENGTH(root[count]);
-        get_node(oidString[count], root[count], &rootlen);
-        if (snmp_add_var(pdu, root[count], rootlen, types[count], values[count]))
+        get_node(oidString[count], root[count], &rootlen[count]);
+        if (snmp_add_var(pdu, root[count], rootlen[count], types[count], values[count]))
         {
             snmp_perror(oidString[count]);
             failures++;
@@ -536,31 +535,19 @@ void sendCommand(netsnmp_session session, netsnmp_session *ss)
     int orig_config_val_bv = netsnmp_ds_get_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_PRINT_BARE_VALUE);
     netsnmp_ds_set_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_QUICK_PRINT, 1);
     netsnmp_ds_set_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_PRINT_BARE_VALUE, 1);
-
     /*Get the contents of commandTable and commandTemplateTable*/
     bulkget(session, ss, commandTableOid, OID_LENGTH(commandTableOid), &command);
     bulkget(session, ss, commandTemplateTableOid, OID_LENGTH(commandTemplateTableOid), &commandTemplate);
+    /*Reset configs to original values*/
+    netsnmp_ds_set_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_QUICK_PRINT, orig_config_val_qp);
+    netsnmp_ds_set_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_PRINT_BARE_VALUE, orig_config_val_bv);
     /*These will be used to store the heads of commandTemplate and command*/
     table_contents *headCT = commandTemplate;
     table_contents *headC = command;
     printf("\n");
-    int commandIndex = 0;
-    /*Get next free index of commandTable*/
-    if (command)
-    {
-        while (command)
-        {
-            if (commandIndex <= command->data->name[command->data->name_length - 1])
-            {
-                commandIndex = command->data->name[command->data->name_length - 1] + 1;
-            }
-            command = command->next;
-        }
-    }
     /*Print Available Commands on commandTemplateTable*/
     command_template *ae = NULL;
     command_template *ct;
-
     if (commandTemplate)
     {
         while (commandTemplate)
@@ -645,42 +632,70 @@ void sendCommand(netsnmp_session session, netsnmp_session *ss)
         commandTemplate = commandTemplate->next;
         free(tmp);
     }
-    /*Get user Input*/
+    printf("\n");
+    /****************************************** Get User Input ******************************************/
     int templateID;
     int input;
     int aux;
-    aux = scanf("Choose template to be used: %d", &templateID);
-    aux = scanf("Insert Input: %d", &input);
-    char *username = malloc(sizeof(char) * strlen("snmpadmin"));
-    /*Convert from integer to string*/
-    char strTemplate[(int)log(templateID) + 2];
+    printf("Choose template to be used:");
+    aux = scanf("%d", &templateID);
+    printf("Insert Input:");
+    aux = scanf("%d", &input);
+    /*Convert from integer to string so it can be sent over snmpset*/
+    char strTemplate[sizeof(int) * 4 + 1];
     sprintf(strTemplate, "%d", templateID);
-    char strInput[(int)log(input) + 2];
+    char strInput[sizeof(int) * 4 + 1];
     sprintf(strInput, "%d", input);
-    char strIndex[(int)log(commandIndex) + 2];
+    /*Get next free index of commandTable*/
+    int commandIndex = 0;
+    if (command)
+    {
+        while (command)
+        {
+            if (commandIndex <= command->data->name[command->data->name_length - 1])
+            {
+                commandIndex = command->data->name[command->data->name_length - 1] + 1;
+            }
+            command = command->next;
+        }
+    }
+    char strIndex[sizeof(int) * 4 + 1];
     sprintf(strIndex, "%d", commandIndex);
-    char *values[] = {strTemplate, strInput, username};
-    /*Send Command*/
-    oid **modOidList = oidListCommand;
-    for (int i = 0; i < 3; i++)
-        modOidList[i][OID_LENGTH(modOidList[i])] = commandIndex;
-
+    char *values[] = {strTemplate, strInput, "snmpadmin"};
+    /****************************************** Send Command ******************************************/
+    /*Prep modOidList: copy oidListCommand to it and add the index to every item of the list*/
+    oid **modOidList = malloc(CommandNumber * sizeof(oid *));
+    for (int i = 0; i < CommandNumber; i++)
+    {
+        modOidList[i] = malloc(sizeof(oid) * CommandOid);
+        for (int j = 0; j < CommandOid; j++)
+            modOidList[i][j] = oidListCommand[i][j];
+        modOidList[i][CommandOid] = commandIndex;
+    }
+    /*Prep modOidString: copy oidStringCommand to it and add the index to every item of the list*/
     char **modOidString;
-    modOidString = malloc(3 * sizeof(char *));
-    for (int i = 0; i < 3; i++)
+    modOidString = malloc(CommandNumber * sizeof(char *));
+    for (int i = 0; i < CommandNumber; i++)
     {
         modOidString[i] = malloc(sizeof(char) * strlen(oidStringCommand[i]) + strlen(strIndex));
         strcpy(modOidString[i], oidStringCommand[i]);
         strcat(modOidString[i], strIndex);
     }
-    int res = set(session, ss, modOidList, modOidString, typesCommand, values, 3);
-
-    /*Set saving mode to 1*/
-    /*
-    char *modOidString[] = {"SavingMode.0"};
-    char *types = "i";
-    char *values[] = {"1"};
-    oid *modOidList[] = {1, 3, 6, 1, 3, 8888, 1, 1, 5, 0};
-    */
-    //res = set(session, ss, modOidList, modOidString, types, values, 3);
+    /*Rootlength is needed, for this table its set as 10 which is the number of sub-ids*/
+    size_t *rootlen = malloc(sizeof(size_t *) * CommandNumber);
+    for (int i = 0; i < CommandNumber; i++)
+    {
+        rootlen[i] = CommandOid;
+    }
+    int res = set(session, ss, modOidList, rootlen, modOidString, typesCommand, values, CommandNumber);
+    /*Free alocated memory*/
+    free(rootlen);
+    for (int i = 0; i < CommandNumber; i++)
+    {
+        free(modOidString[i]);
+        free(modOidList[i]);
+    }
+    free(modOidString);
+    free(modOidList);
+    return;
 }

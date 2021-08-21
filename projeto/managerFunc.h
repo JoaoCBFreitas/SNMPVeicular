@@ -39,7 +39,6 @@
 #include <arpa/inet.h>
 #endif
 #include <net-snmp/net-snmp-includes.h>
-#include <math.h>
 /*
   Table OIDs
 */
@@ -79,10 +78,12 @@ static oid commandTemplateTableOid[] = {1, 3, 6, 1, 3, 8888, 11};
 static char *commandTable = ".1.3.6.1.3.8888.12";
 static oid commandTableOid[] = {1, 3, 6, 1, 3, 8888, 12};
 
-static oid *oidListCommand[3] = {{1, 3, 6, 1, 3, 8888, 12, 1, 2, 0}, {1, 3, 6, 1, 3, 8888, 12, 1, 3, 0}, {1, 3, 6, 1, 3, 8888, 12, 1, 4, 0}};
-static char *oidStringCommand[] = {"templateID.", "commandInput.", "commandUser."};
+#define CommandNumber 3
+#define CommandOid 10
+static oid oidListCommand[CommandNumber][CommandOid] = {{1, 3, 6, 1, 3, 8888, 12, 1, 2, 0}, {1, 3, 6, 1, 3, 8888, 12, 1, 3, 0}, {1, 3, 6, 1, 3, 8888, 12, 1, 4, 0}};
+static char *oidStringCommand[] = {"TemplateID.", "CommandInput.", "CommandUser."};
 static char *typesCommand = "uis";
-static char *oidStringRequest[] = {"requestMapID.", "requestStatisticsID.", "savingMode.", "waitTime.", "durationTime.", "expireTime.", "maxNOfSamples.", "loopMode.", "requestUser."};
+static char *oidStringRequest[] = {"RequestMapID.", "RequestStatisticsID.", "SavingMode.", "WaitTime.", "DurationTime.", "ExpireTime.", "MaxNOfSamples.", "LoopMode.", "RequestUser."};
 static char *typesRequest = "uuusssuus";
 static char *oidStringEditRequest[] = {"savingMode.", "maxNOfSamples.", "loopMode.", "status."};
 static char *typesEditRequest = "uuuu";
