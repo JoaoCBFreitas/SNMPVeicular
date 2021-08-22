@@ -83,9 +83,17 @@ static oid commandTableOid[] = {1, 3, 6, 1, 3, 8888, 12};
 static oid oidListCommand[CommandNumber][CommandOid] = {{1, 3, 6, 1, 3, 8888, 12, 1, 2, 0}, {1, 3, 6, 1, 3, 8888, 12, 1, 3, 0}, {1, 3, 6, 1, 3, 8888, 12, 1, 4, 0}};
 static char *oidStringCommand[] = {"TemplateID.", "CommandInput.", "CommandUser."};
 static char *typesCommand = "uis";
-static char *oidStringRequest[] = {"RequestMapID.", "RequestStatisticsID.", "SavingMode.", "WaitTime.", "DurationTime.", "ExpireTime.", "MaxNOfSamples.", "LoopMode.", "RequestUser."};
-static char *typesRequest = "uuusssuus";
-static char *oidStringEditRequest[] = {"savingMode.", "maxNOfSamples.", "loopMode.", "status."};
+
+#define RequestNumber 10
+#define RequestOid 10
+static oid oidListRequest[RequestNumber][RequestOid] = {{1, 3, 6, 1, 3, 8888, 1, 1, 3, 0}, {1, 3, 6, 1, 3, 8888, 1, 1, 4, 0}, {1, 3, 6, 1, 3, 8888, 1, 1, 5, 0}, {1, 3, 6, 1, 3, 8888, 1, 1, 8, 0}, {1, 3, 6, 1, 3, 8888, 1, 1, 10, 0}, {1, 3, 6, 1, 3, 8888, 1, 1, 11, 0}, {1, 3, 6, 1, 3, 8888, 1, 1, 12, 0}, {1, 3, 6, 1, 3, 8888, 1, 1, 15, 0}, {1, 3, 6, 1, 3, 8888, 1, 1, 16, 0}, {1, 3, 6, 1, 3, 8888, 1, 1, 18, 0}};
+static char *oidStringRequest[] = {"RequestMapID.", "RequestStatisticsID.", "SavingMode.", "StartTime.", "WaitTime.", "DurationTime.", "ExpireTime.", "MaxNOfSamples.", "LoopMode.", "RequestUser."};
+static char *typesRequest = "uuissssuis";
+
+#define EditNumber 4
+#define EditOid 10
+static oid oidListEditRequest[EditNumber][EditOid] = {{1, 3, 6, 1, 3, 8888, 1, 1, 5, 0}, {1, 3, 6, 1, 3, 8888, 1, 1, 15, 0}, {1, 3, 6, 1, 3, 8888, 1, 1, 16, 0}, {1, 3, 6, 1, 3, 8888, 1, 1, 17, 0}};
+static char *oidStringEditRequest[] = {"SavingMode.", "MaxNOfSamples.", "LoopMode.", "Status."};
 static char *typesEditRequest = "uuuu";
 
 typedef struct table_contents
@@ -119,3 +127,5 @@ void viewTables(netsnmp_session session, netsnmp_session *ss);
 void activeErrors(netsnmp_session session, netsnmp_session *ss);
 /*This function send a new command into the system*/
 void sendCommand(netsnmp_session session, netsnmp_session *ss);
+/*This function send a new request into the system*/
+void sendRequest(netsnmp_session session, netsnmp_session *ss);

@@ -100,7 +100,7 @@ int main(int argc, char **argv)
             break;
         case 1:
             /*Create new Request*/
-            printf("\nTODO\n");
+            sendRequest(session, ss);
             printf("\n\n");
             break;
         case 2:

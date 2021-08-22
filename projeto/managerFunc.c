@@ -1,4 +1,19 @@
 #include "managerFunc.h"
+/*Simple function to strip '\n' from stdin*/
+void fflush_stdin()
+{
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF)
+        ;
+}
+/*Simple function that checks if a given string is a valid number*/
+int isNumber(char s[])
+{
+    for (int i = 0; s[i] != '\0'; i++)
+        if (isdigit(s[i]) == 0)
+            return 0;
+    return 1;
+}
 /*This function the menu that so the user can choose which tables to view*/
 void viewTablesMenu()
 {
@@ -18,7 +33,6 @@ void viewTablesMenu()
     printf("*Exit                       -0 *\n");
     printf("********************************\n");
 }
-
 /*This function will append vars to linked list tc*/
 void appendContent(table_contents **tc, netsnmp_variable_list *vars)
 {
@@ -535,12 +549,8 @@ void sendCommand(netsnmp_session session, netsnmp_session *ss)
     int orig_config_val_bv = netsnmp_ds_get_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_PRINT_BARE_VALUE);
     netsnmp_ds_set_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_QUICK_PRINT, 1);
     netsnmp_ds_set_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_PRINT_BARE_VALUE, 1);
-    /*Get the contents of commandTable and commandTemplateTable*/
-    bulkget(session, ss, commandTableOid, OID_LENGTH(commandTableOid), &command);
+    /*Get the contents of commandTemplateTable*/
     bulkget(session, ss, commandTemplateTableOid, OID_LENGTH(commandTemplateTableOid), &commandTemplate);
-    /*Reset configs to original values*/
-    netsnmp_ds_set_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_QUICK_PRINT, orig_config_val_qp);
-    netsnmp_ds_set_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_PRINT_BARE_VALUE, orig_config_val_bv);
     /*These will be used to store the heads of commandTemplate and command*/
     table_contents *headCT = commandTemplate;
     table_contents *headC = command;
@@ -616,28 +626,11 @@ void sendCommand(netsnmp_session session, netsnmp_session *ss)
         free(com->target);
         free(com);
     }
-    commandTemplate = headCT;
-    command = headC;
-    /*tmp will be used to free memory of command and commandTemplate*/
-    table_contents *tmp;
-    while (command != NULL)
-    {
-        tmp = command;
-        command = command->next;
-        free(tmp);
-    }
-    while (commandTemplate != NULL)
-    {
-        tmp = commandTemplate;
-        commandTemplate = commandTemplate->next;
-        free(tmp);
-    }
-    printf("\n");
     /****************************************** Get User Input ******************************************/
     int templateID;
     int input;
     int aux;
-    printf("Choose template to be used:");
+    printf("\nChoose template to be used:");
     aux = scanf("%d", &templateID);
     printf("Insert Input:");
     aux = scanf("%d", &input);
@@ -647,6 +640,7 @@ void sendCommand(netsnmp_session session, netsnmp_session *ss)
     char strInput[sizeof(int) * 4 + 1];
     sprintf(strInput, "%d", input);
     /*Get next free index of commandTable*/
+    bulkget(session, ss, commandTableOid, OID_LENGTH(commandTableOid), &command);
     int commandIndex = 0;
     if (command)
     {
@@ -697,5 +691,210 @@ void sendCommand(netsnmp_session session, netsnmp_session *ss)
     }
     free(modOidString);
     free(modOidList);
+    commandTemplate = headCT;
+    command = headC;
+    /*tmp will be used to free memory of command and commandTemplate*/
+    table_contents *tmp;
+    while (command != NULL)
+    {
+        tmp = command;
+        command = command->next;
+        free(tmp);
+    }
+    while (commandTemplate != NULL)
+    {
+        tmp = commandTemplate;
+        commandTemplate = commandTemplate->next;
+        free(tmp);
+    }
+    /*Reset configs to original values*/
+    netsnmp_ds_set_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_QUICK_PRINT, orig_config_val_qp);
+    netsnmp_ds_set_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_PRINT_BARE_VALUE, orig_config_val_bv);
+    return;
+}
+
+void sendRequest(netsnmp_session session, netsnmp_session *ss)
+{
+    /*requests will be used to find the ID with which to use set command*/
+    table_contents *mapType = NULL;
+    table_contents *genericTypes = NULL;
+    table_contents *requests = NULL;
+    /*These configs will make contents of struct mapType->data and genericTypes->data more easy to use*/
+    int orig_config_val_qp = netsnmp_ds_get_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_QUICK_PRINT);
+    int orig_config_val_bv = netsnmp_ds_get_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_PRINT_BARE_VALUE);
+    netsnmp_ds_set_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_QUICK_PRINT, 1);
+    netsnmp_ds_set_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_PRINT_BARE_VALUE, 1);
+    /*Get the contents of mapTypeTable and genericTypesTable*/
+    bulkget(session, ss, mapTypeTableOid, OID_LENGTH(mapTypeTableOid), &mapType);
+    bulkget(session, ss, genericTypesTableOid, OID_LENGTH(genericTypesTableOid), &genericTypes);
+
+    /*These will be used to store the heads of mapType and genericTypes*/
+    table_contents *headMT = mapType;
+    table_contents *headGT = genericTypes;
+    printf("\n");
+    /*Print ECUS with their description*/
+
+    /*Na segunda volta dá doublefree, idk why
+      Tmb nao insere direito na segunda volta*/
+
+    /*When ECU is chosen, print the mapType id alongisde name and description of its sensors*/
+    printf("\n");
+    /****************************************** Get User Input ******************************************/
+    char requestMapID[9] = {0};
+    char statisticsID[2] = {0};
+    char savingMode[2] = {0};
+    char maxNOfSamples[1024] = {0};
+    char loopMode[2] = {0};
+    char startTime[9] = {0};
+    char waitTime[9] = {0};
+    char durationTime[9] = {0};
+    char expireTime[9] = {0};
+    char user[1024] = {0};
+    int aux;
+    fflush_stdin();
+    while (printf("Choose sensor:") && scanf("%8[^\n]%*c", requestMapID) < 1)
+        fflush_stdin();
+    if (isNumber(requestMapID) == 0)
+    {
+        printf("Please insert an digit\n");
+        return;
+    }
+    while (printf("Do you want statistics?(0=No,1=Yes): ") && scanf("%1[^\n]%*c", statisticsID) < 1)
+        fflush_stdin();
+    if (isNumber(statisticsID) == 0)
+    {
+        printf("Please insert an digit\n");
+        return;
+    }
+    while (printf("Choose Saving Mode(0=Permanent,1=Volatile): ") && scanf("%1[^\n]%*c", savingMode) < 1)
+        fflush_stdin();
+    if (isNumber(savingMode) == 0)
+    {
+        printf("Please insert an digit\n");
+        return;
+    }
+
+    /*Get time inputs*/
+    printf("Please indicate start time in the following format 12:00:00 (empty for current system time): ");
+    aux = scanf("%8[^\n]%*c", startTime);
+    fflush_stdin();
+
+    printf("Please indicate wait time in the following format 12:00:00 (empty for no waitTime): ");
+    aux = scanf("%8[^\n]%*c", waitTime);
+    if (strcmp(waitTime, "") == 0)
+        strcpy(waitTime, "00:00:00");
+    fflush_stdin();
+
+    printf("Please indicate duration time in the following format 12:00:00 (empty for 10 minutes duration): ");
+    aux = scanf("%8[^\n]%*c", durationTime);
+    if (strcmp(durationTime, "") == 0)
+        strcpy(durationTime, "00:10:00");
+    fflush_stdin();
+
+    printf("Please indicate expire time in the following format 12:00:00 (empty for 10 minutes expiration): ");
+    aux = scanf("%8[^\n]%*c", expireTime);
+    if (strcmp(expireTime, "") == 0)
+        strcpy(expireTime, "00:10:00");
+    fflush_stdin();
+
+    printf("Indicate maximum number of samples to be recorded (default is 50): ");
+    aux = scanf("%1023[^\n]%*c", maxNOfSamples);
+    fflush_stdin();
+    if (strcmp(maxNOfSamples, "") == 0 || isNumber(maxNOfSamples) == 0)
+        strcpy(maxNOfSamples, "50");
+
+    while (printf("Should this request restart once it's over?(1=Yes,2=No): ") && scanf("%1[^\n]%*c", loopMode) < 1)
+        fflush_stdin();
+    if (isNumber(loopMode) == 0)
+    {
+        printf("Please insert an digit\n");
+        return;
+    }
+
+    printf("Indicate username(Default is manager username): ");
+    aux = scanf("%1023[^\n]%*c", user);
+    if (strcmp(user, "") == 0)
+        strcpy(user, "snmpadmin");
+
+    /*Get next free index of requestMonitoringDataTable*/
+    int requestIndex = 0;
+    bulkget(session, ss, requestMonitoringDataTableOid, OID_LENGTH(requestMonitoringDataTableOid), &requests);
+    table_contents *headR = requests;
+    if (requests)
+    {
+        while (requests)
+        {
+            if (requestIndex <= requests->data->name[requests->data->name_length - 1])
+            {
+                requestIndex = requests->data->name[requests->data->name_length - 1] + 1;
+            }
+            requests = requests->next;
+        }
+    }
+    printf("ID %d\n", requestIndex);
+    char strIndex[sizeof(int) * 4 + 1];
+    sprintf(strIndex, "%d", requestIndex);
+    char *values[] = {requestMapID, statisticsID, savingMode, startTime, waitTime, durationTime, expireTime, maxNOfSamples, loopMode, user};
+    /****************************************** Send Request ******************************************/
+    /*Prep modOidList: copy oidListRequest to it and add the index to every item of the list*/
+    oid **modOidList = malloc(RequestNumber * sizeof(oid *));
+    for (int i = 0; i < RequestNumber; i++)
+    {
+        modOidList[i] = malloc(sizeof(oid) * RequestOid);
+        for (int j = 0; j < RequestOid; j++)
+            modOidList[i][j] = oidListRequest[i][j];
+        modOidList[i][RequestOid] = requestIndex;
+    }
+    /*Prep modOidString: copy oidStringRequest to it and add the index to every item of the list*/
+    char **modOidString;
+    modOidString = malloc(RequestNumber * sizeof(char *));
+    for (int i = 0; i < RequestNumber; i++)
+    {
+        modOidString[i] = malloc(sizeof(char) * strlen(oidStringRequest[i]) + strlen(strIndex));
+        strcpy(modOidString[i], oidStringRequest[i]);
+        strcat(modOidString[i], strIndex);
+    }
+    /*Rootlength is needed, for this table its set as 10 which is the number of sub-ids*/
+    size_t *rootlen = malloc(sizeof(size_t *) * RequestNumber);
+    for (int i = 0; i < RequestNumber; i++)
+    {
+        rootlen[i] = RequestOid;
+    }
+    int res = set(session, ss, modOidList, rootlen, modOidString, typesRequest, values, RequestNumber);
+    /****************************************** Free Allocated Memory ******************************************/
+    free(rootlen);
+    for (int i = 0; i < RequestNumber; i++)
+    {
+        free(modOidString[i]);
+        free(modOidList[i]);
+    }
+    free(modOidString);
+    free(modOidList);
+    mapType = headMT;
+    genericTypes = headGT;
+    requests = headR;
+    /*tmp will be used to free memory of mapType, genericTypes and requests*/
+    table_contents *tmp;
+    while (requests != NULL)
+    {
+        tmp = requests;
+        requests = requests->next;
+        free(requests);
+    }
+    while (mapType != NULL)
+    {
+        tmp = mapType;
+        mapType = mapType->next;
+        free(tmp);
+    }
+    while (genericTypes != NULL)
+    {
+        tmp = genericTypes;
+        genericTypes = genericTypes->next;
+        free(tmp);
+    }
+    /*Reset configs to original values*/
+    netsnmp_ds_set_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_QUICK_PRINT, orig_config_val_qp);
+    netsnmp_ds_set_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_PRINT_BARE_VALUE, orig_config_val_bv);
     return;
 }
