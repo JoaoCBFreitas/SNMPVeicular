@@ -5,9 +5,10 @@ void printMenu()
     printf("***********************\n");
     printf("*Create New Request -1*\n");
     printf("*View Requests      -2*\n");
-    printf("*View Tables        -3*\n");
-    printf("*View Active Errors -4*\n");
-    printf("*Send Command       -5*\n");
+    printf("*Edit Requests      -3*\n");
+    printf("*View Tables        -4*\n");
+    printf("*View Active Errors -5*\n");
+    printf("*Send Command       -6*\n");
     printf("*Exit               -0*\n");
     printf("***********************\n");
 }
@@ -105,20 +106,25 @@ int main(int argc, char **argv)
             break;
         case 2:
             /*View Requests*/
-            printf("\nTODO\n");
+            viewRequests(session, ss);
             printf("\n\n");
             break;
         case 3:
+            /*Edit Request*/
+            printf("\nTODO\n");
+            printf("\n\n");
+            break;
+        case 4:
             /*View Tables*/
             viewTables(session, ss);
             printf("\n\n");
             break;
-        case 4:
+        case 5:
             /*View Active Errors*/
             activeErrors(session, ss);
             printf("\n\n");
             break;
-        case 5:
+        case 6:
             /*Send Command*/
             sendCommand(session, ss);
             printf("\n\n");

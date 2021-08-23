@@ -64,6 +64,34 @@ void appendErrors(active_errors **ae, active_errors *ce)
     last->next = ce;
     return;
 }
+/*This function will append an map_type node ce to linked list ae*/
+void appendMapType(map_type **ae, map_type *ce)
+{
+    map_type *last = *ae;
+    if (*ae == NULL)
+    {
+        *ae = ce;
+        return;
+    }
+    while (last->next != NULL)
+        last = last->next;
+    last->next = ce;
+    return;
+}
+/*This function will append an map_type node ce to linked list ae*/
+void appendRequests(active_requests **ae, active_requests *ce)
+{
+    active_requests *last = *ae;
+    if (*ae == NULL)
+    {
+        *ae = ce;
+        return;
+    }
+    while (last->next != NULL)
+        last = last->next;
+    last->next = ce;
+    return;
+}
 /*This function will append an command_template in to linked list ct*/
 void appendCommand(command_template **ct, command_template *in)
 {
@@ -446,12 +474,6 @@ void activeErrors(netsnmp_session session, netsnmp_session *ss)
             }
             switch (error->data->name[error->data->name_length - 2])
             {
-            case 1:
-                /*Index*/
-                ce->index = malloc(sizeof(char) * 10);
-                snprint_value(ce->index, 10, error->data->name, error->data->name_length, error->data);
-                strcat(ce->index, "\0");
-                break;
             case 2:
                 /*TimeStamp*/
                 ce->timestamp = malloc(1 + error->data->val_len);
@@ -528,8 +550,7 @@ void activeErrors(netsnmp_session session, netsnmp_session *ss)
         /*Traverse active_errors, print the contents of every node and then free the memory */
         errors = ae;
         ae = ae->next;
-        printf("Error %s=[%s] EC%s[%s] User[%s]\n", errors->index, errors->timestamp, errors->errorCode, errors->errorDesc, errors->username);
-        free(errors->index);
+        printf("Error %d=[%s] EC%s[%s] User[%s]\n", errors->id, errors->timestamp, errors->errorCode, errors->errorDesc, errors->username);
         free(errors->timestamp);
         free(errors->errorCode);
         free(errors->errorDesc);
@@ -627,18 +648,23 @@ void sendCommand(netsnmp_session session, netsnmp_session *ss)
         free(com);
     }
     /****************************************** Get User Input ******************************************/
-    int templateID;
-    int input;
-    int aux;
-    printf("\nChoose template to be used:");
-    aux = scanf("%d", &templateID);
-    printf("Insert Input:");
-    aux = scanf("%d", &input);
-    /*Convert from integer to string so it can be sent over snmpset*/
-    char strTemplate[sizeof(int) * 4 + 1];
-    sprintf(strTemplate, "%d", templateID);
-    char strInput[sizeof(int) * 4 + 1];
-    sprintf(strInput, "%d", input);
+    char templateID[3] = {0};
+    char input[3] = {0};
+    fflush_stdin();
+    while (printf("Choose Template: ") && scanf("%2[^\n]%*c", templateID) < 1)
+        fflush_stdin();
+    if (isNumber(templateID) == 0)
+    {
+        printf("Please insert an digit\n");
+        return;
+    }
+    while (printf("Insert Input:") && scanf("%2[^\n]%*c", input) < 1)
+        fflush_stdin();
+    if (isNumber(input) == 0)
+    {
+        printf("Please inseert an digit\n");
+        return;
+    }
     /*Get next free index of commandTable*/
     bulkget(session, ss, commandTableOid, OID_LENGTH(commandTableOid), &command);
     int commandIndex = 0;
@@ -655,7 +681,7 @@ void sendCommand(netsnmp_session session, netsnmp_session *ss)
     }
     char strIndex[sizeof(int) * 4 + 1];
     sprintf(strIndex, "%d", commandIndex);
-    char *values[] = {strTemplate, strInput, "snmpadmin"};
+    char *values[] = {templateID, input, session.securityName};
     /****************************************** Send Command ******************************************/
     /*Prep modOidList: copy oidListCommand to it and add the index to every item of the list*/
     oid **modOidList = malloc(CommandNumber * sizeof(oid *));
@@ -664,7 +690,7 @@ void sendCommand(netsnmp_session session, netsnmp_session *ss)
         modOidList[i] = malloc(sizeof(oid) * CommandOid);
         for (int j = 0; j < CommandOid; j++)
             modOidList[i][j] = oidListCommand[i][j];
-        modOidList[i][CommandOid] = commandIndex;
+        modOidList[i][CommandOid - 1] = commandIndex;
     }
     /*Prep modOidString: copy oidStringCommand to it and add the index to every item of the list*/
     char **modOidString;
@@ -719,6 +745,8 @@ void sendRequest(netsnmp_session session, netsnmp_session *ss)
     table_contents *mapType = NULL;
     table_contents *genericTypes = NULL;
     table_contents *requests = NULL;
+    map_type *mapList = NULL;
+    map_type *currMap;
     /*These configs will make contents of struct mapType->data and genericTypes->data more easy to use*/
     int orig_config_val_qp = netsnmp_ds_get_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_QUICK_PRINT);
     int orig_config_val_bv = netsnmp_ds_get_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_PRINT_BARE_VALUE);
@@ -732,11 +760,88 @@ void sendRequest(netsnmp_session session, netsnmp_session *ss)
     table_contents *headMT = mapType;
     table_contents *headGT = genericTypes;
     printf("\n");
-    /*Print ECUS with their description*/
-
-    /*Na segunda volta dá doublefree, idk why
-      Tmb nao insere direito na segunda volta*/
-
+    /******************Print Signal names, their IDs and description*******************/
+    if (mapType)
+    {
+        while (mapType)
+        {
+            int currentIndex = mapType->data->name[mapType->data->name_length - 1];
+            map_type *head = mapList;
+            currMap = NULL;
+            if (mapList)
+            {
+                /*search for node with current Index*/
+                while (mapList)
+                {
+                    /*Node found*/
+                    if (mapList->id == currentIndex)
+                    {
+                        currMap = mapList;
+                        break;
+                    }
+                    mapList = mapList->next;
+                }
+                mapList = head;
+            }
+            if (!mapList || !currMap)
+            {
+                /*Either there's no node in the linked list or node was not found, either way append new node*/
+                currMap = (map_type *)malloc(sizeof(map_type));
+                currMap->id = currentIndex;
+                currMap->next = NULL;
+                appendMapType(&mapList, currMap);
+            }
+            switch (mapType->data->name[mapType->data->name_length - 2])
+            {
+            case 3:
+                /*Obtain typeDescription description from genericTypeTable using genericMapTypeID*/
+                currMap->descriptionID = *mapType->data->val.integer;
+                table_contents *headtc = genericTypes;
+                while (genericTypes)
+                {
+                    /*Compare descriptionID with the index of the entry*/
+                    if (currMap->descriptionID == genericTypes->data->name[genericTypes->data->name_length - 1])
+                    {
+                        /*genericTypes->data->name[genericTypes->data->name_length - 2] equals the column*/
+                        if (genericTypes->data->name[genericTypes->data->name_length - 2] == 2)
+                        {
+                            /*Get generic type description*/
+                            currMap->description = malloc(1 + genericTypes->data->val_len);
+                            memcpy(currMap->description, genericTypes->data->val.string, genericTypes->data->val_len);
+                            currMap->description[genericTypes->data->val_len] = '\0';
+                        }
+                    }
+                    genericTypes = genericTypes->next;
+                }
+                /*Go back to head of list*/
+                genericTypes = headtc;
+                break;
+            case 8:
+                /*DataSource*/
+                currMap->name = malloc(1 + mapType->data->val_len);
+                memcpy(currMap->name, mapType->data->val.string, mapType->data->val_len);
+                currMap->name[mapType->data->val_len] = '\0';
+                break;
+            default:
+                break;
+            }
+            mapType = mapType->next;
+        }
+    }
+    else
+        printf("No active Map Type Entries found\n");
+    map_type *mtaux;
+    while (mapList != NULL)
+    {
+        /*Traverse mapList, print the contents of every node and free the memory*/
+        mtaux = mapList;
+        mapList = mapList->next;
+        printf("%d [%s]\n", mtaux->id, mtaux->name);
+        printf("\t%s\n", mtaux->description);
+        free(mtaux->name);
+        free(mtaux->description);
+        free(mtaux);
+    }
     /*When ECU is chosen, print the mapType id alongisde name and description of its sensors*/
     printf("\n");
     /****************************************** Get User Input ******************************************/
@@ -814,7 +919,7 @@ void sendRequest(netsnmp_session session, netsnmp_session *ss)
     printf("Indicate username(Default is manager username): ");
     aux = scanf("%1023[^\n]%*c", user);
     if (strcmp(user, "") == 0)
-        strcpy(user, "snmpadmin");
+        strcpy(user, session.securityName);
 
     /*Get next free index of requestMonitoringDataTable*/
     int requestIndex = 0;
@@ -831,7 +936,6 @@ void sendRequest(netsnmp_session session, netsnmp_session *ss)
             requests = requests->next;
         }
     }
-    printf("ID %d\n", requestIndex);
     char strIndex[sizeof(int) * 4 + 1];
     sprintf(strIndex, "%d", requestIndex);
     char *values[] = {requestMapID, statisticsID, savingMode, startTime, waitTime, durationTime, expireTime, maxNOfSamples, loopMode, user};
@@ -843,7 +947,7 @@ void sendRequest(netsnmp_session session, netsnmp_session *ss)
         modOidList[i] = malloc(sizeof(oid) * RequestOid);
         for (int j = 0; j < RequestOid; j++)
             modOidList[i][j] = oidListRequest[i][j];
-        modOidList[i][RequestOid] = requestIndex;
+        modOidList[i][RequestOid - 1] = requestIndex;
     }
     /*Prep modOidString: copy oidStringRequest to it and add the index to every item of the list*/
     char **modOidString;
@@ -879,7 +983,7 @@ void sendRequest(netsnmp_session session, netsnmp_session *ss)
     {
         tmp = requests;
         requests = requests->next;
-        free(requests);
+        free(tmp);
     }
     while (mapType != NULL)
     {
@@ -891,6 +995,183 @@ void sendRequest(netsnmp_session session, netsnmp_session *ss)
     {
         tmp = genericTypes;
         genericTypes = genericTypes->next;
+        free(tmp);
+    }
+    /*Reset configs to original values*/
+    netsnmp_ds_set_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_QUICK_PRINT, orig_config_val_qp);
+    netsnmp_ds_set_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_PRINT_BARE_VALUE, orig_config_val_bv);
+    return;
+}
+
+void viewRequests(netsnmp_session session, netsnmp_session *ss)
+{
+    /*requests will be used to find the ID with which to use set command*/
+    table_contents *reqMonitor = NULL;
+    table_contents *samples = NULL;
+    table_contents *maptype = NULL;
+    table_contents *statistics = NULL;
+    table_contents *sampleUnits = NULL;
+    active_requests *ar = NULL;
+    active_requests *cr;
+    /*These configs will make contents of struct reqMonitor->data easier to use*/
+    int orig_config_val_qp = netsnmp_ds_get_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_QUICK_PRINT);
+    int orig_config_val_bv = netsnmp_ds_get_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_PRINT_BARE_VALUE);
+    netsnmp_ds_set_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_QUICK_PRINT, 1);
+    netsnmp_ds_set_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_PRINT_BARE_VALUE, 1);
+    /*Get the contents of requestMonitoringDataTable, mapTypeTable and sampleUnitsTable*/
+    bulkget(session, ss, requestMonitoringDataTableOid, OID_LENGTH(requestMonitoringDataTableOid), &reqMonitor);
+    bulkget(session, ss, mapTypeTableOid, OID_LENGTH(mapTypeTableOid), &maptype);
+    bulkget(session, ss, sampleUnitsTableOid, OID_LENGTH(sampleUnitsTableOid), &sampleUnits);
+
+    /*These will be used to store the heads of reqMonitor, mapType and sampleUnits*/
+    table_contents *headRE = reqMonitor;
+    table_contents *headSU = sampleUnits;
+    table_contents *headMT = maptype;
+    printf("\n");
+    /******************Print Signal names, their IDs and description*******************/
+    if (reqMonitor)
+    {
+        while (reqMonitor)
+        {
+            int currentIndex = reqMonitor->data->name[reqMonitor->data->name_length - 1];
+            active_requests *head = ar;
+            cr = NULL;
+            if (ar)
+            {
+                /*search for node with current Index*/
+                while (ar)
+                {
+                    /*Node found*/
+                    if (ar->id == currentIndex)
+                    {
+                        cr = ar;
+                        break;
+                    }
+                    ar = ar->next;
+                }
+                ar = head;
+            }
+            if (!ar || !cr)
+            {
+                /*Either there's no node in the linked list or node was not found, either way append new node*/
+                cr = (active_requests *)malloc(sizeof(active_requests));
+                cr->id = currentIndex;
+                cr->next = NULL;
+                appendRequests(&ar, cr);
+            }
+            switch (reqMonitor->data->name[reqMonitor->data->name_length - 2])
+            {
+            case 3:
+                /*requestMapID && signal && sampleUnit*/
+                cr->mapTypeID = *reqMonitor->data->val.integer;
+                table_contents *headtc = maptype;
+                while (maptype)
+                {
+                    /*Compare indexError with the index of the entry*/
+                    if (cr->mapTypeID == maptype->data->name[maptype->data->name_length - 1])
+                    {
+                        /*maptype->data->name[maptype->data->name_length - 2] equals the column*/
+                        if (maptype->data->name[maptype->data->name_length - 2] == 4)
+                        {
+                            /*Get sampleUnitMapID*/
+                            cr->sampleUnitID = *maptype->data->val.integer;
+                        }
+                        if (maptype->data->name[maptype->data->name_length - 2] == 8)
+                        {
+                            /*Get dataSource*/
+                            cr->signal = malloc(1 + maptype->data->val_len);
+                            memcpy(cr->signal, maptype->data->val.string, maptype->data->val_len);
+                            cr->signal[maptype->data->val_len] = '\0';
+                        }
+                    }
+                    maptype = maptype->next;
+                }
+                /*Go back to head of list*/
+                maptype = headtc;
+                /*Get sample unit*/
+                headtc = sampleUnits;
+                while (sampleUnits)
+                {
+                    if (cr->sampleUnitID == sampleUnits->data->name[sampleUnits->data->name_length - 1])
+                    {
+                        if (sampleUnits->data->name[sampleUnits->data->name_length - 2] == 2)
+                        {
+                            /*Get unitDescription*/
+                            cr->unit = malloc(1 + sampleUnits->data->val_len);
+                            memcpy(cr->unit, sampleUnits->data->val.string, sampleUnits->data->val_len);
+                            cr->unit[sampleUnits->data->val_len] = '\0';
+                        }
+                    }
+                    sampleUnits = sampleUnits->next;
+                }
+                sampleUnits = headtc;
+                break;
+            case 4:
+                /*requestStatisticsID*/
+                cr->statisticsID = *reqMonitor->data->val.integer;
+                break;
+            case 13:
+                /*lastsampleID*/
+                cr->lastSampleID = *reqMonitor->data->val.integer;
+                break;
+            case 14:
+                /*Number of Samples*/
+                cr->nOfSamples = *reqMonitor->data->val.integer;
+                break;
+            default:
+                break;
+            }
+            reqMonitor = reqMonitor->next;
+        }
+    }
+    else
+        printf("No active Requests found\n");
+    printf("\n");
+    if (ar)
+    {
+        /*Print active requests*/
+        active_requests *aux;
+        active_requests *head = ar;
+        printf("ID->SignalName [Number of Samples]\n");
+        while (ar != NULL)
+        {
+            aux = ar;
+            ar = ar->next;
+            printf("\t%d->%s [%d]\n", aux->id, aux->signal, aux->nOfSamples);
+        }
+        ar = head;
+        /*Choose request and free memory of ar*/
+        while (ar != NULL)
+        {
+            aux = ar;
+            ar = ar->next;
+            free(aux->unit);
+            free(aux);
+        }
+        /*Get samples*/
+        /*Print request contents*/
+    }
+    reqMonitor = headRE;
+    sampleUnits = headSU;
+    maptype = headMT;
+    /*tmp will be used to free memory of reqMonitor,sampleUnits,statistics and samples*/
+    table_contents *tmp;
+    while (sampleUnits != NULL)
+    {
+        tmp = sampleUnits;
+        sampleUnits = sampleUnits->next;
+        free(tmp);
+    }
+    while (maptype != NULL)
+    {
+        tmp = maptype;
+        maptype = maptype->next;
+        free(tmp);
+    }
+    while (reqMonitor != NULL)
+    {
+        tmp = reqMonitor;
+        reqMonitor = reqMonitor->next;
         free(tmp);
     }
     /*Reset configs to original values*/

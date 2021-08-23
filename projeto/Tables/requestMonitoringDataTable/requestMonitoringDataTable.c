@@ -1028,63 +1028,7 @@ requestMonitoringDataTable_get(const char *name, int len)
  */
 void init_requestMonitoringDataTable(void)
 {
-    requestMonitoringDataTable_context *ctx;
-    netsnmp_index index;
-    oid index_oid[2];
     initialize_table_requestMonitoringDataTable();
-
-    requestMonitoringStruct *req = (requestMonitoringStruct *)malloc(sizeof(requestMonitoringStruct));
-    req->reqID = 0;
-    /*1894 até 1901*/
-    req->requestMapID = 1898;
-    req->statisticsRequestID = 1;
-    req->savingMode = 0;
-    req->sampleFreq = 10;
-    req->maxDelay = -10;
-    req->waitTime = "00:00:00";
-    req->durationTime = "01:00:00";
-    req->expireTime = "02:00:00";
-    time_t t = time(NULL);
-    struct tm *tm = localtime(&t);
-    char s[100];
-    char s1[100];
-    snprintf(s, 100, "%02d/%02d/%04d %02d:%02d:%02d", tm->tm_mday, tm->tm_mon + 1, tm->tm_year + 1900, tm->tm_hour, tm->tm_min, tm->tm_sec);
-    req->startTime = malloc(sizeof(char) * strlen(s));
-    strcpy(req->startTime, s);
-    char *hour = malloc(sizeof(char) * 3);
-    char *min = malloc(sizeof(char) * 3);
-    strncpy(hour, req->durationTime, 2);
-    strncpy(min, req->durationTime + 3, 2);
-    min[2] = '\0';
-    hour[2] = '\0';
-    struct tm *tm2 = (struct tm *)malloc(sizeof(struct tm));
-    tm2 = deepCopyTM(tm, tm2);
-    tm2 = addToTime(tm2, atoi(hour), atoi(min));
-    snprintf(s1, 100, "%02d/%02d/%04d %02d:%02d:%02d", tm2->tm_mday, tm2->tm_mon + 1, tm2->tm_year + 1900, tm2->tm_hour, tm2->tm_min, tm2->tm_sec);
-    req->endTime = malloc(sizeof(char) * strlen(s1));
-    strcpy(req->endTime, s1);
-    free(hour);
-    free(min);
-    free(tm2);
-    req->maxNofSamples = 10;
-    req->lastSampleID = 0;
-    req->loopmode = 2;
-    req->nofSamples = 0;
-    req->status = 2;
-    req->requestUser = "Utilizador teste";
-    index_oid[0] = 0;
-    index.oids = (oid *)&index_oid;
-    index.len = 1;
-    ctx = NULL;
-    /* Search for it first. */
-    ctx = CONTAINER_FIND(cb.container, &index);
-    if (!ctx)
-    {
-        // No dice. We add the new row
-        ctx = requestMonitoringDataTable_create_row(&index, req);
-        CONTAINER_INSERT(cb.container, ctx);
-    }
-    free(req);
 }
 
 /**

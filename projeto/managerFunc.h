@@ -105,22 +105,52 @@ typedef struct table_contents
 typedef struct active_errors
 {
   struct active_errors *next;
-  int id;
-  char *index;
-  int indexError;
-  char *timestamp;
-  char *errorDesc;
-  char *errorCode;
-  char *username;
+  int id;          /*ErrorID*/
+  int indexError;  /*ErrorDescriptionID*/
+  char *timestamp; /*timestamp*/
+  char *errorDesc; /*error description*/
+  char *errorCode; /*error code*/
+  char *username;  /*username*/
 } active_errors;
 
 typedef struct command_template
 {
   struct command_template *next;
-  int id;
-  char *descr;
-  char *target;
+  int id;       /*Command ID*/
+  char *descr;  /*Description of the command*/
+  char *target; /*Target node*/
 } command_template;
+typedef struct map_type
+{
+  struct map_type *next;
+  int descriptionID; /*genericMapID*/
+  char *description; /*description*/
+  char *name;        /*name of signal, (ECU:signalname)*/
+  int id;            /*maptypeid*/
+} map_type;
+
+typedef struct active_requests
+{
+  int id;           /*requestMonitoringID*/
+  int mapTypeID;    /*mapTypeID*/
+  char *signal;     /*data source*/
+  int sampleUnitID; /*id of sampleUnit*/
+  char *unit;       /*sampleUnit*/
+  int nOfSamples;   /*nOfSamples*/
+  int statisticsID;
+  int lastSampleID;
+  struct active_requests *next;
+} active_requests;
+typedef struct chosen_request
+{
+  int id;         /*requestMonitoringID*/
+  char *unit;     /*sampleUnit*/
+  int statistics; /*whether or not this request has statistics enabled*/
+  int min;        /*statisticstable min*/
+  int max;        /*statisticstable max*/
+  int avg;        /*statisticstable average*/
+  int *samples;   /*list of samples associated with this request*/
+} chosen_request;
 /*This function will, based on user input, send bulkget requests to the agent so as to obtain table contents*/
 void viewTables(netsnmp_session session, netsnmp_session *ss);
 /*This function will display all currently active errors in the system*/
@@ -129,3 +159,5 @@ void activeErrors(netsnmp_session session, netsnmp_session *ss);
 void sendCommand(netsnmp_session session, netsnmp_session *ss);
 /*This function send a new request into the system*/
 void sendRequest(netsnmp_session session, netsnmp_session *ss);
+/*This function will allow a user to list all information regarding a specific request*/
+void viewRequests(netsnmp_session session, netsnmp_session *ss);
