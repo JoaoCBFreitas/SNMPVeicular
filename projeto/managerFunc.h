@@ -139,6 +139,7 @@ typedef struct active_requests
   int nOfSamples;   /*nOfSamples*/
   int statisticsID;
   int lastSampleID;
+  char *username;
   struct active_requests *next;
 } active_requests;
 typedef struct chosen_request
@@ -150,6 +151,9 @@ typedef struct chosen_request
   int max;        /*statisticstable max*/
   int avg;        /*statisticstable average*/
   int *samples;   /*list of samples associated with this request*/
+  char *username;
+  char *signal;
+  int nOfSamples;
 } chosen_request;
 /*This function will, based on user input, send bulkget requests to the agent so as to obtain table contents*/
 void viewTables(netsnmp_session session, netsnmp_session *ss);

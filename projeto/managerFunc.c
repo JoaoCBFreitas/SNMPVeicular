@@ -904,7 +904,6 @@ void sendRequest(netsnmp_session session, netsnmp_session *ss)
 
     printf("Indicate maximum number of samples to be recorded (default is 50): ");
     aux = scanf("%1023[^\n]%*c", maxNOfSamples);
-    fflush_stdin();
     if (strcmp(maxNOfSamples, "") == 0 || isNumber(maxNOfSamples) == 0)
         strcpy(maxNOfSamples, "50");
 
@@ -1118,6 +1117,11 @@ void viewRequests(netsnmp_session session, netsnmp_session *ss)
                 /*Number of Samples*/
                 cr->nOfSamples = *reqMonitor->data->val.integer;
                 break;
+            case 18:
+                /*Request User*/
+                cr->username = malloc(1 + reqMonitor->data->val_len);
+                memcpy(cr->username, reqMonitor->data->val.string, reqMonitor->data->val_len);
+                cr->username[reqMonitor->data->val_len] = '\0';
             default:
                 break;
             }
@@ -1132,15 +1136,113 @@ void viewRequests(netsnmp_session session, netsnmp_session *ss)
         /*Print active requests*/
         active_requests *aux;
         active_requests *head = ar;
-        printf("ID->SignalName [Number of Samples]\n");
+        chosen_request *chr = (chosen_request *)malloc(sizeof(chosen_request));
+        printf("ID->SignalName [Number of Samples] Username\n");
         while (ar != NULL)
         {
             aux = ar;
             ar = ar->next;
-            printf("\t%d->%s [%d]\n", aux->id, aux->signal, aux->nOfSamples);
+            printf("\t%d->%s [%d] %s\n", aux->id, aux->signal, aux->nOfSamples, aux->username);
         }
         ar = head;
-        /*Choose request and free memory of ar*/
+        /*Choose request*/
+        char choice[4] = {0};
+
+        fflush_stdin();
+        while (printf("\nChoose request:") && scanf("%3[^\n]%*c", choice) < 1 && isNumber(choice))
+            fflush_stdin();
+        /*Check if chosen request actually exists*/
+        while (ar != NULL)
+        {
+            if (atoi(choice) == ar->id)
+            {
+                chr->id = ar->id;
+                chr->unit = malloc(sizeof(char) * strlen(ar->unit));
+                strcpy(chr->unit, ar->unit);
+                chr->statistics = ar->statisticsID;
+                chr->avg = 0;
+                chr->max = 0;
+                chr->min = 0;
+                chr->samples = malloc(sizeof(int) * ar->nOfSamples);
+                chr->username = malloc(sizeof(char) * strlen(ar->username));
+                strcpy(chr->username, ar->username);
+                chr->signal = malloc(sizeof(char) * strlen(ar->signal));
+                strcpy(chr->signal, ar->signal);
+                chr->nOfSamples = ar->nOfSamples;
+                /*Get statistics, if it exists*/
+                if (chr->statistics != 0)
+                {
+                    bulkget(session, ss, requestStatisticsDataTableOid, OID_LENGTH(requestStatisticsDataTableOid), &statistics);
+                    table_contents *headST = statistics;
+                    if (statistics)
+                    {
+                        while (statistics)
+                        {
+                            if (chr->statistics == statistics->data->name[statistics->data->name_length - 1])
+                            {
+                                /*statistics->data->name[statistics->data->name_length - 2] equals the column*/
+                                if (statistics->data->name[statistics->data->name_length - 2] == 4)
+                                {
+                                    /*Get minValue*/
+                                    chr->min = *statistics->data->val.integer;
+                                }
+                                if (statistics->data->name[statistics->data->name_length - 2] == 5)
+                                {
+                                    /*Get maxValue*/
+                                    chr->max = *statistics->data->val.integer;
+                                }
+                                if (statistics->data->name[statistics->data->name_length - 2] == 6)
+                                {
+                                    /*Get average Value*/
+                                    chr->avg = *statistics->data->val.integer;
+                                }
+                            }
+                            statistics = statistics->next;
+                        }
+                    }
+                    statistics = headST;
+                }
+                /*Get Samples*/
+                bulkget(session, ss, samplesTableOid, OID_LENGTH(samplesTableOid), &samples);
+                table_contents *headSA = samples;
+                if (samples)
+                {
+                    int count = 0;
+                    int sampleID = ar->lastSampleID;
+                    int auxID;
+                    while (count < ar->nOfSamples)
+                    {
+                        /*We will need to traverse samples N times since it's a linked list and it will start from the back*/
+                        while (samples || sampleID != 0)
+                        {
+                            if (sampleID == samples->data->name[samples->data->name_length - 1])
+                            {
+                                if (samples->data->name[samples->data->name_length - 2] == 5)
+                                {
+                                    /*Get previousSampleID*/
+                                    auxID = *samples->data->val.integer;
+                                }
+                                if (samples->data->name[samples->data->name_length - 2] == 7)
+                                {
+                                    /*Get recordedValue*/
+                                    chr->samples[count] = *samples->data->val.integer;
+                                    sampleID = auxID;
+                                    break;
+                                }
+                            }
+                            samples = samples->next;
+                        }
+                        count++;
+                        samples = headSA;
+                    }
+                }
+                samples = headSA;
+                break;
+            }
+            ar = ar->next;
+        }
+        ar = head;
+        /*Free memory of ar*/
         while (ar != NULL)
         {
             aux = ar;
@@ -1148,8 +1250,26 @@ void viewRequests(netsnmp_session session, netsnmp_session *ss)
             free(aux->unit);
             free(aux);
         }
-        /*Get samples*/
         /*Print request contents*/
+        if (chr)
+        {
+            printf("Request %d made by user \"%s\" on %s\n", chr->id, chr->username, chr->signal);
+            for (int i = 0; i < chr->nOfSamples; i++)
+            {
+                printf("Sample %d: %d %s\n", chr->nOfSamples - i, chr->samples[i], chr->unit);
+            }
+            if (chr->statistics != 0)
+            {
+                printf("Statistics- MIN(%d) MAX(%d) AVERAGE(%d)\n", chr->min, chr->max, chr->avg);
+            }
+            free(chr->signal);
+            free(chr->unit);
+            free(chr->username);
+            free(chr->samples);
+            free(chr);
+        }
+        else
+            printf("Chosen request %s was not found\n", choice);
     }
     reqMonitor = headRE;
     sampleUnits = headSU;
@@ -1172,6 +1292,18 @@ void viewRequests(netsnmp_session session, netsnmp_session *ss)
     {
         tmp = reqMonitor;
         reqMonitor = reqMonitor->next;
+        free(tmp);
+    }
+    while (statistics != NULL)
+    {
+        tmp = statistics;
+        statistics = statistics->next;
+        free(tmp);
+    }
+    while (samples != NULL)
+    {
+        tmp = samples;
+        samples = samples->next;
         free(tmp);
     }
     /*Reset configs to original values*/
