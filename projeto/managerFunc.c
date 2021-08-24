@@ -78,10 +78,24 @@ void appendMapType(map_type **ae, map_type *ce)
     last->next = ce;
     return;
 }
-/*This function will append an map_type node ce to linked list ae*/
+/*This function will append an active_request node ce to linked list ae*/
 void appendRequests(active_requests **ae, active_requests *ce)
 {
     active_requests *last = *ae;
+    if (*ae == NULL)
+    {
+        *ae = ce;
+        return;
+    }
+    while (last->next != NULL)
+        last = last->next;
+    last->next = ce;
+    return;
+}
+/*This function will append an edit_active_requests node ce to linked list ae*/
+void appendEditRequests(edit_active_requests **ae, edit_active_requests *ce)
+{
+    edit_active_requests *last = *ae;
     if (*ae == NULL)
     {
         *ae = ce;
@@ -662,7 +676,7 @@ void sendCommand(netsnmp_session session, netsnmp_session *ss)
         fflush_stdin();
     if (isNumber(input) == 0)
     {
-        printf("Please inseert an digit\n");
+        printf("Please insert an digit\n");
         return;
     }
     /*Get next free index of commandTable*/
@@ -1304,6 +1318,196 @@ void viewRequests(netsnmp_session session, netsnmp_session *ss)
     {
         tmp = samples;
         samples = samples->next;
+        free(tmp);
+    }
+    /*Reset configs to original values*/
+    netsnmp_ds_set_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_QUICK_PRINT, orig_config_val_qp);
+    netsnmp_ds_set_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_PRINT_BARE_VALUE, orig_config_val_bv);
+    return;
+}
+
+/*This function will allow a user to choose what column in a certain requestID to change and will send the set command accordingly*/
+void changeRequest(netsnmp_session session, netsnmp_session *ss, char *requestID)
+{
+    /*User chooses what to change*/
+    int keep_running = 1;
+    int escolha = -1;
+    while (keep_running)
+    {
+        printf("***********************************\n");
+        printf("*Change Saving Mode             -1*\n");
+        printf("*Change Max Number of Samples   -2*\n");
+        printf("*Change Loop Mode               -3*\n");
+        printf("*Change Status                  -4*\n");
+        printf("*Exit                           -0*\n");
+        printf("***********************************\n");
+        int aux = scanf("%d", &escolha);
+        if (escolha >= 0 && escolha < 5)
+            keep_running = 0;
+    }
+    /*When ECU is chosen, print the mapType id alongisde name and description of its sensors*/
+    printf("\n");
+    /****************************************** Get User Input ******************************************/
+    char input[10] = {0};
+    int aux;
+
+    fflush_stdin();
+    while (printf("Add new Value:") && scanf("%9[^\n]%*c", input) < 1 && isNumber(input) != 0)
+        fflush_stdin();
+    char *values[1] = {input};
+    size_t *rootlen = {(size_t *)EditOid};
+    char types[1] = {typesRequest[escolha - 1]};
+    /****************************************** Send Request ******************************************/
+    /*Prep modOidList: copy oidListRequest to it and add the index to every item of the list*/
+    oid **modOidList = malloc(sizeof(oid *));
+
+    modOidList[0] = malloc(sizeof(oid) * RequestOid);
+    for (int j = 0; j < RequestOid; j++)
+        modOidList[0][j] = oidListRequest[0][j];
+    modOidList[0][RequestOid - 1] = atoi(requestID);
+
+    /*Prep modOidString: copy oidStringRequest to it and add the index to every item of the list*/
+    char **modOidString;
+    modOidString = malloc(sizeof(char *));
+    modOidString[0] = malloc(sizeof(char) * strlen(oidStringRequest[escolha - 1]) + strlen(requestID));
+    strcpy(modOidString[0], oidStringRequest[escolha - 1]);
+    strcat(modOidString[0], requestID);
+
+    int res = set(session, ss, modOidList, rootlen, modOidString, types, values, 1);
+    /****************************************** Free Allocated Memory ******************************************/
+    free(modOidList[0]);
+    free(modOidList);
+    free(modOidString[0]);
+    free(modOidString);
+    return;
+}
+void editRequests(netsnmp_session session, netsnmp_session *ss)
+{
+    /*requests will be used to find the ID with which to use set command*/
+    table_contents *reqMonitor = NULL;
+    edit_active_requests *ar = NULL;
+    edit_active_requests *cr;
+    /*These configs will make contents of struct reqMonitor->data easier to use*/
+    int orig_config_val_qp = netsnmp_ds_get_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_QUICK_PRINT);
+    int orig_config_val_bv = netsnmp_ds_get_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_PRINT_BARE_VALUE);
+    netsnmp_ds_set_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_QUICK_PRINT, 1);
+    netsnmp_ds_set_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_PRINT_BARE_VALUE, 1);
+    /*Get the contents of requestMonitoringDataTable, mapTypeTable and sampleUnitsTable*/
+    bulkget(session, ss, requestMonitoringDataTableOid, OID_LENGTH(requestMonitoringDataTableOid), &reqMonitor);
+    /*This will be used to store the heads of reqMonitor*/
+    table_contents *headRE = reqMonitor;
+    printf("\n");
+    /******************Print Signal names, their IDs and description*******************/
+    if (reqMonitor)
+    {
+        while (reqMonitor)
+        {
+            int currentIndex = reqMonitor->data->name[reqMonitor->data->name_length - 1];
+            edit_active_requests *head = ar;
+            cr = NULL;
+            if (ar)
+            {
+                /*search for node with current Index*/
+                while (ar)
+                {
+                    /*Node found*/
+                    if (ar->id == currentIndex)
+                    {
+                        cr = ar;
+                        break;
+                    }
+                    ar = ar->next;
+                }
+                ar = head;
+            }
+            if (!ar || !cr)
+            {
+                /*Either there's no node in the linked list or node was not found, either way append new node*/
+                cr = (edit_active_requests *)malloc(sizeof(edit_active_requests));
+                cr->id = currentIndex;
+                cr->next = NULL;
+                appendEditRequests(&ar, cr);
+            }
+            switch (reqMonitor->data->name[reqMonitor->data->name_length - 2])
+            {
+            case 5:
+                /*savingMode*/
+                cr->savingMode = *reqMonitor->data->val.integer;
+                break;
+            case 15:
+                /*maxNofSamples*/
+                cr->maxNOfSamples = *reqMonitor->data->val.integer;
+                break;
+            case 16:
+                /*loopMode*/
+                cr->loopMode = *reqMonitor->data->val.integer;
+                break;
+            case 17:
+                /*status*/
+                cr->status = *reqMonitor->data->val.integer;
+                break;
+            case 18:
+                /*Request User*/
+                cr->username = malloc(1 + reqMonitor->data->val_len);
+                memcpy(cr->username, reqMonitor->data->val.string, reqMonitor->data->val_len);
+                cr->username[reqMonitor->data->val_len] = '\0';
+            default:
+                break;
+            }
+            reqMonitor = reqMonitor->next;
+        }
+    }
+    else
+        printf("No active Requests found\n");
+    printf("\n");
+    if (ar)
+    {
+        /*Print active requests*/
+        edit_active_requests *aux;
+        edit_active_requests *head = ar;
+        printf("ID->Username {SavingMode} [MaxNOfSamples] {LoopMode} [Status]\n");
+        while (ar != NULL)
+        {
+            aux = ar;
+            ar = ar->next;
+            printf("\t%d->%s {%d} [%d] {%d} [%d]\n", aux->id, aux->username, aux->savingMode, aux->maxNOfSamples, aux->loopMode, aux->status);
+        }
+        ar = head;
+        /*Choose request*/
+        char choice[4] = {0};
+        fflush_stdin();
+        while (printf("\nChoose request:") && scanf("%3[^\n]%*c", choice) < 1 && isNumber(choice))
+            fflush_stdin();
+        /*Check if chosen request actually exists*/
+        while (ar != NULL)
+        {
+            if (atoi(choice) == ar->id)
+            {
+                if (strcmp(session.securityName, ar->username) == 0)
+                    changeRequest(session, ss, choice);
+                else
+                    printf("You can't edit requests made by other users\n");
+                break;
+            }
+            ar = ar->next;
+        }
+        ar = head;
+        /*Free memory of ar*/
+        while (ar != NULL)
+        {
+            aux = ar;
+            ar = ar->next;
+            free(aux->username);
+            free(aux);
+        }
+    }
+    reqMonitor = headRE;
+    /*tmp will be used to free memory of reqMonitor,sampleUnits,statistics and samples*/
+    table_contents *tmp;
+    while (reqMonitor != NULL)
+    {
+        tmp = reqMonitor;
+        reqMonitor = reqMonitor->next;
         free(tmp);
     }
     /*Reset configs to original values*/

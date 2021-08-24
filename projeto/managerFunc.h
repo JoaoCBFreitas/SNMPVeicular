@@ -142,6 +142,16 @@ typedef struct active_requests
   char *username;
   struct active_requests *next;
 } active_requests;
+typedef struct edit_active_requests
+{
+  int id;
+  int maxNOfSamples;
+  int loopMode;
+  int status;
+  int savingMode;
+  char *username;
+  struct edit_active_requests *next;
+} edit_active_requests;
 typedef struct chosen_request
 {
   int id;         /*requestMonitoringID*/
@@ -165,3 +175,5 @@ void sendCommand(netsnmp_session session, netsnmp_session *ss);
 void sendRequest(netsnmp_session session, netsnmp_session *ss);
 /*This function will allow a user to list all information regarding a specific request*/
 void viewRequests(netsnmp_session session, netsnmp_session *ss);
+/*This function will allow a user to edit a specific request*/
+void editRequests(netsnmp_session session, netsnmp_session *ss);

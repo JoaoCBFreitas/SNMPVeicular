@@ -111,7 +111,7 @@ int main(int argc, char **argv)
             break;
         case 3:
             /*Edit Request*/
-            printf("\nTODO\n");
+            editRequests(session, ss);
             printf("\n\n");
             break;
         case 4:
