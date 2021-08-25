@@ -1388,16 +1388,14 @@ void requestMonitoringDataTable_set_reserve2(netsnmp_request_group *rg)
 
         case COLUMN_SAVINGMODE:
             /** INTEGER = ASN_INTEGER */
-            /*
-                     * TODO: routine to check valid values
-                     *
-                     * EXAMPLE:
-                     *
-                    * if ( *var->val.integer != XXX ) {
-                *    rc = SNMP_ERR_INCONSISTENTVALUE;
-                *    rc = SNMP_ERR_BADVALUE;
-                * }
-                */
+            if (*var->val.integer != 0 && *var->val.integer != 1)
+            {
+
+                int insert = addError(row_ctx->requestUser, 5);
+                if (insert != 0)
+                    printf("Error Insertion failed\n");
+                rc = SNMP_ERR_INCONSISTENTVALUE;
+            }
             break;
 
         case COLUMN_SAMPLINGFREQUENCY:
@@ -1500,16 +1498,13 @@ void requestMonitoringDataTable_set_reserve2(netsnmp_request_group *rg)
 
         case COLUMN_MAXNOFSAMPLES:
             /** UNSIGNED32 = ASN_UNSIGNED */
-            /*
-                     * TODO: routine to check valid values
-                     *
-                     * EXAMPLE:
-                     *
-                    * if ( *var->val.integer != XXX ) {
-                *    rc = SNMP_ERR_INCONSISTENTVALUE;
-                *    rc = SNMP_ERR_BADVALUE;
-                * }
-                */
+            if (*var->val.integer <= 0)
+            {
+                int insert = addError(row_ctx->requestUser, 4);
+                if (insert != 0)
+                    printf("Error Insertion failed\n");
+                rc = SNMP_ERR_INCONSISTENTVALUE;
+            }
             break;
 
         case COLUMN_LASTSAMPLEID:
@@ -1528,29 +1523,52 @@ void requestMonitoringDataTable_set_reserve2(netsnmp_request_group *rg)
 
         case COLUMN_LOOPMODE:
             /** INTEGER = ASN_INTEGER */
-            /*
-                     * TODO: routine to check valid values
-                     *
-                     * EXAMPLE:
-                     *
-                    * if ( *var->val.integer != XXX ) {
-                *    rc = SNMP_ERR_INCONSISTENTVALUE;
-                *    rc = SNMP_ERR_BADVALUE;
-                * }
-                */
+            if (*var->val.integer != 1 && *var->val.integer != 2)
+            {
+
+                int insert = addError(row_ctx->requestUser, 9);
+                if (insert != 0)
+                    printf("Error Insertion failed\n");
+                rc = SNMP_ERR_INCONSISTENTVALUE;
+            }
             break;
         case COLUMN_STATUS:
             /** INTEGER = ASN_INTEGER */
-            /*
-                     * TODO: routine to check valid values
-                     *
-                     * EXAMPLE:
-                     *
-                    * if ( *var->val.integer != XXX ) {
-                *    rc = SNMP_ERR_INCONSISTENTVALUE;
-                *    rc = SNMP_ERR_BADVALUE;
-                * }
-                */
+            if (*var->val.integer < 0 && *var->val.integer > 4)
+            {
+                /*Status can't be below 0 or above 5*/
+                int insert = addError(row_ctx->requestUser, 13);
+                if (insert != 0)
+                    printf("Error Insertion failed\n");
+                rc = SNMP_ERR_INCONSISTENTVALUE;
+            }
+            else
+            {
+                if ((row_ctx->status == 2 || row_ctx->status == 4) && *var->val.integer != 3)
+                {
+                    /*If status is in set or ready, you can only change it to delete*/
+                    int insert = addError(row_ctx->requestUser, 14);
+                    if (insert != 0)
+                        printf("Error Insertion failed\n");
+                    rc = SNMP_ERR_INCONSISTENTVALUE;
+                }
+                if ((row_ctx->status == 1 && *var->val.integer != 0 && *var->val.integer != 3))
+                {
+                    /*If status is in On mode, you can only change it to off or delete*/
+                    int insert = addError(row_ctx->requestUser, 15);
+                    if (insert != 0)
+                        printf("Error Insertion failed\n");
+                    rc = SNMP_ERR_INCONSISTENTVALUE;
+                }
+                if ((row_ctx->status == 0 && *var->val.integer != 3))
+                {
+                    /*If status is in Off mode, you can only change it to delete*/
+                    int insert = addError(row_ctx->requestUser, 16);
+                    if (insert != 0)
+                        printf("Error Insertion failed\n");
+                    rc = SNMP_ERR_INCONSISTENTVALUE;
+                }
+            }
             break;
         case COLUMN_REQUESTUSER:
             /** OCTET STRING = ASN_OCTET_STR */

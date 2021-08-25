@@ -94,7 +94,7 @@ static char *typesRequest = "uuissssuis";
 #define EditOid 10
 static oid oidListEditRequest[EditNumber][EditOid] = {{1, 3, 6, 1, 3, 8888, 1, 1, 5, 0}, {1, 3, 6, 1, 3, 8888, 1, 1, 15, 0}, {1, 3, 6, 1, 3, 8888, 1, 1, 16, 0}, {1, 3, 6, 1, 3, 8888, 1, 1, 17, 0}};
 static char *oidStringEditRequest[] = {"SavingMode.", "MaxNOfSamples.", "LoopMode.", "Status."};
-static char *typesEditRequest = "uuuu";
+static char *typesEditRequest = "iuii";
 
 typedef struct table_contents
 {

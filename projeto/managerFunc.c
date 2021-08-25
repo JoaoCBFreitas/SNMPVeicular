@@ -920,7 +920,7 @@ void sendRequest(netsnmp_session session, netsnmp_session *ss)
     aux = scanf("%1023[^\n]%*c", maxNOfSamples);
     if (strcmp(maxNOfSamples, "") == 0 || isNumber(maxNOfSamples) == 0)
         strcpy(maxNOfSamples, "50");
-
+    fflush_stdin();
     while (printf("Should this request restart once it's over?(1=Yes,2=No): ") && scanf("%1[^\n]%*c", loopMode) < 1)
         fflush_stdin();
     if (isNumber(loopMode) == 0)
@@ -1326,7 +1326,8 @@ void viewRequests(netsnmp_session session, netsnmp_session *ss)
     return;
 }
 
-/*This function will allow a user to choose what column in a certain requestID to change and will send the set command accordingly*/
+/*This function will allow a user to choose what column in a certain requestID to change and will send the set command accordingly,
+thus allowing an user to edit requests*/
 void changeRequest(netsnmp_session session, netsnmp_session *ss, char *requestID)
 {
     /*User chooses what to change*/
@@ -1348,37 +1349,57 @@ void changeRequest(netsnmp_session session, netsnmp_session *ss, char *requestID
     /*When ECU is chosen, print the mapType id alongisde name and description of its sensors*/
     printf("\n");
     /****************************************** Get User Input ******************************************/
+    switch (escolha)
+    {
+    case 1:
+        printf("0-Permanent Saving Mode\n");
+        printf("1-Volatile Saving Mode\n");
+        break;
+    case 3:
+        printf("1-Loop Mode Enabled\n");
+        printf("2-Loop Mode Disabled\n");
+        break;
+    case 4:
+        printf("0-Request Off\n");
+        printf("1-Request On\n");
+        printf("2-Request Set\n");
+        printf("3-Request Delete\n");
+        printf("4-Request Ready\n");
+        break;
+    }
+    printf("\n");
     char input[10] = {0};
-    int aux;
-
     fflush_stdin();
     while (printf("Add new Value:") && scanf("%9[^\n]%*c", input) < 1 && isNumber(input) != 0)
         fflush_stdin();
-    char *values[1] = {input};
-    size_t *rootlen = {(size_t *)EditOid};
-    char types[1] = {typesRequest[escolha - 1]};
+    char **values = malloc(sizeof(char *));
+    values[0] = input;
+    size_t *rootlen = malloc(sizeof(size_t *));
+    rootlen[0] = EditOid;
+    char *types = malloc(sizeof(char));
+    types[0] = typesEditRequest[escolha - 1];
     /****************************************** Send Request ******************************************/
     /*Prep modOidList: copy oidListRequest to it and add the index to every item of the list*/
     oid **modOidList = malloc(sizeof(oid *));
-
-    modOidList[0] = malloc(sizeof(oid) * RequestOid);
-    for (int j = 0; j < RequestOid; j++)
-        modOidList[0][j] = oidListRequest[0][j];
-    modOidList[0][RequestOid - 1] = atoi(requestID);
-
+    modOidList[0] = malloc(sizeof(oid) * EditOid);
+    for (int j = 0; j < EditOid; j++)
+        modOidList[0][j] = oidListEditRequest[escolha - 1][j];
+    modOidList[0][EditOid - 1] = atoi(requestID);
     /*Prep modOidString: copy oidStringRequest to it and add the index to every item of the list*/
     char **modOidString;
     modOidString = malloc(sizeof(char *));
-    modOidString[0] = malloc(sizeof(char) * strlen(oidStringRequest[escolha - 1]) + strlen(requestID));
-    strcpy(modOidString[0], oidStringRequest[escolha - 1]);
+    modOidString[0] = malloc(sizeof(char) * strlen(oidStringEditRequest[escolha - 1]) + strlen(requestID));
+    strcpy(modOidString[0], oidStringEditRequest[escolha - 1]);
     strcat(modOidString[0], requestID);
-
     int res = set(session, ss, modOidList, rootlen, modOidString, types, values, 1);
     /****************************************** Free Allocated Memory ******************************************/
     free(modOidList[0]);
     free(modOidList);
     free(modOidString[0]);
     free(modOidString);
+    free(rootlen);
+    free(values);
+    free(types);
     return;
 }
 void editRequests(netsnmp_session session, netsnmp_session *ss)
