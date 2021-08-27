@@ -131,7 +131,8 @@ int main(int argc, char **argv)
             break;
         default:
             printf("\nInvalid Input\n");
-            continue;
+            fflush_stdin();
+            break;
         }
     }
     snmp_close(ss);

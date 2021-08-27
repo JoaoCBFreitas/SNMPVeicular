@@ -1,5 +1,4 @@
 #include "managerFunc.h"
-/*Simple function to strip '\n' from stdin*/
 void fflush_stdin()
 {
     int c;
@@ -892,7 +891,6 @@ void sendRequest(netsnmp_session session, netsnmp_session *ss)
         printf("Please insert an digit\n");
         return;
     }
-
     /*Get time inputs*/
     printf("Please indicate start time in the following format 12:00:00 (empty for current system time): ");
     aux = scanf("%8[^\n]%*c", startTime);
@@ -918,9 +916,15 @@ void sendRequest(netsnmp_session session, netsnmp_session *ss)
 
     printf("Indicate maximum number of samples to be recorded (default is 50): ");
     aux = scanf("%1023[^\n]%*c", maxNOfSamples);
-    if (strcmp(maxNOfSamples, "") == 0 || isNumber(maxNOfSamples) == 0)
+    if (isNumber(maxNOfSamples) == 0)
+    {
+        printf("Please insert an digit\n");
+        return;
+    }
+    else if (strcmp(maxNOfSamples, "") == 0)
         strcpy(maxNOfSamples, "50");
     fflush_stdin();
+
     while (printf("Should this request restart once it's over?(1=Yes,2=No): ") && scanf("%1[^\n]%*c", loopMode) < 1)
         fflush_stdin();
     if (isNumber(loopMode) == 0)
@@ -1150,7 +1154,7 @@ void viewRequests(netsnmp_session session, netsnmp_session *ss)
         /*Print active requests*/
         active_requests *aux;
         active_requests *head = ar;
-        chosen_request *chr = (chosen_request *)malloc(sizeof(chosen_request));
+        chosen_request *chr = NULL;
         printf("ID->SignalName [Number of Samples] Username\n");
         while (ar != NULL)
         {
@@ -1163,13 +1167,19 @@ void viewRequests(netsnmp_session session, netsnmp_session *ss)
         char choice[4] = {0};
 
         fflush_stdin();
-        while (printf("\nChoose request:") && scanf("%3[^\n]%*c", choice) < 1 && isNumber(choice))
+        while (printf("\nChoose request:") && scanf("%3[^\n]%*c", choice) < 1)
             fflush_stdin();
+        if (isNumber(choice) == 0)
+        {
+            printf("Please insert an digit\n");
+            return;
+        }
         /*Check if chosen request actually exists*/
         while (ar != NULL)
         {
             if (atoi(choice) == ar->id)
             {
+                chr = (chosen_request *)malloc(sizeof(chosen_request));
                 chr->id = ar->id;
                 chr->unit = malloc(sizeof(char) * strlen(ar->unit));
                 strcpy(chr->unit, ar->unit);
@@ -1370,8 +1380,13 @@ void changeRequest(netsnmp_session session, netsnmp_session *ss, char *requestID
     printf("\n");
     char input[10] = {0};
     fflush_stdin();
-    while (printf("Add new Value:") && scanf("%9[^\n]%*c", input) < 1 && isNumber(input) != 0)
+    while (printf("Add new Value:") && scanf("%9[^\n]%*c", input) < 1)
         fflush_stdin();
+    if (isNumber(input) == 0)
+    {
+        printf("Please insert an digit\n");
+        return;
+    }
     char **values = malloc(sizeof(char *));
     values[0] = input;
     size_t *rootlen = malloc(sizeof(size_t *));
@@ -1402,6 +1417,7 @@ void changeRequest(netsnmp_session session, netsnmp_session *ss, char *requestID
     free(types);
     return;
 }
+
 void editRequests(netsnmp_session session, netsnmp_session *ss)
 {
     /*requests will be used to find the ID with which to use set command*/
@@ -1497,8 +1513,13 @@ void editRequests(netsnmp_session session, netsnmp_session *ss)
         /*Choose request*/
         char choice[4] = {0};
         fflush_stdin();
-        while (printf("\nChoose request:") && scanf("%3[^\n]%*c", choice) < 1 && isNumber(choice))
+        while (printf("\nChoose request:") && scanf("%3[^\n]%*c", choice) < 1)
             fflush_stdin();
+        if (isNumber(choice) == 0)
+        {
+            printf("Please insert an digit\n");
+            return;
+        }
         /*Check if chosen request actually exists*/
         while (ar != NULL)
         {

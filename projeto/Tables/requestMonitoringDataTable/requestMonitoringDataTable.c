@@ -1388,9 +1388,8 @@ void requestMonitoringDataTable_set_reserve2(netsnmp_request_group *rg)
 
         case COLUMN_SAVINGMODE:
             /** INTEGER = ASN_INTEGER */
-            if (*var->val.integer != 0 && *var->val.integer != 1)
+            if (*var->val.integer != 0 && *var->val.integer != 1 && row_ctx->requestUser_len > 0)
             {
-
                 int insert = addError(row_ctx->requestUser, 5);
                 if (insert != 0)
                     printf("Error Insertion failed\n");
@@ -1498,7 +1497,7 @@ void requestMonitoringDataTable_set_reserve2(netsnmp_request_group *rg)
 
         case COLUMN_MAXNOFSAMPLES:
             /** UNSIGNED32 = ASN_UNSIGNED */
-            if (*var->val.integer <= 0)
+            if (*var->val.integer <= 0 && row_ctx->requestUser_len > 0)
             {
                 int insert = addError(row_ctx->requestUser, 4);
                 if (insert != 0)
@@ -1523,7 +1522,7 @@ void requestMonitoringDataTable_set_reserve2(netsnmp_request_group *rg)
 
         case COLUMN_LOOPMODE:
             /** INTEGER = ASN_INTEGER */
-            if (*var->val.integer != 1 && *var->val.integer != 2)
+            if (*var->val.integer != 1 && *var->val.integer != 2 && row_ctx->requestUser_len > 0)
             {
 
                 int insert = addError(row_ctx->requestUser, 9);
