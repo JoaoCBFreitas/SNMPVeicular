@@ -587,6 +587,8 @@ void checkTables()
                 if (insert != 0)
                     printf("Error Insertion failed\n");
                 reqMonitoring->status = 3;
+                /*This will prevent table from being created again if loopmode is set to yes*/
+                reqMonitoring->loopMode = 2;
             }
             else
                 reqMonitoring->status = 4;
