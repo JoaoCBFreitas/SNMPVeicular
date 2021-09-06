@@ -614,6 +614,7 @@ void checkTables()
         }
         else
         {
+            /*Request control is already in the system, update requestcontrol if necessary*/
             if (reqMonitoring->status != 0 && reqControl->statusControl != 1)
             {
                 /*If this requestMonitoring entry is either "set", "ready" or "on" 

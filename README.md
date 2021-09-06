@@ -75,4 +75,4 @@ Deleting a request
 
 ### Adding a new request to requestMonitoringDataTable
 
-- snmpset -Ir -v3 -a SHA -A SNMPVeicular -x AES -X SNMPV31cul4r -l authPriv -u snmpadmin localhost OBU-MIB::requestMapID.0 = 1898 OBU-MIB::requestStatisticsID.0 = 1 OBU-MIB::savingMode.0 = 0 OBU-MIB::waitTime.0 s "00:00:00" OBU-MIB::durationTime.0 s "01:00:00" OBU-MIB::expireTime.0 s "02:00:00" OBU-MIB::maxNOfSamples.0 = 50 OBU-MIB::loopMode.0 = 2 OBU-MIB::requestUser.0 s "Utilizador teste"
+- snmpset -Ir -v3 -a SHA -A SNMPVeicular -x AES -X SNMPV31cul4r -l authPriv -u snmpadmin localhost OBU-MIB::requestMapID.0 = 199 OBU-MIB::requestStatisticsID.0 = 1 OBU-MIB::savingMode.0 = 0 OBU-MIB::waitTime.0 s "00:00:00" OBU-MIB::durationTime.0 s "01:00:00" OBU-MIB::expireTime.0 s "02:00:00" OBU-MIB::maxNOfSamples.0 = 50 OBU-MIB::loopMode.0 = 2 OBU-MIB::requestUser.0 s "Utilizador teste"
