@@ -35,9 +35,9 @@ TODO:It's more efficient to do with malloc
 #define MAXSIGNALNUMBER 100
 /*100 should be a large enough number to store all signal values from a message*/
 
-
 /*This struct will contain rules to decode a signal*/
-typedef struct SG{
+typedef struct SG
+{
 	char name[MAXNAMESIZE];
 	int bitStart;
 	int length;
@@ -50,67 +50,71 @@ typedef struct SG{
 	char unit[MAXNAMESIZE];
 	char receiver[MAXRECEIVERSIZE];
 	char description[MAXDESCRIPTIONSIZE];
-}SG;
+} SG;
 /*This struct will contain all signals decoding rules for a certain message*/
-typedef struct SG_List{
+typedef struct SG_List
+{
 	int capacity;
 	int current;
-	SG* list;
-}SG_List;
+	SG *list;
+} SG_List;
 /*This struct will contain all information regarding a certain CAN message*/
-typedef struct BO{
+typedef struct BO
+{
 	long messageID;
 	char id[MAXCHARACTERS];
 	char name[MAXNAMESIZE];
 	int length;
 	char sender[MAXRECEIVERSIZE];
 	char description[MAXNAMESIZE];
-	SG_List* signals;
-}BO;
+	SG_List *signals;
+} BO;
 /*This struct will contain all messages/signals and rules present in the dbc file*/
-typedef struct BO_List{
+typedef struct BO_List
+{
 	int current;
 	int capacity;
-	BO* list;
-}BO_List;
+	BO *list;
+} BO_List;
 /*This struc will store the decoded contents of a CAN message*/
-typedef struct decodedCAN{
+typedef struct decodedCAN
+{
 	char name[MAXRECEIVERSIZE];
 	int signals;
 	char signalname[MAXSIGNALNUMBER][MAXCHARACTERS];
 	double value[MAXSIGNALNUMBER];
 	char unit[MAXSIGNALNUMBER][MAXCHARACTERS];
-}decodedCAN;
+} decodedCAN;
 
 /*This function removes all occurrences of a character from a string*/
-char* removeChar(char* s,char c);
+char *removeChar(char *s, char c);
 /*This function converts from decimal to hexadecimal*/
-char* intToHex(int id);
+char *intToHex(int id);
 /*This function converts from hexadecimal to decimal*/
-int hexToInt(unsigned char* id);
+int hexToInt(unsigned char *id);
 /*This function converts from hexadecimal to a binary int array*/
-void hexToBinary(int* binData, unsigned char* data);
+void hexToBinary(int *binData, unsigned char *data);
 /*This function applies the mask 1FFFFFF to the decimal ids present in .dbc files, returning their respective CAN ids*/
-char* unMask(long id);
+char *unMask(long id);
 /*This function converts from decimal to an binary array*/
-int* decToBinary(int n);
+int *decToBinary(int n);
 /*This function converts from a binary array to decimal*/
-int binaryToDec(int* list,int n);
+int binaryToDec(int *list, int n);
 /*This function decodes the DATA present in a CAN frame according the the signal rules*/
-int decodeData(int* binData,int start,int length,int endian);
+int decodeData(int *binData, int start, int length, int endian);
 /*This function will decode a full CAN message and output a struct containing all relevant info*/
-decodedCAN* decode(unsigned char* id, int dlc,unsigned char data[],BO_List* boList,decodedCAN* dc);
+decodedCAN *decode(unsigned char *id, int dlc, unsigned char data[], BO_List *boList, decodedCAN *dc);
 /*This function reads and adds the scale/offset from the CAN message to the SG struct*/
-SG scaleBits(SG signal,char* token);
+SG scaleBits(SG signal, char *token);
 /*This function reads and adds the min/max from the CAN message to the SG struct*/
-SG minMax(SG signal,char* token);
+SG minMax(SG signal, char *token);
 /*This function reads and adds the bitstart/length/endianess/signedness from the CAN message to the SG struct*/
-SG signalBits(SG signal,char*token);
+SG signalBits(SG signal, char *token);
 /*This function will alocate memory for a CAN message syntax rule*/
-BO* getBO(char*line);
+BO *getBO(char *line);
 /*This function will alocate memory for all the CAN signal syntax rules for a CAN message*/
-SG getSignal(char* line);
+SG getSignal(char *line);
 /*This function will read the dbc file and create all structs containg the decoding rules for CAN messages*/
-BO_List* readDBC(char* file);
+BO_List *readDBC(char *file);
 /*This function will read from the CAN interface and convert/convert CAN messages whose id matches the sensor given as input */
-void parseCAN(BO_List* boList,int fd[]);
+void parseCAN(BO_List *boList, int fd[]);

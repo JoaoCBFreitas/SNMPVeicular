@@ -231,6 +231,13 @@ struct tm *addToTime(struct tm *time, int hour, int minutes)
     }
     return time;
 }
+int isNumber(char s[])
+{
+    for (int i = 0; s[i] != '\0'; i++)
+        if (isdigit(s[i]) == 0)
+            return 0;
+    return 1;
+}
 int validateTime(char *time)
 {
     if (strlen(time) != 8)
@@ -241,13 +248,20 @@ int validateTime(char *time)
     strncpy(min, time + 3, 2);
     min[2] = '\0';
     hour[2] = '\0';
-    int m = atoi(min);
-    int h = atoi(hour);
-    free(min);
-    free(hour);
-    if (m < 0 || m > 59)
-        return 1;
-    if (h < 0 || h > 23)
-        return 1;
+    if (isNumber(hour) != 0 && isNumber(min) != 0)
+    {
+        int m = atoi(min);
+        int h = atoi(hour);
+        free(min);
+        free(hour);
+        if (m < 0 || m > 59 || h < 0 || h > 23)
+            return 1;
+    }
+    else
+    {
+        free(min);
+        free(hour);
+    }
+
     return 0;
 }

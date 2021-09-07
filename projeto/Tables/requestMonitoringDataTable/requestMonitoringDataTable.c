@@ -797,7 +797,7 @@ void checkTables()
                     }
                     /**************************************************/
                     /********************Delete Samples****************/
-                    if (reqMonitoring->lastSampleID != 0)
+                    if (reqMonitoring->lastSampleID != 0 && (reqMonitoring->lastSampleID != reqAux->lastSampleID && reqMonitoring->nOfSamples != reqAux->nOfSamples))
                     {
                         samplesTable = getSampleEntry(reqMonitoring->lastSampleID);
                         struct tm *tmSample = (struct tm *)malloc(sizeof(struct tm));
@@ -805,7 +805,7 @@ void checkTables()
                         tmControl = convertTime(tmControl, reqControl->commitTime);
                         tmSample = convertTime(tmSample, samplesTable->timeStamp);
                         /*Go through all samples until a sample that predates commitTime is found*/
-                        while (samplesTable != NULL && compareTimeStamp(tmSample, tmControl) != 1)
+                        while (samplesTable != NULL || compareTimeStamp(tmSample, tmControl) != 1)
                         {
                             samplesTable = getSampleEntry(samplesTable->previousSampleID);
                             tmSample = convertTime(tmSample, samplesTable->timeStamp);

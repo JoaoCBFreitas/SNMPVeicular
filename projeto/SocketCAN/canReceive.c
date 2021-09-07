@@ -561,7 +561,7 @@ void parseCAN(BO_List *boList, int fd[])
 	memset(&addr, 0, sizeof(addr));
 	addr.can_family = AF_CAN;
 	addr.can_ifindex = ifr.ifr_ifindex;
-
+	pid_t parentID = getppid();
 	if (bind(s, (struct sockaddr *)&addr, sizeof(addr)) < 0)
 	{
 		perror("Bind");
@@ -569,9 +569,12 @@ void parseCAN(BO_List *boList, int fd[])
 	}
 	while (1)
 	{
+		/*If getppid() differs from parentID it means that parent process crashed or was otherwise shutdown, 
+		as such the child should also be killed*/
+		if (getppid() != parentID)
+			exit(0);
 		decodedCAN *dc = (decodedCAN *)malloc(sizeof(decodedCAN));
 		nbytes = read(s, &frame, sizeof(struct can_frame));
-
 		if (nbytes < 0)
 		{
 			perror("Read");
