@@ -1,6 +1,6 @@
 # SNMPVeicular
 
-Prototype SNMP agent to be installed inside a vehicle OBU and allows outside entities to poll data from the vehicles' sensors.
+Prototype SNMP agent to be installed inside a vehicle OBU and allows outside entities to poll data from the vehicles' sensors and change status of actuators.
 
 ## Installation
 
@@ -24,7 +24,7 @@ This agent and manager were created with SNMPv3 in mind, while you can still use
 Find where MIBs are installed in your system, as standard they are located within /home/$USER/.snmp/mibs  
 Copy OBU-MIB.txt to that directory
 
-- sudo cp OBU-MIB.txt /home/$USER/.snmp/mibs
+- sudo cp OBU-MIB.txt /home/$USER/.snmp/mibs  
   Load MIB into snmpd with the following command
 - export MIBS=+OBU-MIB  
   Otherwise, to make it load the MIB on start up simply add mibs +OBU-MIB to the following file $HOME/.snmp/snmp.conf
@@ -47,9 +47,9 @@ With this done the project can be run with the following commands
 - ./generator
 - ./manager
 
-In the generator you can choose what file should be used to generate CAN messages while in the manager you can choose what commands to send to the agent, optionally you can also send commands via the terminal with the included snmpd manager.
+In the generator you can choose what file should be used to generate CAN messages while in the manager you can choose what commands to send to the agent and what sensors are to be monitored, optionally you can also achieve this via the terminal with the included snmpd manager.
 
-## Example snmp commands both in SNMPv2c or SNMPv3
+## Example snmp commands both in SNMPv2c and SNMPv3
 
 ### Traverse a table
 
