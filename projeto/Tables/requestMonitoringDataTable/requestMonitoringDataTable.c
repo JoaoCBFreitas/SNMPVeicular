@@ -750,7 +750,13 @@ void checkTables()
                         printf("Deletion of requestControlDataEntry failed\n");
                     if (reqStruct->lastSampleID != 0)
                     {
-                        samplesTable = getSampleEntry(reqStruct->lastSampleID);
+                        /*Since we are deleting every sample related to an object we should start with the ID from reqControl
+                        since if Req1 starts before Req2 starts and ends before Req2 ends, if we were to delete Req2 first it wouldn't
+                        delete the samples that were recorded between the endings of Req1 and Req2 and when we would attempt to delete Req1 it would 
+                        only delete the samples that were related to Req1, thus leaving some samples "hanging"
+                        Req1Starts-------------Req2Starts---------------Req1Ends----------Req2Ends
+                        */
+                        samplesTable = getSampleEntry(reqControl->valuesTableID);
                         while (samplesTable != NULL)
                         {
                             int aux = samplesTable->sampleID;
@@ -797,7 +803,7 @@ void checkTables()
                     }
                     /**************************************************/
                     /********************Delete Samples****************/
-                    if (reqMonitoring->lastSampleID != 0 && (reqMonitoring->lastSampleID != reqAux->lastSampleID && reqMonitoring->nOfSamples != reqAux->nOfSamples))
+                    if (reqMonitoring->lastSampleID != 0)
                     {
                         samplesTable = getSampleEntry(reqMonitoring->lastSampleID);
                         struct tm *tmSample = (struct tm *)malloc(sizeof(struct tm));
@@ -805,26 +811,34 @@ void checkTables()
                         tmControl = convertTime(tmControl, reqControl->commitTime);
                         tmSample = convertTime(tmSample, samplesTable->timeStamp);
                         /*Go through all samples until a sample that predates commitTime is found*/
+
                         while (samplesTable != NULL)
                         {
                             if (samplesTable->previousSampleID != 0)
                             {
-                                samplesTable = getSampleEntry(samplesTable->previousSampleID);
                                 tmSample = convertTime(tmSample, samplesTable->timeStamp);
                                 if (compareTimeStamp(tmSample, tmControl) == 1)
                                     break;
+                                samplesTable = getSampleEntry(samplesTable->previousSampleID);
                             }
                             else
-                                samplesTable = NULL;
+                                break;
                         }
                         /*Sample that predates commitTime is found, delete from this sample onwards*/
-                        while (samplesTable != NULL)
+                        while (samplesTable->previousSampleID != 0)
                         {
                             int aux = samplesTable->sampleID;
                             samplesTable = getSampleEntry(samplesTable->previousSampleID);
                             delete = deleteSamplesEntry(aux);
                             if (delete != 0)
                                 printf("SampleEntry deletion Failed ID:%d\n", aux);
+                            if (samplesTable->previousSampleID == 0)
+                            {
+                                delete = deleteSamplesEntry(samplesTable->sampleID);
+                                if (delete != 0)
+                                    printf("SampleEntry deletion Failed ID:%ld\n", samplesTable->sampleID);
+                                break;
+                            }
                         }
                         sampleZero(reqStruct->lastSampleID);
                         free(tmSample);
@@ -1326,7 +1340,7 @@ void requestMonitoringDataTable_set_reserve2(netsnmp_request_group *rg)
     netsnmp_request_group_item *current;
     netsnmp_variable_list *var;
     int rc;
-
+    int insert;
     rg->rg_void = rg->list->ri;
 
     /*
@@ -1344,63 +1358,53 @@ void requestMonitoringDataTable_set_reserve2(netsnmp_request_group *rg)
 
         case COLUMN_REQUESTID:
             /** UNSIGNED32 = ASN_UNSIGNED */
-            /*
-                     * TODO: routine to check valid values
-                     *
-                     * EXAMPLE:
-                     *
-                    * if ( *var->val.integer != XXX ) {
-                *    rc = SNMP_ERR_INCONSISTENTVALUE;
-                *    rc = SNMP_ERR_BADVALUE;
-                * }
-                */
+            /*RequestID can't be changed manually*/
+
+            insert = addError(row_ctx->requestUser, 17);
+            if (insert != 0)
+                printf("Error Insertion failed\n");
+            rc = SNMP_ERR_INCONSISTENTVALUE;
+
             break;
         case COLUMN_MONITORINGCONTROLID:
             /** UNSIGNED32 = ASN_UNSIGNED */
-            /*
-                     * TODO: routine to check valid values
-                     *
-                     * EXAMPLE:
-                     *
-                    * if ( *var->val.integer != XXX ) {
-                *    rc = SNMP_ERR_INCONSISTENTVALUE;
-                *    rc = SNMP_ERR_BADVALUE;
-                * }
-                */
+            /*RequestControlID can't be changed manually*/
+
+            insert = addError(row_ctx->requestUser, 18);
+            if (insert != 0)
+                printf("Error Insertion failed\n");
+            rc = SNMP_ERR_INCONSISTENTVALUE;
+
             break;
         case COLUMN_REQUESTMAPID:
             /** UNSIGNED32 = ASN_UNSIGNED */
-            /*
-                     * TODO: routine to check valid values
-                     *
-                     * EXAMPLE:
-                     *
-                    * if ( *var->val.integer != XXX ) {
-                *    rc = SNMP_ERR_INCONSISTENTVALUE;
-                *    rc = SNMP_ERR_BADVALUE;
-                * }
-                */
+            /*RequestMapID can't be changed if request is already in system*/
+            if (row_ctx->requestUser_len > 0)
+            {
+                insert = addError(row_ctx->requestUser, 19);
+                if (insert != 0)
+                    printf("Error Insertion failed\n");
+                rc = SNMP_ERR_INCONSISTENTVALUE;
+            }
             break;
 
         case COLUMN_REQUESTSTATISTICSID:
             /** UNSIGNED32 = ASN_UNSIGNED */
-            /*
-                     * TODO: routine to check valid values
-                     *
-                     * EXAMPLE:
-                     *
-                    * if ( *var->val.integer != XXX ) {
-                *    rc = SNMP_ERR_INCONSISTENTVALUE;
-                *    rc = SNMP_ERR_BADVALUE;
-                * }
-                */
+            /*RequestStatisticsID can't be changed if request is already in system*/
+            if (row_ctx->requestUser_len > 0)
+            {
+                insert = addError(row_ctx->requestUser, 20);
+                if (insert != 0)
+                    printf("Error Insertion failed\n");
+                rc = SNMP_ERR_INCONSISTENTVALUE;
+            }
             break;
 
         case COLUMN_SAVINGMODE:
             /** INTEGER = ASN_INTEGER */
             if (*var->val.integer != 0 && *var->val.integer != 1 && row_ctx->requestUser_len > 0)
             {
-                int insert = addError(row_ctx->requestUser, 5);
+                insert = addError(row_ctx->requestUser, 5);
                 if (insert != 0)
                     printf("Error Insertion failed\n");
                 rc = SNMP_ERR_INCONSISTENTVALUE;
@@ -1437,79 +1441,69 @@ void requestMonitoringDataTable_set_reserve2(netsnmp_request_group *rg)
 
         case COLUMN_STARTTIME:
             /** OBUDateandTime = ASN_OCTET_STR */
-            /*
-                     * TODO: routine to check valid values
-                     *
-                     * EXAMPLE:
-                     *
-                    * if ( XXX_check_value( var->val.string, XXX ) ) {
-                *    rc = SNMP_ERR_INCONSISTENTVALUE;
-                *    rc = SNMP_ERR_BADVALUE;
-                * }
-                */
+            /*startTime can't be changed if request is already in system*/
+            if (row_ctx->requestUser_len > 0)
+            {
+                insert = addError(row_ctx->requestUser, 21);
+                if (insert != 0)
+                    printf("Error Insertion failed\n");
+                rc = SNMP_ERR_INCONSISTENTVALUE;
+            }
             break;
 
         case COLUMN_ENDTIME:
             /** OBUDateandTime = ASN_OCTET_STR */
-            /*
-                     * TODO: routine to check valid values
-                     *
-                     * EXAMPLE:
-                     *
-                    * if ( XXX_check_value( var->val.string, XXX ) ) {
-                *    rc = SNMP_ERR_INCONSISTENTVALUE;
-                *    rc = SNMP_ERR_BADVALUE;
-                * }
-                */
+            /*endTime can't be changed if request is already in system*/
+            if (row_ctx->requestUser_len > 0)
+            {
+                insert = addError(row_ctx->requestUser, 22);
+                if (insert != 0)
+                    printf("Error Insertion failed\n");
+                rc = SNMP_ERR_INCONSISTENTVALUE;
+            }
             break;
 
         case COLUMN_WAITTIME:
             /** OBUDateandTime = ASN_OCTET_STR */
-            /*
-                     * TODO: routine to check valid values
-                     *
-                     * EXAMPLE:
-                     *
-                    * if ( XXX_check_value( var->val.string, XXX ) ) {
-                *    rc = SNMP_ERR_INCONSISTENTVALUE;
-                *    rc = SNMP_ERR_BADVALUE;
-                * }
-                */
+            /*waitTime can't be changed if request is already in system*/
+            if (row_ctx->requestUser_len > 0)
+            {
+                insert = addError(row_ctx->requestUser, 23);
+                if (insert != 0)
+                    printf("Error Insertion failed\n");
+                rc = SNMP_ERR_INCONSISTENTVALUE;
+            }
             break;
 
         case COLUMN_DURATIONTIME:
             /** OBUDateandTime = ASN_OCTET_STR */
-            /*
-                     * TODO: routine to check valid values
-                     *
-                     * EXAMPLE:
-                     *
-                    * if ( XXX_check_value( var->val.string, XXX ) ) {
-                *    rc = SNMP_ERR_INCONSISTENTVALUE;
-                *    rc = SNMP_ERR_BADVALUE;
-                * }
-                */
+            /*durationTime can't be changed if request is already in system*/
+            if (row_ctx->requestUser_len > 0)
+            {
+                insert = addError(row_ctx->requestUser, 24);
+                if (insert != 0)
+                    printf("Error Insertion failed\n");
+                rc = SNMP_ERR_INCONSISTENTVALUE;
+            }
             break;
 
         case COLUMN_EXPIRETIME:
             /** OBUDateandTime = ASN_OCTET_STR */
-            /*
-                     * TODO: routine to check valid values
-                     *
-                     * EXAMPLE:
-                     *
-                    * if ( XXX_check_value( var->val.string, XXX ) ) {
-                *    rc = SNMP_ERR_INCONSISTENTVALUE;
-                *    rc = SNMP_ERR_BADVALUE;
-                * }
-                */
+            /*expireTime can't be changed if request is already in system*/
+            if (row_ctx->requestUser_len > 0)
+            {
+                insert = addError(row_ctx->requestUser, 25);
+                if (insert != 0)
+                    printf("Error Insertion failed\n");
+                rc = SNMP_ERR_INCONSISTENTVALUE;
+            }
             break;
 
         case COLUMN_MAXNOFSAMPLES:
             /** UNSIGNED32 = ASN_UNSIGNED */
             if (*var->val.integer <= 0 && row_ctx->requestUser_len > 0)
             {
-                int insert = addError(row_ctx->requestUser, 4);
+                insert = addError(row_ctx->requestUser, 4);
                 if (insert != 0)
                     printf("Error Insertion failed\n");
                 rc = SNMP_ERR_INCONSISTENTVALUE;
@@ -1518,16 +1512,11 @@ void requestMonitoringDataTable_set_reserve2(netsnmp_request_group *rg)
 
         case COLUMN_LASTSAMPLEID:
             /** UNSIGNED32 = ASN_UNSIGNED */
-            /*
-                     * TODO: routine to check valid values
-                     *
-                     * EXAMPLE:
-                     *
-                    * if ( *var->val.integer != XXX ) {
-                *    rc = SNMP_ERR_INCONSISTENTVALUE;
-                *    rc = SNMP_ERR_BADVALUE;
-                * }
-                */
+            /*LastSampleID can't be changed manually*/
+            insert = addError(row_ctx->requestUser, 26);
+            if (insert != 0)
+                printf("Error Insertion failed\n");
+            rc = SNMP_ERR_INCONSISTENTVALUE;
             break;
 
         case COLUMN_LOOPMODE:
@@ -1535,7 +1524,7 @@ void requestMonitoringDataTable_set_reserve2(netsnmp_request_group *rg)
             if (*var->val.integer != 1 && *var->val.integer != 2 && row_ctx->requestUser_len > 0)
             {
 
-                int insert = addError(row_ctx->requestUser, 9);
+                insert = addError(row_ctx->requestUser, 9);
                 if (insert != 0)
                     printf("Error Insertion failed\n");
                 rc = SNMP_ERR_INCONSISTENTVALUE;
@@ -1546,7 +1535,7 @@ void requestMonitoringDataTable_set_reserve2(netsnmp_request_group *rg)
             if (*var->val.integer < 0 && *var->val.integer > 4)
             {
                 /*Status can't be below 0 or above 5*/
-                int insert = addError(row_ctx->requestUser, 13);
+                insert = addError(row_ctx->requestUser, 13);
                 if (insert != 0)
                     printf("Error Insertion failed\n");
                 rc = SNMP_ERR_INCONSISTENTVALUE;
@@ -1556,7 +1545,7 @@ void requestMonitoringDataTable_set_reserve2(netsnmp_request_group *rg)
                 if ((row_ctx->status == 2 || row_ctx->status == 4) && *var->val.integer != 3)
                 {
                     /*If status is in set or ready, you can only change it to delete*/
-                    int insert = addError(row_ctx->requestUser, 14);
+                    insert = addError(row_ctx->requestUser, 14);
                     if (insert != 0)
                         printf("Error Insertion failed\n");
                     rc = SNMP_ERR_INCONSISTENTVALUE;
@@ -1564,7 +1553,7 @@ void requestMonitoringDataTable_set_reserve2(netsnmp_request_group *rg)
                 if ((row_ctx->status == 1 && *var->val.integer != 0 && *var->val.integer != 3))
                 {
                     /*If status is in On mode, you can only change it to off or delete*/
-                    int insert = addError(row_ctx->requestUser, 15);
+                    insert = addError(row_ctx->requestUser, 15);
                     if (insert != 0)
                         printf("Error Insertion failed\n");
                     rc = SNMP_ERR_INCONSISTENTVALUE;
@@ -1572,7 +1561,7 @@ void requestMonitoringDataTable_set_reserve2(netsnmp_request_group *rg)
                 if ((row_ctx->status == 0 && *var->val.integer != 3))
                 {
                     /*If status is in Off mode, you can only change it to delete*/
-                    int insert = addError(row_ctx->requestUser, 16);
+                    insert = addError(row_ctx->requestUser, 16);
                     if (insert != 0)
                         printf("Error Insertion failed\n");
                     rc = SNMP_ERR_INCONSISTENTVALUE;
@@ -1581,16 +1570,14 @@ void requestMonitoringDataTable_set_reserve2(netsnmp_request_group *rg)
             break;
         case COLUMN_REQUESTUSER:
             /** OCTET STRING = ASN_OCTET_STR */
-            /*
-                     * TODO: routine to check valid values
-                     *
-                     * EXAMPLE:
-                     *
-                    * if ( XXX_check_value( var->val.string, XXX ) ) {
-                *    rc = SNMP_ERR_INCONSISTENTVALUE;
-                *    rc = SNMP_ERR_BADVALUE;
-                * }
-                */
+            /*ReqeustUser can't be changed if request is already in system*/
+            if (row_ctx->requestUser_len > 0)
+            {
+                insert = addError(row_ctx->requestUser, 27);
+                if (insert != 0)
+                    printf("Error Insertion failed\n");
+                rc = SNMP_ERR_INCONSISTENTVALUE;
+            }
             break;
         default:               /** We shouldn't get here */
             netsnmp_assert(0); /** why wasn't this caught in reserve1? */

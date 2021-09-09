@@ -16,3 +16,14 @@ Invalid status, must be between 0 and 4
 Current status is Set or Ready, it can only be manually changed to Delete, at this point
 Current status is On, it can only be manually changed to Delete or Off
 Current status is Off, it can only be manually changed to Delete
+RequestID can't be changed manually
+RequestControlID can't be changed manually
+RequestMapID can't be changed if request is already in system
+RequestStatisticsID can't be changed if request is already in system
+StartTime can't be changed if request is already in system
+EndTime can't be changed if request is already in system
+WaitTime can't be changed if request is already in system
+DurationTime can't be changed if request is already in system
+ExpireTime can't be changed if request is already in system
+LastSampleID can't be changed manually
+RequestUser can't be changed if request is already in system
