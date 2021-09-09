@@ -154,16 +154,17 @@ typedef struct edit_active_requests
 } edit_active_requests;
 typedef struct chosen_request
 {
-  int id;         /*requestMonitoringID*/
-  char *unit;     /*sampleUnit*/
-  int statistics; /*whether or not this request has statistics enabled*/
-  int min;        /*statisticstable min*/
-  int max;        /*statisticstable max*/
-  int avg;        /*statisticstable average*/
-  int *samples;   /*list of samples associated with this request*/
-  char *username;
-  char *signal;
-  int nOfSamples;
+  int id;           /*requestMonitoringID*/
+  char *unit;       /*sampleUnit*/
+  int statistics;   /*whether or not this request has statistics enabled*/
+  int min;          /*statisticstable min*/
+  int max;          /*statisticstable max*/
+  int avg;          /*statisticstable average*/
+  int *samples;     /*list of samples associated with this request*/
+  char **timestamp; /*timestamps for every sample associated with this request*/
+  char *username;   /*username of the user who made this request*/
+  char *signal;     /*signal name of this request*/
+  int nOfSamples;   /*number of samples for this request*/
 } chosen_request;
 /*Simple function to strip '\n' from stdin*/
 void fflush_stdin();

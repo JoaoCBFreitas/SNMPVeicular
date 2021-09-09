@@ -16,21 +16,21 @@ int isNumber(char s[])
 /*This function the menu that so the user can choose which tables to view*/
 void viewTablesMenu()
 {
-    printf("********************************\n");
-    printf("*RequestMonitoringDataTable -1 *\n");
-    printf("*RequestControlDataTable    -2 *\n");
-    printf("*RequestStatisticsDataTable -3 *\n");
-    printf("*CapabilitiesTable          -4 *\n");
-    printf("*SamplesTable               -5 *\n");
-    printf("*MapTypeTable               -6 *\n");
-    printf("*GenericTypesTable          -7 *\n");
-    printf("*SampleUnitsTable           -8 *\n");
-    printf("*ErrorTable                 -9 *\n");
-    printf("*ErrorDescriptionTable      -10*\n");
-    printf("*CommandTemplateTable       -11*\n");
-    printf("*CommandTable               -12*\n");
-    printf("*Exit                       -0 *\n");
-    printf("********************************\n");
+    printf("*********************************\n");
+    printf("*  1-RequestMonitoringDataTable *\n");
+    printf("*  2-RequestControlDataTable    *\n");
+    printf("*  3-RequestStatisticsDataTable *\n");
+    printf("*  4-CapabilitiesTable          *\n");
+    printf("*  5-SamplesTable               *\n");
+    printf("*  6-MapTypeTable               *\n");
+    printf("*  7-GenericTypesTable          *\n");
+    printf("*  8-SampleUnitsTable           *\n");
+    printf("*  9-ErrorTable                 *\n");
+    printf("* 10-ErrorDescriptionTable      *\n");
+    printf("* 11-CommandTemplateTable       *\n");
+    printf("* 12-CommandTable               *\n");
+    printf("*  0-Exit                       *\n");
+    printf("*********************************\n");
 }
 /*This function will append vars to linked list tc*/
 void appendContent(table_contents **tc, netsnmp_variable_list *vars)
@@ -1084,7 +1084,7 @@ void viewRequests(netsnmp_session session, netsnmp_session *ss)
                 table_contents *headtc = maptype;
                 while (maptype)
                 {
-                    /*Compare indexError with the index of the entry*/
+                    /*Compare index with the index of the entry*/
                     if (cr->mapTypeID == maptype->data->name[maptype->data->name_length - 1])
                     {
                         /*maptype->data->name[maptype->data->name_length - 2] equals the column*/
@@ -1188,6 +1188,7 @@ void viewRequests(netsnmp_session session, netsnmp_session *ss)
                 chr->max = 0;
                 chr->min = 0;
                 chr->samples = malloc(sizeof(int) * ar->nOfSamples);
+                chr->timestamp = malloc(sizeof(char *) * ar->nOfSamples);
                 chr->username = malloc(sizeof(char) * strlen(ar->username));
                 strcpy(chr->username, ar->username);
                 chr->signal = malloc(sizeof(char) * strlen(ar->signal));
@@ -1241,6 +1242,12 @@ void viewRequests(netsnmp_session session, netsnmp_session *ss)
                         {
                             if (sampleID == samples->data->name[samples->data->name_length - 1])
                             {
+                                if (samples->data->name[samples->data->name_length - 2] == 3)
+                                {
+                                    /*Get timestamps*/
+                                    chr->timestamp[count] = malloc(sizeof(char) * samples->data->val_len);
+                                    strcpy(chr->timestamp[count], samples->data->val.string);
+                                }
                                 if (samples->data->name[samples->data->name_length - 2] == 5)
                                 {
                                     /*Get previousSampleID*/
@@ -1280,7 +1287,8 @@ void viewRequests(netsnmp_session session, netsnmp_session *ss)
             printf("Request %d made by user \"%s\" on %s\n", chr->id, chr->username, chr->signal);
             for (int i = 0; i < chr->nOfSamples; i++)
             {
-                printf("Sample %d: %d %s\n", chr->nOfSamples - i, chr->samples[i], chr->unit);
+                printf("Sample %d: %d %s [%s]\n", chr->nOfSamples - i, chr->samples[i], chr->unit, chr->timestamp[i]);
+                free(chr->timestamp[i]);
             }
             if (chr->statistics != 0)
             {
@@ -1290,6 +1298,7 @@ void viewRequests(netsnmp_session session, netsnmp_session *ss)
             free(chr->unit);
             free(chr->username);
             free(chr->samples);
+            free(chr->timestamp);
             free(chr);
         }
         else
@@ -1345,13 +1354,13 @@ void changeRequest(netsnmp_session session, netsnmp_session *ss, char *requestID
     int escolha = -1;
     while (keep_running)
     {
-        printf("***********************************\n");
-        printf("*Change Saving Mode             -1*\n");
-        printf("*Change Max Number of Samples   -2*\n");
-        printf("*Change Loop Mode               -3*\n");
-        printf("*Change Status                  -4*\n");
-        printf("*Exit                           -0*\n");
-        printf("***********************************\n");
+        printf("**********************************\n");
+        printf("* 1-Change Saving Mode           *\n");
+        printf("* 2-Change Max Number of Samples *\n");
+        printf("* 3-Change Loop Mode             *\n");
+        printf("* 4-Change Status                *\n");
+        printf("* 0-Exit                         *\n");
+        printf("**********************************\n");
         int aux = scanf("%d", &escolha);
         if (escolha >= 0 && escolha < 5)
             keep_running = 0;
@@ -1376,6 +1385,8 @@ void changeRequest(netsnmp_session session, netsnmp_session *ss, char *requestID
         printf("3-Request Delete\n");
         printf("4-Request Ready\n");
         break;
+    case 0:
+        return;
     }
     printf("\n");
     char input[10] = {0};

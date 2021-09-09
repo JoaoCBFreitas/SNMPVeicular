@@ -805,10 +805,17 @@ void checkTables()
                         tmControl = convertTime(tmControl, reqControl->commitTime);
                         tmSample = convertTime(tmSample, samplesTable->timeStamp);
                         /*Go through all samples until a sample that predates commitTime is found*/
-                        while (samplesTable != NULL || compareTimeStamp(tmSample, tmControl) != 1)
+                        while (samplesTable != NULL)
                         {
-                            samplesTable = getSampleEntry(samplesTable->previousSampleID);
-                            tmSample = convertTime(tmSample, samplesTable->timeStamp);
+                            if (samplesTable->previousSampleID != 0)
+                            {
+                                samplesTable = getSampleEntry(samplesTable->previousSampleID);
+                                tmSample = convertTime(tmSample, samplesTable->timeStamp);
+                                if (compareTimeStamp(tmSample, tmControl) == 1)
+                                    break;
+                            }
+                            else
+                                samplesTable = NULL;
                         }
                         /*Sample that predates commitTime is found, delete from this sample onwards*/
                         while (samplesTable != NULL)

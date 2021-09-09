@@ -2,15 +2,15 @@
 /*This function prints the main menu*/
 void printMenu()
 {
-    printf("***********************\n");
-    printf("*Create New Request -1*\n");
-    printf("*View Requests      -2*\n");
-    printf("*Edit Requests      -3*\n");
-    printf("*View Tables        -4*\n");
-    printf("*View Active Errors -5*\n");
-    printf("*Send Command       -6*\n");
-    printf("*Exit               -0*\n");
-    printf("***********************\n");
+    printf("************************\n");
+    printf("* 1-Create New Request *\n");
+    printf("* 2-View Requests      *\n");
+    printf("* 3-Edit Requests      *\n");
+    printf("* 4-View Tables        *\n");
+    printf("* 5-View Active Errors *\n");
+    printf("* 6-Send Command       *\n");
+    printf("* 0-Exit               *\n");
+    printf("************************\n");
 }
 int main(int argc, char **argv)
 {

@@ -15,4 +15,4 @@ Command transmission failed
 Invalid status, must be between 0 and 4
 Current status is Set or Ready, it can only be manually changed to Delete, at this point
 Current status is On, it can only be manually changed to Delete or Off
-Current status is Off, it can only be manually changed to Off
+Current status is Off, it can only be manually changed to Delete
