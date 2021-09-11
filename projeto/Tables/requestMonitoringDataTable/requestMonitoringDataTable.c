@@ -41,7 +41,53 @@ static netsnmp_table_array_callbacks cb;
 
 const oid requestMonitoringDataTable_oid[] = {requestMonitoringDataTable_TABLE_OID};
 const size_t requestMonitoringDataTable_oid_len = OID_LENGTH(requestMonitoringDataTable_oid);
-
+/*This function will check if there's any request whose savingMode is "volatile"
+ 0=Volatile requests found
+ 1=No volatile requests found
+*/
+int checkVolatileRequests()
+{
+    netsnmp_iterator *it;
+    void *data;
+    it = CONTAINER_ITERATOR(cb.container);
+    if (NULL == it)
+        exit;
+    int res = 1;
+    for (data = ITERATOR_FIRST(it); data; data = ITERATOR_NEXT(it))
+    {
+        requestMonitoringDataTable_context *req = data;
+        if (req->savingMode == 1)
+        {
+            res = 0;
+            break;
+        }
+    }
+    ITERATOR_RELEASE(it);
+    return res;
+}
+/*This function will add the remaining entries from:
+                    requestMonitoringDataTable
+                    requestControlDataTable
+                    requestStatisticsDataTable
+                    samplesTable
+    to a cache file for later use*/
+void cacheEntries()
+{
+    netsnmp_iterator *it;
+    void *data;
+    it = CONTAINER_ITERATOR(cb.container);
+    int res = 0;
+    if (NULL == it)
+    {
+        return;
+    }
+    for (data = ITERATOR_FIRST(it); data; data = ITERATOR_NEXT(it))
+    {
+        requestMonitoringDataTable_context *req = data;
+        /*Add these entries to a file*/
+    }
+    ITERATOR_RELEASE(it);
+}
 /*This function will return the next empty ID of requestMonitoringDataTable*/
 int firstMonitoringEntry()
 {
@@ -74,7 +120,6 @@ int checkPermanentRequests(long unsigned int requestControlID, long unsigned int
     if (NULL == it)
         exit;
     int res = 1;
-    requestMonitoringDataTable_context *aux = (requestMonitoringDataTable_context *)malloc(sizeof(requestMonitoringDataTable_context));
     for (data = ITERATOR_FIRST(it); data; data = ITERATOR_NEXT(it))
     {
         requestMonitoringDataTable_context *req = data;
@@ -347,6 +392,56 @@ requestMonitoringStruct *tableToStruct(requestMonitoringDataTable_context *reqMo
     strcpy(reqStruct->requestUser, reqMonitoring->requestUser);
     return reqStruct;
 }
+
+void teste(void *data, void *context)
+{
+    requestMonitoringStruct *reqStruct = (requestMonitoringStruct *)malloc(sizeof(requestMonitoringStruct));
+    requestMonitoringDataTable_context *req = data;
+    if (req->savingMode == 1)
+    {
+        /*Volatile entry found, update this entry so it can be deleted*/
+        reqStruct = tableToStruct(req, reqStruct);
+        reqStruct->loopmode = 2;
+        reqStruct->status = 3;
+        insertMonitoringRow(reqStruct);
+    }
+    free(reqStruct);
+}
+/*This function will traverse requestMonitoringDataTable and change the status of every volatile entry to delete and its loopMode to no*/
+void clearVolatileEntries()
+{
+    CONTAINER_FOR_EACH(cb.container, teste, NULL);
+    /*
+    netsnmp_iterator *it;
+    void *data;
+    requestMonitoringStruct *reqStruct = (requestMonitoringStruct *)malloc(sizeof(requestMonitoringStruct));
+    it = CONTAINER_ITERATOR(cb.container);
+    if (NULL == it)
+    {
+        return;
+    }
+    for (data = ITERATOR_FIRST(it); data;)
+    {
+        requestMonitoringDataTable_context *req = data;
+        if (req->savingMode == 1)
+        {
+            */
+    /*Volatile entry found, update this entry so it can be deleted*/
+    /*
+    printf("Volatile %ld\n", req->requestID);
+    reqStruct = tableToStruct(req, reqStruct);
+    reqStruct->loopmode = 2;
+    reqStruct->status = 3;
+    data = ITERATOR_NEXT(it);
+    insertMonitoringRow(reqStruct);
+}
+else data = ITERATOR_NEXT(it);
+}
+ITERATOR_RELEASE(it);
+free(reqStruct);
+*/
+}
+
 /**
  * This Function will check if the decodedCan message has a request already set for it. If so it will add/edit entries into the MIB
  */

@@ -62,12 +62,7 @@ int main(int argc, char **argv)
     if (!agentx_subagent)
         init_master_agent(); /* open the port to listen on 
         (defaults to udp:161) */
-
-    /* In case we recevie a request to stop (kill -TERM or kill -INT) */
     keep_running = 1;
-    signal(SIGTERM, stop_server);
-    signal(SIGINT, stop_server);
-    signal(SIGCHLD, SIG_IGN);
     ssize_t r = 0;
     int fd[2];
     if (pipe(fd) < 0)
@@ -79,9 +74,16 @@ int main(int argc, char **argv)
     if (canDecoder == 0)
     {
         parseCAN(boList, fd);
+        exit(0);
     }
     else
     {
+        /*sigaction is apparently more portable than signal*/
+        struct sigaction act;
+        act.sa_handler = stop_server;
+        sigaction(SIGINT, &act, NULL);
+        sigaction(SIGTERM, &act, NULL);
+        sigaction(SIGQUIT, &act, NULL);
         while (keep_running)
         {
             checkTables();
@@ -121,6 +123,15 @@ int main(int argc, char **argv)
             }
         }
     }
+    /*Shutdown procedure begun, in here we will first clear all "volatile" entries in requestMonitoringDataTable and then store the 
+    remaining entries in a cache file for later use
+    To do this we must first find all entries with savingMode set to 1 and then change loopMode to 2 and status to delete*/
+    clearVolatileEntries();
+    /*To clear those entries, we can run checkTables() until no volatile entries are found*/
+    while (checkVolatileRequests() != 1)
+        checkTables();
+    /*We can now traverse requestMonitoringDataTable and store the remaining entries, and those related to them, in a cache file*/
+    cacheEntries();
     /* at shutdown time */
     snmp_shutdown("veicular-daemon");
     SOCK_CLEANUP;

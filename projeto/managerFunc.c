@@ -1189,6 +1189,7 @@ void viewRequests(netsnmp_session session, netsnmp_session *ss)
                 chr->min = 0;
                 chr->samples = malloc(sizeof(int) * ar->nOfSamples);
                 chr->timestamp = malloc(sizeof(char *) * ar->nOfSamples);
+                chr->checksum = malloc(sizeof(char *) * ar->nOfSamples);
                 chr->username = malloc(sizeof(char) * strlen(ar->username));
                 strcpy(chr->username, ar->username);
                 chr->signal = malloc(sizeof(char) * strlen(ar->signal));
@@ -1257,6 +1258,12 @@ void viewRequests(netsnmp_session session, netsnmp_session *ss)
                                 {
                                     /*Get recordedValue*/
                                     chr->samples[count] = *samples->data->val.integer;
+                                }
+                                if (samples->data->name[samples->data->name_length - 2] == 9)
+                                {
+                                    /*Get checksum*/
+                                    chr->checksum[count] = malloc(sizeof(char) * samples->data->val_len);
+                                    strcpy(chr->checksum[count], samples->data->val.string);
                                     sampleID = auxID;
                                     break;
                                 }
@@ -1287,8 +1294,9 @@ void viewRequests(netsnmp_session session, netsnmp_session *ss)
             printf("Request %d made by user \"%s\" on %s\n", chr->id, chr->username, chr->signal);
             for (int i = 0; i < chr->nOfSamples; i++)
             {
-                printf("Sample %d: %d %s [%s]\n", chr->nOfSamples - i, chr->samples[i], chr->unit, chr->timestamp[i]);
+                printf("Sample %d: %d %s [%s] {%s}\n", chr->nOfSamples - i, chr->samples[i], chr->unit, chr->timestamp[i], chr->checksum[i]);
                 free(chr->timestamp[i]);
+                free(chr->checksum[i]);
             }
             if (chr->statistics != 0)
             {
@@ -1299,6 +1307,7 @@ void viewRequests(netsnmp_session session, netsnmp_session *ss)
             free(chr->username);
             free(chr->samples);
             free(chr->timestamp);
+            free(chr->checksum);
             free(chr);
         }
         else

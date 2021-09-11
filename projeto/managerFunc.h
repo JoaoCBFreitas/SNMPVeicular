@@ -162,6 +162,7 @@ typedef struct chosen_request
   int avg;          /*statisticstable average*/
   int *samples;     /*list of samples associated with this request*/
   char **timestamp; /*timestamps for every sample associated with this request*/
+  char **checksum;  /*checksums of every sample associated with this request*/
   char *username;   /*username of the user who made this request*/
   char *signal;     /*signal name of this request*/
   int nOfSamples;   /*number of samples for this request*/

@@ -94,6 +94,9 @@ extern "C"
     void checkTables();
     void checkSamples(char *, double, int, char *, char *);
     int deleteRequestEntry(requestMonitoringStruct *);
+    void clearVolatileEntries();
+    void cacheEntries();
+    int checkVolatileRequests();
     /*************************************************************
  * oid declarations
  */
