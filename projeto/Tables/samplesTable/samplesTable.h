@@ -53,7 +53,12 @@ extern "C"
         void *data;
 
     } samplesTable_context;
-
+    typedef struct samplesCache
+    {
+        samplesTable_context **items;
+        int current;
+        int capacity;
+    } samplesCache;
     /*************************************************************
  * function declarations
  */
@@ -70,6 +75,7 @@ extern "C"
     samplesStruct *sampleTableToStruct(samplesTable_context *, samplesStruct *);
     int checkSampleChecksum(char *, unsigned long);
     void sampleZero(int);
+    samplesCache cacheSamplesEntries();
     /*************************************************************
  * oid declarations
  */

@@ -63,4 +63,4 @@ manager: manager.c manager.h managerFunc.c managerFunc.h Makefile
 	$(CC) $(CFLAGS) -o manager $(OBJ)/*.o $(BUILDLIBS)
 	rm -r obj
 clean:
-	rm $(TARGETS) generator -r obj
+	sudo rm $(TARGETS) generator -r obj cache.bin

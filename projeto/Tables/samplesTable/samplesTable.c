@@ -41,6 +41,40 @@ static netsnmp_table_array_callbacks cb;
 
 const oid samplesTable_oid[] = {samplesTable_TABLE_OID};
 const size_t samplesTable_oid_len = OID_LENGTH(samplesTable_oid);
+/*This function will traverse samplesTable and add all existing entries to samplesCache*/
+samplesCache cacheSamplesEntries()
+{
+    samplesCache cc;
+    cc.items = (samplesTable_context **)malloc(sizeof(samplesTable_context **));
+    cc.capacity = 1;
+    cc.current = 0;
+    netsnmp_iterator *it;
+    void *data;
+    it = CONTAINER_ITERATOR(cb.container);
+    if (NULL == it)
+    {
+        return cc;
+    }
+    for (data = ITERATOR_FIRST(it); data; data = ITERATOR_NEXT(it))
+    {
+        samplesTable_context *req = data;
+        /*Add these entries to a file*/
+        if (cc.current == cc.capacity)
+        {
+            /*Capacity reached, allocate more memory and copy contents over*/
+            samplesTable_context **aux = (samplesTable_context **)malloc(sizeof(samplesTable_context **) * cc.capacity * 2);
+            cc.capacity *= 2;
+            for (int i = 0; i < cc.current; i++)
+                aux[i] = cc.items[i];
+            free(cc.items);
+            cc.items = aux;
+        }
+        cc.items[cc.current] = req;
+        cc.current++;
+    }
+    ITERATOR_RELEASE(it);
+    return cc;
+}
 /*This function will loop through samples and when it finds a sample pointing to a null value it will change it to zero*/
 void sampleZero(int id)
 {

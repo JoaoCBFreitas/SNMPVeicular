@@ -41,7 +41,40 @@ static netsnmp_table_array_callbacks cb;
 
 const oid requestControlDataTable_oid[] = {requestControlDataTable_TABLE_OID};
 const size_t requestControlDataTable_oid_len = OID_LENGTH(requestControlDataTable_oid);
-
+/*This function will traverse requestControlDataTable and add all existing entries to controlCache*/
+controlCache cacheControlEntries()
+{
+    controlCache cc;
+    cc.items = (requestControlDataTable_context **)malloc(sizeof(requestControlDataTable_context **));
+    cc.capacity = 1;
+    cc.current = 0;
+    netsnmp_iterator *it;
+    void *data;
+    it = CONTAINER_ITERATOR(cb.container);
+    if (NULL == it)
+    {
+        return cc;
+    }
+    for (data = ITERATOR_FIRST(it); data; data = ITERATOR_NEXT(it))
+    {
+        requestControlDataTable_context *req = data;
+        /*Add these entries to a file*/
+        if (cc.current == cc.capacity)
+        {
+            /*Capacity reached, allocate more memory and copy contents over*/
+            requestControlDataTable_context **aux = (requestControlDataTable_context **)malloc(sizeof(requestControlDataTable_context **) * cc.capacity * 2);
+            cc.capacity *= 2;
+            for (int i = 0; i < cc.current; i++)
+                aux[i] = cc.items[i];
+            free(cc.items);
+            cc.items = aux;
+        }
+        cc.items[cc.current] = req;
+        cc.current++;
+    }
+    ITERATOR_RELEASE(it);
+    return cc;
+}
 /*This function will check if there are requests already set for an object*/
 int checkControlExist(long unsigned int requestMapID)
 {

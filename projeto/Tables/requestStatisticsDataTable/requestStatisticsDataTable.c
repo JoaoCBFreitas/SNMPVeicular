@@ -41,6 +41,40 @@ static netsnmp_table_array_callbacks cb;
 
 const oid requestStatisticsDataTable_oid[] = {requestStatisticsDataTable_TABLE_OID};
 const size_t requestStatisticsDataTable_oid_len = OID_LENGTH(requestStatisticsDataTable_oid);
+/*This function will traverse requestStatisticsDataTable and add all existing entries to statisticsCache*/
+statisticsCache cacheStatisticsEntries()
+{
+    statisticsCache cc;
+    cc.items = (requestStatisticsDataTable_context **)malloc(sizeof(requestStatisticsDataTable_context **));
+    cc.capacity = 1;
+    cc.current = 0;
+    netsnmp_iterator *it;
+    void *data;
+    it = CONTAINER_ITERATOR(cb.container);
+    if (NULL == it)
+    {
+        return cc;
+    }
+    for (data = ITERATOR_FIRST(it); data; data = ITERATOR_NEXT(it))
+    {
+        requestStatisticsDataTable_context *req = data;
+        /*Add these entries to a file*/
+        if (cc.current == cc.capacity)
+        {
+            /*Capacity reached, allocate more memory and copy contents over*/
+            requestStatisticsDataTable_context **aux = (requestStatisticsDataTable_context **)malloc(sizeof(requestStatisticsDataTable_context **) * cc.capacity * 2);
+            cc.capacity *= 2;
+            for (int i = 0; i < cc.current; i++)
+                aux[i] = cc.items[i];
+            free(cc.items);
+            cc.items = aux;
+        }
+        cc.items[cc.current] = req;
+        cc.current++;
+    }
+    ITERATOR_RELEASE(it);
+    return cc;
+}
 /*This function will return the first empty ID of requestStatisticsDataTable*/
 int firstStatisticsEntry()
 {

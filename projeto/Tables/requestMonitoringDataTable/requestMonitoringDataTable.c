@@ -71,22 +71,46 @@ int checkVolatileRequests()
                     requestStatisticsDataTable
                     samplesTable
     to a cache file for later use*/
-void cacheEntries()
+systemCache cacheEntries()
 {
+    systemCache sc;
+    sc.mc.items = (requestMonitoringDataTable_context **)malloc(sizeof(requestMonitoringDataTable_context **));
+    sc.mc.capacity = 1;
+    sc.mc.current = 0;
     netsnmp_iterator *it;
     void *data;
     it = CONTAINER_ITERATOR(cb.container);
-    int res = 0;
     if (NULL == it)
     {
-        return;
+        return sc;
     }
     for (data = ITERATOR_FIRST(it); data; data = ITERATOR_NEXT(it))
     {
         requestMonitoringDataTable_context *req = data;
         /*Add these entries to a file*/
+        if (sc.mc.current == sc.mc.capacity)
+        {
+            /*Capacity reached, allocate more memory and copy contents over*/
+            requestMonitoringDataTable_context **aux = (requestMonitoringDataTable_context **)malloc(sizeof(requestMonitoringDataTable_context **) * sc.mc.capacity * 2);
+            sc.mc.capacity *= 2;
+            for (int i = 0; i < sc.mc.current; i++)
+            {
+                aux[i] = sc.mc.items[i];
+            }
+            free(sc.mc.items);
+            sc.mc.items = aux;
+        }
+        sc.mc.items[sc.mc.current] = req;
+        sc.mc.current++;
     }
     ITERATOR_RELEASE(it);
+    /*Traverse requestControlDataTable and add all entries to the file*/
+    sc.cc = cacheControlEntries();
+    /*Traverse requestStatisticsDataTable and add all entries to the file*/
+    sc.sc = cacheStatisticsEntries();
+    /*Traverse samplesTable and add all entries to the file*/
+    sc.rc = cacheSamplesEntries();
+    return sc;
 }
 /*This function will return the next empty ID of requestMonitoringDataTable*/
 int firstMonitoringEntry()
@@ -392,8 +416,8 @@ requestMonitoringStruct *tableToStruct(requestMonitoringDataTable_context *reqMo
     strcpy(reqStruct->requestUser, reqMonitoring->requestUser);
     return reqStruct;
 }
-
-void teste(void *data, void *context)
+/*Simple callback function that is called via the container operation "CONTAINER_FOR_EACH"*/
+void clearVolatileCallback(void *data, void *context)
 {
     requestMonitoringStruct *reqStruct = (requestMonitoringStruct *)malloc(sizeof(requestMonitoringStruct));
     requestMonitoringDataTable_context *req = data;
@@ -408,38 +432,9 @@ void teste(void *data, void *context)
     free(reqStruct);
 }
 /*This function will traverse requestMonitoringDataTable and change the status of every volatile entry to delete and its loopMode to no*/
-void clearVolatileEntries()
+void clearVolatileEntries(void *data, void *context)
 {
-    CONTAINER_FOR_EACH(cb.container, teste, NULL);
-    /*
-    netsnmp_iterator *it;
-    void *data;
-    requestMonitoringStruct *reqStruct = (requestMonitoringStruct *)malloc(sizeof(requestMonitoringStruct));
-    it = CONTAINER_ITERATOR(cb.container);
-    if (NULL == it)
-    {
-        return;
-    }
-    for (data = ITERATOR_FIRST(it); data;)
-    {
-        requestMonitoringDataTable_context *req = data;
-        if (req->savingMode == 1)
-        {
-            */
-    /*Volatile entry found, update this entry so it can be deleted*/
-    /*
-    printf("Volatile %ld\n", req->requestID);
-    reqStruct = tableToStruct(req, reqStruct);
-    reqStruct->loopmode = 2;
-    reqStruct->status = 3;
-    data = ITERATOR_NEXT(it);
-    insertMonitoringRow(reqStruct);
-}
-else data = ITERATOR_NEXT(it);
-}
-ITERATOR_RELEASE(it);
-free(reqStruct);
-*/
+    CONTAINER_FOR_EACH(cb.container, clearVolatileCallback, NULL);
 }
 
 /**

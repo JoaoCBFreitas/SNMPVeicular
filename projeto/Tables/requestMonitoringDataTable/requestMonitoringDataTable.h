@@ -81,7 +81,19 @@ extern "C"
         void *data;
         int valid;
     } requestMonitoringDataTable_context;
-
+    typedef struct monitoringCache
+    {
+        requestMonitoringDataTable_context **items;
+        int current;
+        int capacity;
+    } monitoringCache;
+    typedef struct systemCache
+    {
+        monitoringCache mc;
+        statisticsCache sc;
+        controlCache cc;
+        samplesCache rc;
+    } systemCache;
     /*************************************************************
  * function declarations
  */
@@ -95,8 +107,10 @@ extern "C"
     void checkSamples(char *, double, int, char *, char *);
     int deleteRequestEntry(requestMonitoringStruct *);
     void clearVolatileEntries();
-    void cacheEntries();
+    systemCache cacheEntries();
     int checkVolatileRequests();
+    requestMonitoringStruct *tableToStruct(requestMonitoringDataTable_context *reqMonitoring, requestMonitoringStruct *reqStruct);
+    int insertMonitoringRow(requestMonitoringStruct *req);
     /*************************************************************
  * oid declarations
  */

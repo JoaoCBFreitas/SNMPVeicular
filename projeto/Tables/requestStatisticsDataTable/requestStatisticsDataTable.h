@@ -43,7 +43,12 @@ extern "C"
         int valid;
 
     } requestStatisticsDataTable_context;
-
+    typedef struct statisticsCache
+    {
+        requestStatisticsDataTable_context **items;
+        int current;
+        int capacity;
+    } statisticsCache;
     /*************************************************************
  * function declarations
  */
@@ -58,6 +63,7 @@ extern "C"
     statisticsStruct *convertStatStruct(requestStatisticsDataTable_context *, statisticsStruct *);
     int deleteStatisticsEntry(int);
     int firstStatisticsEntry();
+    statisticsCache cacheStatisticsEntries();
     /*************************************************************
  * oid declarations
  */

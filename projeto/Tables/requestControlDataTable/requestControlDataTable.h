@@ -52,7 +52,12 @@ extern "C"
         void *data;
         int valid;
     } requestControlDataTable_context;
-
+    typedef struct controlCache
+    {
+        requestControlDataTable_context **items;
+        int current;
+        int capacity;
+    } controlCache;
     /*************************************************************
  * function declarations
  */
@@ -68,6 +73,7 @@ extern "C"
     int firstControlEntry(void);
     requestStruct *reqControlConvert(requestControlDataTable_context *, requestStruct *);
     int checkControlExist(unsigned long id);
+    controlCache cacheControlEntries();
     /*************************************************************
  * oid declarations
  */
