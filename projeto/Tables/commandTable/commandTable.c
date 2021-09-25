@@ -65,7 +65,9 @@ int deleteCommandEntry(long unsigned int id)
     ctx = CONTAINER_FIND(cb.container, &index);
     if (ctx)
     {
+        /*Remove from container first*/
         CONTAINER_REMOVE(cb.container, &index);
+        /*Free commandTable_context*/
         commandTable_delete_row(ctx);
     }
     else
@@ -78,9 +80,10 @@ int deleteCommandEntry(long unsigned int id)
     else
         return 0;
 }
-/*This function will check all entries on commandTable, when an entry is found it will validate it, build a CAN message based on it's contents 
-and then transmit it, finnaly, it will delete the entry 
-If validation fails or message transmission failed for any reason a new error entry will be created on errorTable and the entry will be deleted*/
+/*This function will check all entries on commandTable, when an entry is found it will validate it, 
+build a CAN message based on it's contents and then transmit it, finally, it will delete the entry 
+If validation fails or message transmission failed for any reason a new error entry will be created on 
+errorTable and the entry will be deleted*/
 void checkActuators()
 {
     netsnmp_iterator *it;
@@ -276,7 +279,6 @@ commandTable_get(const char *name, int len)
  */
 void init_commandTable(void)
 {
-    init_commandTemplateTable();
     initialize_table_commandTable();
 }
 

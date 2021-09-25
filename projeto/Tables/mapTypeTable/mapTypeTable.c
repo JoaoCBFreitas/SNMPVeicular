@@ -163,6 +163,8 @@ void init_mapTypeTable(BO_List *boList)
     int inserted = 0;
     int errorInserted = 0;
     regex_t regex;
+    /*This regex will ignore Diagnostic Messages, that is messages whose name is DMxxx, since I don't have the tools
+      to properly test the accuracy of the decoder when it comes to those messages*/
     int value = regcomp(&regex, "DM[0-9]+:", REG_EXTENDED);
     if (value)
     {
@@ -200,6 +202,8 @@ void init_mapTypeTable(BO_List *boList)
     }
     init_sampleUnitsTable(&sampleunitsList);
     init_genericTypesTable(&typesList);
+    free(sampleunitsList.list);
+    free(typesList.genericList);
     regfree(&regex);
 }
 

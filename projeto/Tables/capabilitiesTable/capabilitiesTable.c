@@ -186,6 +186,7 @@ void init_capabilitiesTable(void)
                 ctx = capabilitiesTable_create_row(&index, descr, k, set, spec);
                 CONTAINER_INSERT(cb.container, ctx);
                 k++;
+                free(descr);
             }
         }
         i++;

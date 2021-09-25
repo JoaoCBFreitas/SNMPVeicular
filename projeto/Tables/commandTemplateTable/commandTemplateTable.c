@@ -52,16 +52,19 @@ void *getTemplateEntry(long unsigned int id)
     {
         return NULL;
     }
+    /*Traverse commandTemplateTable and compare the entry Id with the given ID*/
     for (data = ITERATOR_FIRST(it); data; data = ITERATOR_NEXT(it))
     {
         commandTemplateTable_context *req = data;
         if (req->commandTemplateID == id)
         {
+            /*Id found*/
             res = 0;
             break;
         }
     }
     ITERATOR_RELEASE(it);
+    /*If res is not 0, then the given ID was not found*/
     if (res == 1)
         return NULL;
     return data;

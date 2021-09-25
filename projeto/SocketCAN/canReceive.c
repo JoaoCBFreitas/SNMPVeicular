@@ -27,13 +27,9 @@ int hexToInt(unsigned char *id)
 	for (i = 0; aux[i] != '\0'; i++)
 	{
 		if (aux[i] >= '0' && aux[i] <= '9')
-		{
 			val = aux[i] - 48;
-		}
 		else if (aux[i] >= 'A' && aux[i] <= 'F')
-		{
 			val = aux[i] - 65 + 10;
-		}
 		decimal += val * pow(16, len);
 		len--;
 	}
@@ -52,21 +48,15 @@ int *decToBinary(int n)
 	static int binaryNum[4];
 	int i = 7;
 	if (n == 0)
-	{
 		for (int j = 0; j < 8; j++)
-		{
 			binaryNum[j] = 0;
-		}
-	}
 	else
-	{
 		while (n > 0)
 		{
 			binaryNum[i] = n % 2;
 			n = n / 2;
 			i--;
 		}
-	}
 	return binaryNum;
 }
 int binaryToDec(int *list, int n)
@@ -85,15 +75,12 @@ int decodeData(int *binData, int start, int length, int endian)
 	int binRes[length];
 	//Get relevant bits
 	for (int i = 0; i < length; i++)
-	{
 		binRes[i] = binData[start + i];
-	}
 	int decFinal = binaryToDec(binRes, length);
 	char *hexFinal = intToHex(decFinal);
 	//Remove less significative bits 00056=56
 	int tam = strlen(hexFinal);
 	for (int i = 0; i < strlen(hexFinal); i++)
-	{
 		if (hexFinal[i] == '0')
 		{
 			hexFinal++;
@@ -101,10 +88,7 @@ int decodeData(int *binData, int start, int length, int endian)
 			tam--;
 		}
 		else
-		{
 			break;
-		}
-	}
 	if (endian == 1)
 	{
 		char aux[tam];
@@ -141,6 +125,7 @@ decodedCAN *decode(unsigned char *id, int dlc, unsigned char data[], BO_List *bo
 	int *binData = malloc(sizeof(int) * 64);
 	hexToBinary(binData, data);
 	dc->signals = 0;
+	/*Decoding according the the CAN version (identified via the length of id)*/
 	if (strlen(id) == 3)
 	{
 		/*11-bit identifier*/
@@ -148,10 +133,8 @@ decodedCAN *decode(unsigned char *id, int dlc, unsigned char data[], BO_List *bo
 		//strcpy(dc->id,res);
 	}
 	else
-	{
 		/*29-bit identifier*/
 		for (int i = 0; i < boList->current; i++)
-		{
 			if (strcmp(boList->list[i].id, id) == 0)
 			{
 				strcpy(dc->name, boList->list[i].name);
@@ -173,11 +156,7 @@ decodedCAN *decode(unsigned char *id, int dlc, unsigned char data[], BO_List *bo
 				break;
 			}
 			else
-			{
 				dc->signals = -2;
-			}
-		}
-	}
 	free(binData);
 	return dc;
 }
@@ -185,7 +164,6 @@ SG scaleBits(SG signal, char *token)
 {
 	char *aux = malloc(sizeof(char) * strlen(token) + 1);
 	int i;
-
 	strcpy(aux, token);
 	aux++;
 	aux[strlen(aux) - 1] = '\0';
@@ -197,6 +175,7 @@ SG scaleBits(SG signal, char *token)
 	signal.scale = atof(s);
 	aux += i + 1;
 	signal.offset = atof(aux);
+	/*free(aux) crashes the program*/
 	return signal;
 }
 SG minMax(SG signal, char *token)
@@ -214,6 +193,7 @@ SG minMax(SG signal, char *token)
 	signal.min = atof(s);
 	aux += i + 1;
 	signal.max = atof(aux);
+	/*free(aux) crashes the program*/
 	return signal;
 }
 SG signalBits(SG signal, char *token)
@@ -242,6 +222,7 @@ SG signalBits(SG signal, char *token)
 		signal.signFlag = 1;
 	else
 		signal.signFlag = 0;
+	/*free(aux) crashes the program*/
 	return signal;
 }
 BO *getBO(char *line)
@@ -383,12 +364,19 @@ BO_List *readDBC(char *file)
 				for (int j = 0; j < boList2->current; j++)
 				{
 					boList2->list[j] = boList->list[j];
+					/*SegFaults on this free*/
+					//free(boList->list[j].signals);
 				}
 				memcpy(boList, boList2, sizeof(BO_List));
 				free(boList2);
 			}
 			boList->list[boList->current] = *bo;
 			boList->current++;
+			/*SegFaults on these frees*/
+			/*
+			free(bo->signals->list);
+			free(bo->signals);
+			*/
 			free(bo);
 		}
 		else if (strcmp(bo_, " SG_") == 0)
@@ -404,9 +392,7 @@ BO_List *readDBC(char *file)
 				sgList.list = malloc(sizeof(SG) * sgList.capacity);
 
 				for (int j = 0; j < sgList.current; j++)
-				{
 					sgList.list[j] = boList->list[lastInserted].signals->list[j];
-				}
 				memcpy(boList->list[lastInserted].signals, &sgList, sizeof(SG_List));
 			}
 			boList->list[lastInserted].signals->list[nSignals] = signal;
@@ -428,65 +414,49 @@ BO_List *readDBC(char *file)
 					break;
 				case 1:
 					if (strcmp(token, "BO_") == 0)
-					{
 						flag = 0;
-					}
 					else if (strcmp(token, "SG_") == 0)
-					{
 						flag = 1;
-					}
 					break;
 				case 2:
 					if (flag == 0)
-					{
 						messageID = atol(token);
-						for (int i = 0; i < boList->current && flag == 0; i++)
+					for (int i = 0; i < boList->current && flag == 0; i++)
+						if (messageID == boList->list[i].messageID)
 						{
-							if (messageID == boList->list[i].messageID)
+							int k = 0, f = 0;
+							char aux[1024];
+							for (int k = 0, j = 0; k < strlen(lineaux) && f >= 0; k++)
 							{
-								int k = 0, f = 0;
-								char aux[1024];
-								for (int k = 0, j = 0; k < strlen(lineaux) && f >= 0; k++)
+								if (lineaux[k] != '\"' && f == 0)
+									continue;
+								else if (lineaux[k] == '\"' && f == 0)
+									f = 1;
+								else if (lineaux[k] != '\"' && f == 1)
 								{
-									if (lineaux[k] != '\"' && f == 0)
-										continue;
-									else if (lineaux[k] == '\"' && f == 0)
-									{
-										f = 1;
-									}
-									else if (lineaux[k] != '\"' && f == 1)
-									{
-										aux[j] = lineaux[k];
-										j++;
-									}
-									else if (lineaux[k] == '\"' && f == 1)
-									{
-										aux[j] = '\0';
-										f = -1;
-									}
+									aux[j] = lineaux[k];
+									j++;
 								}
-								free(lineaux);
-								strcpy(boList->list[i].description, aux);
-								flag = -1;
+								else if (lineaux[k] == '\"' && f == 1)
+								{
+									aux[j] = '\0';
+									f = -1;
+								}
 							}
-							else
-							{
-								continue;
-							}
+							free(lineaux);
+							strcpy(boList->list[i].description, aux);
+							flag = -1;
 						}
-					}
+						else
+							continue;
 					if (flag == 1)
 					{
 						messageID = atol(token);
 						token = strtok(NULL, " ");
 						for (int i = 0; i < boList->current && flag == 1; i++)
-						{
 							if (messageID == boList->list[i].messageID)
-							{
 								for (int j = 0; j < boList->list[i].signals->current && flag == 1; j++)
-								{
 									if (token != NULL)
-									{
 										if (strcmp(token, boList->list[i].signals->list[j].name) == 0)
 										{
 											int k = 0, f = 0;
@@ -496,9 +466,7 @@ BO_List *readDBC(char *file)
 												if (lineaux[k] != '\"' && f == 0)
 													continue;
 												else if (lineaux[k] == '\"' && f == 0)
-												{
 													f = 1;
-												}
 												else if (lineaux[k] != '\"' && f == 1)
 												{
 													aux[j] = lineaux[k];
@@ -515,13 +483,7 @@ BO_List *readDBC(char *file)
 											flag = -1;
 										}
 										else
-										{
 											continue;
-										}
-									}
-								}
-							}
-						}
 					}
 					break;
 				default:
@@ -583,9 +545,7 @@ void parseCAN(BO_List *boList, int fd[])
 		unsigned char data[frame.can_dlc];
 		/*frame.data is inverted for some reason*/
 		for (int j = 0, i = frame.can_dlc - 1; i >= 0; i--, j++)
-		{
 			data[j] = frame.data[i];
-		}
 		dc = decode(intToHex(frame.can_id), frame.can_dlc, data, boList, dc);
 		write(fd[1], dc, sizeof(decodedCAN));
 		free(dc);

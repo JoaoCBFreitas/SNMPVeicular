@@ -47,7 +47,7 @@ int main(int argc, char **argv)
     session.securityAuthKeyLen = USM_AUTH_KU_LEN;
 
     /* set the authentication key to a SHA1 hashed version of our
-       passphrase "SNMPVeicular" (which must be at least 8
+       passphrase (which must be at least 8
        characters long) */
     if (generate_Ku(session.securityAuthProto,
                     session.securityAuthProtoLen,

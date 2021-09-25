@@ -159,6 +159,8 @@ void init_errorDescriptionTable()
             req->errorDescrID = k;
             req->errorDescr = malloc(sizeof(char) + strlen(line));
             strcpy(req->errorDescr, line);
+            /*Simple errorCode (id+3), 
+            TODO: change it to something more useful at a later date*/
             req->errorCode = k + 3;
             index_oid[0] = k;
             index.oids = (oid *)&index_oid;
@@ -173,6 +175,7 @@ void init_errorDescriptionTable()
                 CONTAINER_INSERT(cb.container, ctx);
                 k++;
             }
+            free(req->errorDescr);
             free(req);
         }
         i++;

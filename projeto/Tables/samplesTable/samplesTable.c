@@ -75,7 +75,8 @@ samplesCache cacheSamplesEntries()
     ITERATOR_RELEASE(it);
     return cc;
 }
-/*This function will loop through samples and when it finds a sample pointing to a null value it will change it to zero*/
+/*This function will loop through samples and when it finds a sample pointing to 
+an already deleted entry it will change it to zero*/
 void sampleZero(int id)
 {
     samplesTable_context *samplesTable;
@@ -90,9 +91,12 @@ void sampleZero(int id)
     ss = sampleTableToStruct(samplesTable, ss);
     deleteSamplesEntry(aux);
     insertSamplesRow(ss);
+    free(ss->timestamp);
+    free(ss->sampleCheckSum);
     free(ss);
 }
-/*This function will check if a sample was already added to the table by comparing the checksum, if it exists its index will be returned*/
+/*This function will check if a sample was already added to the table by comparing the checksum, 
+if it exists its index will be returned, if not it will return 0*/
 int checkSampleChecksum(char *checksum, unsigned long id)
 {
     int res = 0;

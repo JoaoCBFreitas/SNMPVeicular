@@ -124,12 +124,8 @@ void printTable(table_contents *tc)
 {
     while (tc)
     {
-        for (; tc->data;
-             tc->data = tc->data->next_variable)
-        {
-
+        for (; tc->data; tc->data = tc->data->next_variable)
             print_variable(tc->data->name, tc->data->name_length, tc->data);
-        }
         tc = tc->next;
     }
 }
@@ -442,7 +438,8 @@ void activeErrors(netsnmp_session session, netsnmp_session *ss)
     table_contents *error = NULL;
     active_errors *ae = NULL;
     active_errors *ce;
-    /*These configs will make contents of struct error->data more easy to use*/
+    /*These configs will make contents of struct error->data easier to traverse and use, 
+    otherwise it might break the switch cases*/
     int orig_config_val_qp = netsnmp_ds_get_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_QUICK_PRINT);
     int orig_config_val_bv = netsnmp_ds_get_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_PRINT_BARE_VALUE);
     netsnmp_ds_set_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_QUICK_PRINT, 1);
@@ -459,6 +456,7 @@ void activeErrors(netsnmp_session session, netsnmp_session *ss)
     {
         while (error)
         {
+            /*Get errorIndex of current entry*/
             int currentIndex = error->data->name[error->data->name_length - 1];
             active_errors *head = ae;
             ce = NULL;
@@ -485,6 +483,7 @@ void activeErrors(netsnmp_session session, netsnmp_session *ss)
                 ce->next = NULL;
                 appendErrors(&ae, ce);
             }
+            /*Switch based on the column*/
             switch (error->data->name[error->data->name_length - 2])
             {
             case 2:
@@ -578,7 +577,8 @@ void sendCommand(netsnmp_session session, netsnmp_session *ss)
     /*command will be used to find the ID with which to use set command*/
     table_contents *command = NULL;
     table_contents *commandTemplate = NULL;
-    /*These configs will make contents of struct command->data and commandTemplate->data more easy to use*/
+    /*These configs will make contents of struct command->data and commandTemplate->data easier to traverse and use, 
+    otherwise it might break the switch cases*/
     int orig_config_val_qp = netsnmp_ds_get_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_QUICK_PRINT);
     int orig_config_val_bv = netsnmp_ds_get_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_PRINT_BARE_VALUE);
     netsnmp_ds_set_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_QUICK_PRINT, 1);
@@ -596,6 +596,7 @@ void sendCommand(netsnmp_session session, netsnmp_session *ss)
     {
         while (commandTemplate)
         {
+            /*Get commandTemplateIndex of current entry*/
             int currentIndex = commandTemplate->data->name[commandTemplate->data->name_length - 1];
             command_template *head = ae;
             ct = NULL;
@@ -682,16 +683,13 @@ void sendCommand(netsnmp_session session, netsnmp_session *ss)
     bulkget(session, ss, commandTableOid, OID_LENGTH(commandTableOid), &command);
     int commandIndex = 0;
     if (command)
-    {
         while (command)
         {
             if (commandIndex <= command->data->name[command->data->name_length - 1])
-            {
                 commandIndex = command->data->name[command->data->name_length - 1] + 1;
-            }
             command = command->next;
         }
-    }
+
     char strIndex[sizeof(int) * 4 + 1];
     sprintf(strIndex, "%d", commandIndex);
     char *values[] = {templateID, input, session.securityName};
@@ -760,7 +758,8 @@ void sendRequest(netsnmp_session session, netsnmp_session *ss)
     table_contents *requests = NULL;
     map_type *mapList = NULL;
     map_type *currMap;
-    /*These configs will make contents of struct mapType->data and genericTypes->data more easy to use*/
+    /*These configs will make contents of struct mapType->data and genericTypes->data easier to traverse and use, 
+    otherwise it might break the switch cases*/
     int orig_config_val_qp = netsnmp_ds_get_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_QUICK_PRINT);
     int orig_config_val_bv = netsnmp_ds_get_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_PRINT_BARE_VALUE);
     netsnmp_ds_set_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_QUICK_PRINT, 1);
@@ -778,6 +777,7 @@ void sendRequest(netsnmp_session session, netsnmp_session *ss)
     {
         while (mapType)
         {
+            /*Get mapTypeTableIndex of current entry*/
             int currentIndex = mapType->data->name[mapType->data->name_length - 1];
             map_type *head = mapList;
             currMap = NULL;
@@ -814,7 +814,6 @@ void sendRequest(netsnmp_session session, netsnmp_session *ss)
                 {
                     /*Compare descriptionID with the index of the entry*/
                     if (currMap->descriptionID == genericTypes->data->name[genericTypes->data->name_length - 1])
-                    {
                         /*genericTypes->data->name[genericTypes->data->name_length - 2] equals the column*/
                         if (genericTypes->data->name[genericTypes->data->name_length - 2] == 2)
                         {
@@ -823,7 +822,6 @@ void sendRequest(netsnmp_session session, netsnmp_session *ss)
                             memcpy(currMap->description, genericTypes->data->val.string, genericTypes->data->val_len);
                             currMap->description[genericTypes->data->val_len] = '\0';
                         }
-                    }
                     genericTypes = genericTypes->next;
                 }
                 /*Go back to head of list*/
@@ -943,16 +941,12 @@ void sendRequest(netsnmp_session session, netsnmp_session *ss)
     bulkget(session, ss, requestMonitoringDataTableOid, OID_LENGTH(requestMonitoringDataTableOid), &requests);
     table_contents *headR = requests;
     if (requests)
-    {
         while (requests)
         {
             if (requestIndex <= requests->data->name[requests->data->name_length - 1])
-            {
                 requestIndex = requests->data->name[requests->data->name_length - 1] + 1;
-            }
             requests = requests->next;
         }
-    }
     char strIndex[sizeof(int) * 4 + 1];
     sprintf(strIndex, "%d", requestIndex);
     char *values[] = {requestMapID, statisticsID, savingMode, startTime, waitTime, durationTime, expireTime, maxNOfSamples, loopMode, user};
@@ -978,9 +972,7 @@ void sendRequest(netsnmp_session session, netsnmp_session *ss)
     /*Rootlength is needed, for this table its set as 10 which is the number of sub-ids*/
     size_t *rootlen = malloc(sizeof(size_t *) * RequestNumber);
     for (int i = 0; i < RequestNumber; i++)
-    {
         rootlen[i] = RequestOid;
-    }
     int res = set(session, ss, modOidList, rootlen, modOidString, typesRequest, values, RequestNumber);
     /****************************************** Free Allocated Memory ******************************************/
     free(rootlen);
@@ -1030,7 +1022,8 @@ void viewRequests(netsnmp_session session, netsnmp_session *ss)
     table_contents *sampleUnits = NULL;
     active_requests *ar = NULL;
     active_requests *cr;
-    /*These configs will make contents of struct reqMonitor->data easier to use*/
+    /*These configs will make contents of struct reqMonitor->data easier to traverse and use, 
+    otherwise it might break the switch cases*/
     int orig_config_val_qp = netsnmp_ds_get_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_QUICK_PRINT);
     int orig_config_val_bv = netsnmp_ds_get_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_PRINT_BARE_VALUE);
     netsnmp_ds_set_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_QUICK_PRINT, 1);
@@ -1050,6 +1043,7 @@ void viewRequests(netsnmp_session session, netsnmp_session *ss)
     {
         while (reqMonitor)
         {
+            /*Get requestMonitoringIndex of current entry*/
             int currentIndex = reqMonitor->data->name[reqMonitor->data->name_length - 1];
             active_requests *head = ar;
             cr = NULL;
@@ -1089,10 +1083,8 @@ void viewRequests(netsnmp_session session, netsnmp_session *ss)
                     {
                         /*maptype->data->name[maptype->data->name_length - 2] equals the column*/
                         if (maptype->data->name[maptype->data->name_length - 2] == 4)
-                        {
                             /*Get sampleUnitMapID*/
                             cr->sampleUnitID = *maptype->data->val.integer;
-                        }
                         if (maptype->data->name[maptype->data->name_length - 2] == 8)
                         {
                             /*Get dataSource*/
@@ -1110,7 +1102,6 @@ void viewRequests(netsnmp_session session, netsnmp_session *ss)
                 while (sampleUnits)
                 {
                     if (cr->sampleUnitID == sampleUnits->data->name[sampleUnits->data->name_length - 1])
-                    {
                         if (sampleUnits->data->name[sampleUnits->data->name_length - 2] == 2)
                         {
                             /*Get unitDescription*/
@@ -1118,7 +1109,6 @@ void viewRequests(netsnmp_session session, netsnmp_session *ss)
                             memcpy(cr->unit, sampleUnits->data->val.string, sampleUnits->data->val_len);
                             cr->unit[sampleUnits->data->val_len] = '\0';
                         }
-                    }
                     sampleUnits = sampleUnits->next;
                 }
                 sampleUnits = headtc;
@@ -1201,31 +1191,23 @@ void viewRequests(netsnmp_session session, netsnmp_session *ss)
                     bulkget(session, ss, requestStatisticsDataTableOid, OID_LENGTH(requestStatisticsDataTableOid), &statistics);
                     table_contents *headST = statistics;
                     if (statistics)
-                    {
                         while (statistics)
                         {
                             if (chr->statistics == statistics->data->name[statistics->data->name_length - 1])
                             {
                                 /*statistics->data->name[statistics->data->name_length - 2] equals the column*/
                                 if (statistics->data->name[statistics->data->name_length - 2] == 4)
-                                {
                                     /*Get minValue*/
                                     chr->min = *statistics->data->val.integer;
-                                }
                                 if (statistics->data->name[statistics->data->name_length - 2] == 5)
-                                {
                                     /*Get maxValue*/
                                     chr->max = *statistics->data->val.integer;
-                                }
                                 if (statistics->data->name[statistics->data->name_length - 2] == 6)
-                                {
                                     /*Get average Value*/
                                     chr->avg = *statistics->data->val.integer;
-                                }
                             }
                             statistics = statistics->next;
                         }
-                    }
                     statistics = headST;
                 }
                 /*Get Samples*/
@@ -1250,15 +1232,11 @@ void viewRequests(netsnmp_session session, netsnmp_session *ss)
                                     strcpy(chr->timestamp[count], samples->data->val.string);
                                 }
                                 if (samples->data->name[samples->data->name_length - 2] == 5)
-                                {
                                     /*Get previousSampleID*/
                                     auxID = *samples->data->val.integer;
-                                }
                                 if (samples->data->name[samples->data->name_length - 2] == 7)
-                                {
                                     /*Get recordedValue*/
                                     chr->samples[count] = *samples->data->val.integer;
-                                }
                                 if (samples->data->name[samples->data->name_length - 2] == 9)
                                 {
                                     /*Get checksum*/
@@ -1299,9 +1277,7 @@ void viewRequests(netsnmp_session session, netsnmp_session *ss)
                 free(chr->checksum[i]);
             }
             if (chr->statistics != 0)
-            {
                 printf("Statistics- MIN(%d) MAX(%d) AVERAGE(%d)\n", chr->min, chr->max, chr->avg);
-            }
             free(chr->signal);
             free(chr->unit);
             free(chr->username);
@@ -1444,7 +1420,8 @@ void editRequests(netsnmp_session session, netsnmp_session *ss)
     table_contents *reqMonitor = NULL;
     edit_active_requests *ar = NULL;
     edit_active_requests *cr;
-    /*These configs will make contents of struct reqMonitor->data easier to use*/
+    /*These configs will make contents of struct reqMonitor->data easier to traverse and use, 
+    otherwise it might break the switch cases*/
     int orig_config_val_qp = netsnmp_ds_get_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_QUICK_PRINT);
     int orig_config_val_bv = netsnmp_ds_get_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_PRINT_BARE_VALUE);
     netsnmp_ds_set_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_QUICK_PRINT, 1);
@@ -1456,9 +1433,9 @@ void editRequests(netsnmp_session session, netsnmp_session *ss)
     printf("\n");
     /******************Print Signal names, their IDs and description*******************/
     if (reqMonitor)
-    {
         while (reqMonitor)
         {
+            /*Get requestMonitoringIndex of current entry*/
             int currentIndex = reqMonitor->data->name[reqMonitor->data->name_length - 1];
             edit_active_requests *head = ar;
             cr = NULL;
@@ -1513,7 +1490,6 @@ void editRequests(netsnmp_session session, netsnmp_session *ss)
             }
             reqMonitor = reqMonitor->next;
         }
-    }
     else
         printf("No active Requests found\n");
     printf("\n");

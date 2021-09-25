@@ -99,11 +99,10 @@ canlist *readDump(char *file)
 			canList2->current = canList->current;
 			canList2->list = malloc(sizeof(can) * canList2->capacity);
 			for (int j = 0; j < canList->current; j++)
-			{
 				canList2->list[j] = canList->list[j];
-			}
 			canList->capacity = canList2->capacity;
 			canList->current = canList2->current;
+			free(canList->list);
 			canList->list = canList2->list;
 			free(canList2);
 		}
@@ -169,6 +168,7 @@ int main(int argc, char **argv)
 	}
 	for (int i = 0; i < list->current;)
 	{
+		/*Populate frame struct with the contents of list->list[i]*/
 		frame.can_id = strtoul(list->list[i].id, NULL, 16);
 		frame.can_dlc = list->list[i].dlc;
 		long unsigned int aux = strtoul(list->list[i].data, NULL, 16);
@@ -179,12 +179,14 @@ int main(int argc, char **argv)
 			perror("Write");
 			return 1;
 		}
+		/*Use this if you want the difference between CAN message timestamps to be the sleeping time*/
 		/*
 		if(i<list->current-1){
 			int sleeptime=(int)((list->list[i+1].timestamp-list->list[i].timestamp)*1000000);
 			usleep(sleeptime);
 		}
 		*/
+		/*Sleep for 100ms*/
 		usleep(100000);
 		i++;
 	}

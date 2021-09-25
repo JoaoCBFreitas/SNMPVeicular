@@ -9,6 +9,14 @@ stop_server(int a)
     keep_running = 0;
     kill(canDecoder, SIGKILL);
 }
+/*This function will read the contents of cache.bin and add them to the MIB,
+The contents of this cache are as follows:
+    syscache (which will contain the current number of entries for each of the 4 tables)
+    0..n entries of requestMonitoringDataTable
+    0..n entries of requestControlDataTable
+    0..n entries of requestStatisticsDataTable
+    0..n entries of samplesTable
+    */
 void readCache()
 {
     int cachefd = open("cache.bin", O_RDONLY, 0644);
@@ -120,6 +128,7 @@ void readCache()
                 free(reqStruct);
                 free(req);
             }
+            /*Reading cached samplesEntries and adding them to the agent*/
             if (sysCache.rc.current > 0)
             {
                 samplesTable_context *req = (samplesTable_context *)malloc(sizeof(samplesTable_context));
@@ -150,6 +159,7 @@ void readCache()
         close(cachefd);
     }
 }
+
 /*This function will write the contents of requestMonitoringDataTable_context to a file descriptor*/
 int serializeRequestMonitoring(requestMonitoringDataTable_context *req, int cachefd)
 {
@@ -180,6 +190,7 @@ int serializeRequestMonitoring(requestMonitoringDataTable_context *req, int cach
     res += write(cachefd, &req->requestUser, sizeof(unsigned char) * req->requestUser_len);
     return res;
 }
+
 /*This function will write the contents of requestControlDataTable_context to a file descriptor*/
 int serializeRequestControl(requestControlDataTable_context *req, int cachefd)
 {
@@ -199,6 +210,7 @@ int serializeRequestControl(requestControlDataTable_context *req, int cachefd)
     res += write(cachefd, &req->statusControl, sizeof(long));
     return res;
 }
+
 /*This function will write the contents of requestStatisticsDataTable_context to a file descriptor*/
 int serializeRequestStatistics(requestStatisticsDataTable_context *req, int cachefd)
 {
@@ -212,6 +224,7 @@ int serializeRequestStatistics(requestStatisticsDataTable_context *req, int cach
     res += write(cachefd, &req->avgValue, sizeof(long));
     return res;
 }
+
 /*This function will write the contents of samplesTable_context to a file descriptor*/
 int serializeSamples(samplesTable_context *req, int cachefd)
 {
@@ -229,6 +242,7 @@ int serializeSamples(samplesTable_context *req, int cachefd)
     res += write(cachefd, &req->sampleChecksum, sizeof(unsigned char) * req->sampleChecksum_len);
     return res;
 }
+
 /*This function will add entries from requestMonitoringDataTable, requestControlDataTable, requestStatisticsDataTable and samplesTable to the cache file*/
 void createCache(systemCache sc)
 {
@@ -243,20 +257,32 @@ void createCache(systemCache sc)
         lseek(cachefd, 0, SEEK_END);
         int written = write(cachefd, &sc, sizeof(systemCache));
         for (int i = 0; i < sc.mc.current; i++)
+        {
             written += serializeRequestMonitoring(sc.mc.items[i], cachefd);
+            free(sc.mc.items[i]);
+        }
         for (int i = 0; i < sc.cc.current; i++)
+        {
             written += serializeRequestControl(sc.cc.items[i], cachefd);
+            free(sc.cc.items[i]);
+        }
         for (int i = 0; i < sc.sc.current; i++)
+        {
             written += serializeRequestStatistics(sc.sc.items[i], cachefd);
+            free(sc.sc.items[i]);
+        }
         for (int i = 0; i < sc.rc.current; i++)
+        {
             written += serializeSamples(sc.rc.items[i], cachefd);
+            free(sc.rc.items[i]);
+        }
         close(cachefd);
     }
 }
+
 int main(int argc, char **argv)
 {
-    int agentx_subagent = 1; /* change this if you want to 
-        be a SNMP master agent */
+    int agentx_subagent = 1; /* change this if you want to be a SNMP master agent */
     int background = 0;      /* change this if you want to run in the background */
     int syslog = 0;          /* change this if you want to use syslog */
 
@@ -286,11 +312,11 @@ int main(int argc, char **argv)
 
     /*Initializing structs that contain dbc decoding rules*/
     BO_List *boList = readDBC("SocketCAN/J1939/J1939.dbc");
-    /*Error Group*/
+    /*Initializing Error Group*/
     init_errorDescriptionTable();
     init_errorTable();
     /*********************************/
-    /*Sensor Group*/
+    /*Initializing Sensor Group*/
     init_mapTypeTable(boList);
     init_capabilitiesTable();
     init_requestControlDataTable();
@@ -298,7 +324,8 @@ int main(int argc, char **argv)
     init_requestStatisticsDataTable();
     init_samplesTable();
     /*********************************/
-    /*Actuator Group*/
+    /*Initialize Actuator Group*/
+    init_commandTemplateTable();
     init_commandTable();
     /*********************************/
     init_snmp("veicular-daemon");
@@ -313,12 +340,14 @@ int main(int argc, char **argv)
     int fd[2];
     if (pipe(fd) < 0)
         exit(1);
-    //nMessage will be used in the creation of checksum, incase 2 messages from same node arrive in close proximity, it's type is long due to it's higher maximum number
+    /* nMessage will be used in the creation of checksum, incase 2 messages from same node arrive in close proximity, 
+    it's type is long due to it's higher maximum number*/
     long long nMessage;
     canDecoder = fork();
     /* you're main loop here... */
     if (canDecoder == 0)
     {
+        /*Child process will only decode CAN messages*/
         parseCAN(boList, fd);
         exit(0);
     }
@@ -336,15 +365,17 @@ int main(int argc, char **argv)
             /* if you use select(), see snmp_select_info() in snmp_api(3) */
             /*     --- OR ---  */
             if (agent_check_and_process(0) > 0) /* 0 == don't block */
-                /*agent_check_and_process will return 1 when it receives a packet, there's no need to check actuator table if no
-                packet is received*/
+                /*agent_check_and_process will return 1 when it receives a packet, 
+                there's no need to check actuator table if no packet is received*/
                 checkActuators();
             decodedCAN dc;
+            /*Ensure that read() doesn't block*/
             int retval = fcntl(fd[0], F_SETFL, fcntl(fd[0], F_GETFL) | O_NONBLOCK);
             r = read(fd[0], &dc, sizeof(decodedCAN));
             if (r > 0 && dc.signals >= 0)
             {
-                /*if r<=0 that means that no data was read, while if dc.signals>=0 means that the decoder was able to decode the message*/
+                /*if r<=0 that means that no data was read, while if dc.signals>=0 
+                means that the decoder was able to decode the message*/
                 char nMessageString[19];
                 sprintf(nMessageString, "%lld", nMessage);
                 nMessage++;
@@ -352,6 +383,7 @@ int main(int argc, char **argv)
                 struct tm *tm = localtime(&t);
                 char s[100];
                 snprintf(s, 100, "%02d/%02d/%04d %02d:%02d:%02d", tm->tm_mday, tm->tm_mon + 1, tm->tm_year + 1900, tm->tm_hour, tm->tm_min, tm->tm_sec);
+                /*Aux will contain the string with which the checksum is created-> timestamp.NMessage.EcuName*/
                 char *aux = malloc(sizeof(char) * (strlen(s) + strlen(dc.name) + strlen(nMessageString) + 1));
                 strcpy(aux, s);
                 strcat(aux, nMessageString);
@@ -369,8 +401,8 @@ int main(int argc, char **argv)
             }
         }
     }
-    /*Shutdown procedure begun, in here we will first clear all "volatile" entries in requestMonitoringDataTable and then store the 
-    remaining entries in a cache file for later use
+    /*Shutdown procedure begun, in here we will first clear all "volatile" entries in requestMonitoringDataTable and then 
+    store the remaining entries in a cache file for later use.
     To do this we must first find all entries with savingMode set to 1 and then change loopMode to 2 and status to delete*/
     clearVolatileEntries();
     /*To clear those entries, we can run checkTables() until no volatile entries are found*/

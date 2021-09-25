@@ -167,7 +167,7 @@ typedef struct chosen_request
   char *signal;     /*signal name of this request*/
   int nOfSamples;   /*number of samples for this request*/
 } chosen_request;
-/*Simple function to strip '\n' from stdin*/
+/*Simple function to strip newlines from stdin*/
 void fflush_stdin();
 /*This function will, based on user input, send bulkget requests to the agent so as to obtain table contents*/
 void viewTables(netsnmp_session session, netsnmp_session *ss);

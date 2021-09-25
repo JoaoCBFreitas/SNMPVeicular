@@ -147,12 +147,17 @@ int addError(char *user, int id)
     strcpy(req->errorTimeStamp, s);
     req->errorDescriptionID = id;
     if (strlen(user) == 0)
-        req->errorUser = "N/A";
+    {
+        req->errorUser = malloc(sizeof(char) * 4);
+        strcpy(req->errorUser, "N/A");
+    }
     else
     {
         req->errorUser = malloc(sizeof(char) * strlen(user) + 1);
         strcpy(req->errorUser, user);
     }
+    /*Expire time is currently set to 1 minute
+    TODO: Add expireTime to errorCodes.txt, so that expire time depends on the error*/
     req->errorExpireTime = "00:01:00";
     index_oid[0] = req->errorID;
     index.oids = (oid *)&index_oid;
@@ -165,10 +170,14 @@ int addError(char *user, int id)
         // No dice. We add the new row
         ctx = errorTable_create_row(&index, req);
         CONTAINER_INSERT(cb.container, ctx);
+        free(req->errorUser);
+        free(req->errorTimeStamp);
         free(req);
     }
     else
     {
+        free(req->errorUser);
+        free(req->errorTimeStamp);
         free(req);
         return 1;
     }

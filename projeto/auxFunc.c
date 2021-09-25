@@ -15,9 +15,7 @@ int addToSampleUnits(sampleUnitsList *samples, long message, char *unit)
     aux->message = message;
     aux->unit = malloc(sizeof(char) * 1024);
     if (strcmp("", unit) == 0)
-    {
         strcpy(aux->unit, "N/A");
-    }
     else
     {
         strcpy(aux->unit, unit);
@@ -29,9 +27,7 @@ int addToSampleUnits(sampleUnitsList *samples, long message, char *unit)
         samples2->current = samples->current;
         samples2->list = malloc(sizeof(sampleUnitsStruct) * samples2->capacity);
         for (int j = 0; j < samples->current; j++)
-        {
             samples2->list[j] = samples->list[j];
-        }
         samples->capacity = samples2->capacity;
         samples->current = samples2->current;
         samples->list = samples2->list;
@@ -62,9 +58,7 @@ int addToGenericTypes(genericTypeList *samples, long message, char *description)
         samples2->current = samples->current;
         samples2->genericList = malloc(sizeof(genericTypeStruct) * samples2->capacity);
         for (int j = 0; j < samples->current; j++)
-        {
             samples2->genericList[j] = samples->genericList[j];
-        }
         samples->capacity = samples2->capacity;
         samples->current = samples2->current;
         samples->genericList = samples2->genericList;
@@ -92,9 +86,7 @@ int checksum(char *str)
     int i;
     int chk = 0x12345678;
     for (i = 0; str[i] != '\0'; i++)
-    {
         chk += ((int)(str[i]) * (i + 1));
-    }
     return chk;
 }
 char *createChecksum(char *input)
@@ -240,6 +232,7 @@ int isNumber(char s[])
 }
 int validateTime(char *time)
 {
+    /*Timestamps are in the 00:00:00 formate, so it should allways have a length of 8*/
     if (strlen(time) != 8)
         return 1;
     char *hour = malloc(sizeof(char) * 3);
@@ -248,6 +241,7 @@ int validateTime(char *time)
     strncpy(min, time + 3, 2);
     min[2] = '\0';
     hour[2] = '\0';
+    /*If neither hour or min are numbers then its invalid*/
     if (isNumber(hour) != 0 && isNumber(min) != 0)
     {
         int m = atoi(min);
