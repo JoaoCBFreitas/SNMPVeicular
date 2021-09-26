@@ -65,7 +65,7 @@ int checkVolatileRequests()
     ITERATOR_RELEASE(it);
     return res;
 }
-/*This function will add the remaining entries from:
+/*This function will add entries from:
                     requestMonitoringDataTable
                     requestControlDataTable
                     requestStatisticsDataTable
@@ -81,9 +81,7 @@ systemCache cacheEntries()
     void *data;
     it = CONTAINER_ITERATOR(cb.container);
     if (NULL == it)
-    {
         return sc;
-    }
     for (data = ITERATOR_FIRST(it); data; data = ITERATOR_NEXT(it))
     {
         requestMonitoringDataTable_context *req = data;
@@ -94,9 +92,7 @@ systemCache cacheEntries()
             requestMonitoringDataTable_context **aux = (requestMonitoringDataTable_context **)malloc(sizeof(requestMonitoringDataTable_context **) * sc.mc.capacity * 2);
             sc.mc.capacity *= 2;
             for (int i = 0; i < sc.mc.current; i++)
-            {
                 aux[i] = sc.mc.items[i];
-            }
             free(sc.mc.items);
             sc.mc.items = aux;
         }
@@ -120,9 +116,7 @@ int firstMonitoringEntry()
     it = CONTAINER_ITERATOR(cb.container);
     int res = 0;
     if (NULL == it)
-    {
         return res;
-    }
     for (data = ITERATOR_FIRST(it); data; data = ITERATOR_NEXT(it))
     {
         requestMonitoringDataTable_context *req = data;
@@ -148,13 +142,11 @@ int checkPermanentRequests(long unsigned int requestControlID, long unsigned int
     {
         requestMonitoringDataTable_context *req = data;
         if (req->requestID != requestID && req->requestControlID == requestControlID)
-        {
             if (req->savingMode == 0)
             {
                 res = 0;
                 break;
             }
-        }
     }
     ITERATOR_RELEASE(it);
     return res;
@@ -171,18 +163,15 @@ int checkActiveRequests(long unsigned int requestControlID, long unsigned int re
     if (NULL == it)
         exit;
     int res = 1;
-    requestMonitoringDataTable_context *aux = (requestMonitoringDataTable_context *)malloc(sizeof(requestMonitoringDataTable_context));
     for (data = ITERATOR_FIRST(it); data; data = ITERATOR_NEXT(it))
     {
         requestMonitoringDataTable_context *req = data;
         if (req->requestID != requestID && req->requestControlID == requestControlID)
-        {
             if (req->status == 1 || req->status == 2 || req->status == 4)
             {
                 res = 0;
                 break;
             }
-        }
     }
     ITERATOR_RELEASE(it);
     return res;
@@ -225,21 +214,17 @@ int checkUserExists(unsigned long id, char *user, unsigned long requestMapID)
     it = CONTAINER_ITERATOR(cb.container);
     int res = 0;
     if (NULL == it)
-    {
         return res;
-    }
     for (data = ITERATOR_FIRST(it); data; data = ITERATOR_NEXT(it))
     {
         requestMonitoringDataTable_context *req = data;
         if (req->requestID != id)
             if (req->requestMapID == requestMapID)
-            {
                 if (strcmp(req->requestUser, user) == 0)
                 {
                     res = 1;
                     break;
                 }
-            }
     }
     ITERATOR_RELEASE(it);
     return res;
@@ -262,14 +247,11 @@ int requestTimeChecker(char *startTime, long unsigned int requestMapID, long uns
     struct tm *aux = (struct tm *)malloc(sizeof(struct tm *));
     it = CONTAINER_ITERATOR(cb.container);
     if (NULL == it)
-    {
         exit;
-    }
     for (data = ITERATOR_FIRST(it); data; data = ITERATOR_NEXT(it))
     {
         requestMonitoringDataTable_context *reqMonitoring = data;
         if (reqMonitoring->requestID != reqID && reqMonitoring->requestMapID == requestMapID)
-        {
             /*Compare times*/
             if (strcmp(reqMonitoring->startTime, startTime) == 0)
             {
@@ -277,25 +259,21 @@ int requestTimeChecker(char *startTime, long unsigned int requestMapID, long uns
                 f = 1;
                 break;
             }
+            else if (found == 0)
+            {
+                tmLowest = convertTime(tmLowest, reqMonitoring->startTime);
+                res = reqMonitoring->requestID;
+                found = 1;
+            }
             else
             {
-                if (found == 0)
+                aux = convertTime(aux, reqMonitoring->startTime);
+                if (difftime(mktime(aux), mktime(tmLowest)) < 0)
                 {
-                    tmLowest = convertTime(tmLowest, reqMonitoring->startTime);
+                    tmLowest = deepCopyTM(aux, tmLowest);
                     res = reqMonitoring->requestID;
-                    found = 1;
-                }
-                else
-                {
-                    aux = convertTime(aux, reqMonitoring->startTime);
-                    if (compareTimeStamp(aux, tmLowest) == 1)
-                    {
-                        tmLowest = deepCopyTM(aux, tmLowest);
-                        res = reqMonitoring->requestID;
-                    }
                 }
             }
-        }
     }
     /*tmLowest will be NULL if there's only one request on the object*/
     if (found == 0 && f == 0)
@@ -321,11 +299,16 @@ int deleteRequestEntry(requestMonitoringStruct *req)
     {
         CONTAINER_REMOVE(cb.container, &index);
         requestMonitoringDataTable_delete_row(ctx);
+        free(req->startTime);
+        free(req->endTime);
+        free(req->expireTime);
+        free(req->waitTime);
+        free(req->durationTime);
+        free(req->requestUser);
     }
     else
-    {
         return 2;
-    }
+
     ctx = CONTAINER_FIND(cb.container, &index);
     if (ctx)
         return 1;
@@ -384,6 +367,10 @@ int insertRowControl_Monitor(requestMonitoringDataTable_context *reqMonitoring)
         req->status = 0;
     req->valuesTable = 0;
     int insert = insertControlRow(req);
+    free(req->commitTime);
+    free(req->endTime);
+    free(req->duration);
+    free(req->expireTime);
     free(req);
     return insert;
 }
@@ -428,6 +415,12 @@ void clearVolatileCallback(void *data, void *context)
         reqStruct->loopmode = 2;
         reqStruct->status = 3;
         insertMonitoringRow(reqStruct);
+        free(reqStruct->startTime);
+        free(reqStruct->endTime);
+        free(reqStruct->expireTime);
+        free(reqStruct->waitTime);
+        free(reqStruct->durationTime);
+        free(reqStruct->requestUser);
     }
     free(reqStruct);
 }
@@ -450,9 +443,7 @@ void checkSamples(char *signalname, double value, int signals, char *timestamp, 
     requestStruct *reqControlStruct = (requestStruct *)malloc(sizeof(requestStruct));
     it = CONTAINER_ITERATOR(cb.container);
     if (NULL == it)
-    {
         exit;
-    }
     for (data = ITERATOR_FIRST(it); data;)
     {
         /*data = ITERATOR_NEXT(it) is not in for loop setting because otherwise everytime a row is edited the iterator would be lost*/
@@ -467,7 +458,6 @@ void checkSamples(char *signalname, double value, int signals, char *timestamp, 
             /*Row is in On mode, read data from CAN interface and add to tables*/
             mapType = findRow(reqMonitoring->requestMapID);
             if (mapType != NULL)
-            {
                 if (strcmp(mapType->dataSource, signalname) == 0)
                 {
                     int sampleExists = checkSampleChecksum(checksum, mapType->mapTypeID);
@@ -487,9 +477,8 @@ void checkSamples(char *signalname, double value, int signals, char *timestamp, 
                         sS->avgValue = total / sS->nOfSamples;
                         int inserted = insertStatisticsRow(sS);
                         if (inserted != 0)
-                        {
                             printf("Statistics update failed\n");
-                        }
+                        free(sS->duration);
                         free(sS);
                     }
                     if (sampleExists != 0)
@@ -505,6 +494,12 @@ void checkSamples(char *signalname, double value, int signals, char *timestamp, 
                         }
                         data = ITERATOR_NEXT(it);
                         int inserted = insertMonitoringRow(reqStruct);
+                        free(reqStruct->startTime);
+                        free(reqStruct->endTime);
+                        free(reqStruct->expireTime);
+                        free(reqStruct->waitTime);
+                        free(reqStruct->durationTime);
+                        free(reqStruct->requestUser);
                     }
                     else
                     {
@@ -543,11 +538,20 @@ void checkSamples(char *signalname, double value, int signals, char *timestamp, 
                             reqControlStruct->valuesTable = reqStruct->lastSampleID;
                             int insertedControl = insertControlRow(reqControlStruct);
                         }
+                        free(reqControlStruct->commitTime);
+                        free(reqControlStruct->expireTime);
+                        free(reqControlStruct->endTime);
+                        free(reqControlStruct->duration);
+                        free(reqStruct->startTime);
+                        free(reqStruct->endTime);
+                        free(reqStruct->expireTime);
+                        free(reqStruct->waitTime);
+                        free(reqStruct->durationTime);
+                        free(reqStruct->requestUser);
                     }
                 }
                 else
                     data = ITERATOR_NEXT(it);
-            }
             else
                 data = ITERATOR_NEXT(it);
         }
@@ -578,9 +582,7 @@ void checkTables()
     checkError();
     it = CONTAINER_ITERATOR(cb.container);
     if (NULL == it)
-    {
         exit;
-    }
     for (data = ITERATOR_FIRST(it); data; data = ITERATOR_NEXT(it))
     {
         requestMonitoringDataTable_context *reqMonitoring = data;
@@ -611,7 +613,7 @@ void checkTables()
             /*tmAux will be used to validate startTime by comparing it to current time*/
             struct tm *tmAux = (struct tm *)malloc(sizeof(struct tm));
             tmAux = convertTime(tmAux, reqMonitoring->startTime);
-            if (validateTime(reqMonitoring->startTime + 11) != 0 || compareTimeStamp(tm, tmAux) == 2)
+            if (validateTime(reqMonitoring->startTime + 11) != 0 || difftime(mktime(tm), mktime(tmAux)) > 0)
             {
                 /*Invalid startTime,errorID=0*/
                 errorID = 0;
@@ -719,6 +721,10 @@ void checkTables()
                     printf("Control update failed\n");
                     exit;
                 }
+                free(aux->commitTime);
+                free(aux->endTime);
+                free(aux->duration);
+                free(aux->expireTime);
                 free(aux);
             }
             if (reqMonitoring->status == 0 && reqControl->statusControl == 1)
@@ -739,6 +745,10 @@ void checkTables()
                         printf("Control update failed\n");
                         exit;
                     }
+                    free(aux->commitTime);
+                    free(aux->endTime);
+                    free(aux->duration);
+                    free(aux->expireTime);
                     free(aux);
                 }
             }
@@ -755,6 +765,10 @@ void checkTables()
                     printf("Control update failed\n");
                     exit;
                 }
+                free(aux->commitTime);
+                free(aux->endTime);
+                free(aux->duration);
+                free(aux->expireTime);
                 free(aux);
             }
             if (reqMonitoring->savingMode == 1 && reqControl->settingMode == 0)
@@ -775,6 +789,10 @@ void checkTables()
                         printf("Control update failed\n");
                         exit;
                     }
+                    free(aux->commitTime);
+                    free(aux->endTime);
+                    free(aux->duration);
+                    free(aux->expireTime);
                     free(aux);
                 }
             }
@@ -794,25 +812,37 @@ void checkTables()
             strncpy(min, reqMonitoring->expireTime + 3, 2);
             min[2] = '\0';
             hour[2] = '\0';
-            tm2 = addToTime(tm2, atoi(hour), atoi(min));
-            if (compareTimeStamp(tm, tm2) == 0 || compareTimeStamp(tm, tm2) == 2)
+            addToTime(tm2, atoi(hour), atoi(min));
+            if (difftime(mktime(tm), mktime(tm2)) >= 0)
             {
                 /*Expire time is reached, set row to delete*/
                 reqStruct = tableToStruct(reqMonitoring, reqStruct);
                 reqStruct->status = 3;
                 insertMonitoringRow(reqStruct);
+                free(reqStruct->startTime);
+                free(reqStruct->endTime);
+                free(reqStruct->expireTime);
+                free(reqStruct->waitTime);
+                free(reqStruct->durationTime);
+                free(reqStruct->requestUser);
             }
             break;
         case 1:
             /*Request is in On mode, compare current timestamp with endTime*/
             strcpy(timestamp, reqMonitoring->endTime);
             tm2 = convertTime(tm2, timestamp);
-            if (compareTimeStamp(tm, tm2) != 1)
+            if (difftime(mktime(tm), mktime(tm2)) >= 0)
             {
                 /*Duration time is reached, set row to off*/
                 reqStruct = tableToStruct(reqMonitoring, reqStruct);
                 reqStruct->status = 0;
                 insertMonitoringRow(reqStruct);
+                free(reqStruct->startTime);
+                free(reqStruct->endTime);
+                free(reqStruct->expireTime);
+                free(reqStruct->waitTime);
+                free(reqStruct->durationTime);
+                free(reqStruct->requestUser);
             }
             break;
         case 2:
@@ -821,21 +851,20 @@ void checkTables()
         case 3:
             /*Row is in Delete mode, delete this row and all other rows uniquely related to this one*/
             /***********************Delete all samplesEntry***************************/
-            reqStruct = tableToStruct(reqMonitoring, reqStruct);
             /*Compare startTime of the entry that is to be deleted with commitTime of requestControl
             If startTime is different from commitTime, do Nothing
             If startTime is equal to commitTime, check if there's another request with the same startTime and requestMap,
                 if so do nothing, if not:
                                          update commitTime to the 2nd lowest of all requestMonitoringEntrys that point to that requestControlEntry
                                          delete every sample that predate the new commitTime*/
-            if (strcmp(reqStruct->startTime, reqControl->commitTime) == 0)
+            if (strcmp(reqMonitoring->startTime, reqControl->commitTime) == 0)
             {
                 /*Check for other requests with same startTime and same requestMapID*/
-                int reqTime = requestTimeChecker(reqStruct->startTime, reqStruct->requestMapID, reqStruct->reqID);
+                int reqTime = requestTimeChecker(reqMonitoring->startTime, reqMonitoring->requestMapID, reqMonitoring->requestID);
                 if (reqTime == -1)
                 {
                     /*There's only one request, delete everything*/
-                    delete = deleteControlEntry(reqStruct->requestControlID);
+                    delete = deleteControlEntry(reqMonitoring->requestControlID);
                     if (delete == 1)
                         printf("Deletion of requestControlDataEntry failed\n");
                     if (reqStruct->lastSampleID != 0)
@@ -884,6 +913,10 @@ void checkTables()
                             printf("Control update failed\n");
                             exit;
                         }
+                        free(aux->commitTime);
+                        free(aux->expireTime);
+                        free(aux->duration);
+                        free(aux->endTime);
                         free(aux);
                     }
                     else
@@ -901,13 +934,12 @@ void checkTables()
                         tmControl = convertTime(tmControl, reqControl->commitTime);
                         tmSample = convertTime(tmSample, samplesTable->timeStamp);
                         /*Go through all samples until a sample that predates commitTime is found*/
-
                         while (samplesTable != NULL)
                         {
                             if (samplesTable->previousSampleID != 0)
                             {
                                 tmSample = convertTime(tmSample, samplesTable->timeStamp);
-                                if (compareTimeStamp(tmSample, tmControl) == 1)
+                                if (difftime(mktime(tmSample), mktime(tmControl)) < 0)
                                     break;
                                 samplesTable = getSampleEntry(samplesTable->previousSampleID);
                             }
@@ -930,7 +962,7 @@ void checkTables()
                                 break;
                             }
                         }
-                        sampleZero(reqStruct->lastSampleID);
+                        sampleZero(reqMonitoring->lastSampleID);
                         free(tmSample);
                         free(tmControl);
                     }
@@ -938,7 +970,8 @@ void checkTables()
             }
             /*************************************************************************/
             /*Delete requestStatisticsDataEntry*/
-            if (reqStruct->statisticsRequestID != 0)
+            reqStruct = tableToStruct(reqMonitoring, reqStruct);
+            if (reqMonitoring->requestStatisticsID != 0)
             {
                 delete = deleteStatisticsEntry(reqStruct->statisticsRequestID);
                 if (delete == 1)
@@ -946,8 +979,9 @@ void checkTables()
             }
             /*Delete requestMonitoringDataEntry*/
             delete = deleteRequestEntry(reqStruct);
-            if (reqStruct->loopmode == 1)
+            if (reqMonitoring->loopMode == 1)
             {
+                reqStruct = tableToStruct(reqMonitoring, reqStruct);
                 /*This Entry has loopMode enabled, create new row*/
                 reqStruct->nofSamples = 0;
                 reqStruct->requestControlID = 0;
@@ -958,12 +992,17 @@ void checkTables()
                 reqStruct->lastSampleID = 0;
                 reqStruct->status = 2;
                 insertMonitoringRow(reqStruct);
+                free(reqStruct->startTime);
+                free(reqStruct->endTime);
+                free(reqStruct->expireTime);
+                free(reqStruct->waitTime);
+                free(reqStruct->durationTime);
+                free(reqStruct->requestUser);
             }
             if (delete == 1)
                 printf("Deletion of requestMonitoringDataEntry failed\n");
             else if (delete == 2)
                 printf("RequestMonitoringDataEntry not found\n");
-
             break;
         case 4:
             /*Row is in ready mode, change status from ready to On when startTime+waitTime has passed*/
@@ -976,18 +1015,24 @@ void checkTables()
                 hour[2] = '\0';
                 strcpy(timestamp, reqMonitoring->startTime);
                 tm2 = convertTime(tm2, timestamp);
-                tm2 = addToTime(tm2, atoi(hour), atoi(min));
+                addToTime(tm2, atoi(hour), atoi(min));
                 strncpy(hour, reqMonitoring->durationTime, 2);
                 strncpy(min, reqMonitoring->durationTime + 3, 2);
                 min[2] = '\0';
                 hour[2] = '\0';
-                tm2 = addToTime(tm2, atoi(hour), atoi(min));
+                addToTime(tm2, atoi(hour), atoi(min));
                 char s[100];
                 snprintf(s, 100, "%02d/%02d/%04d %02d:%02d:%02d", tm2->tm_mday, tm2->tm_mon + 1, tm2->tm_year + 1900, tm2->tm_hour, tm2->tm_min, tm2->tm_sec);
                 reqMonitoring->endTime_len = strlen(s);
                 strcpy(reqMonitoring->endTime, s);
                 reqStruct = tableToStruct(reqMonitoring, reqStruct);
                 requestMonitoringDataTable_create_row(&index, reqStruct);
+                free(reqStruct->startTime);
+                free(reqStruct->endTime);
+                free(reqStruct->expireTime);
+                free(reqStruct->waitTime);
+                free(reqStruct->durationTime);
+                free(reqStruct->requestUser);
                 /*Copy endTime to requestControl if it's currently empty*/
                 reqControl = getControlTableID(reqMonitoring->requestControlID);
                 if (reqControl->endControlTime_len == 0)
@@ -997,6 +1042,10 @@ void checkTables()
                     aux->endTime = malloc(sizeof(char) * reqMonitoring->endTime_len);
                     strcpy(aux->endTime, reqMonitoring->endTime);
                     int insertControl = insertControlRow(aux);
+                    free(aux->commitTime);
+                    free(aux->endTime);
+                    free(aux->duration);
+                    free(aux->expireTime);
                     free(aux);
                     reqControl = getControlTableID(reqMonitoring->requestControlID);
                 }
@@ -1007,9 +1056,9 @@ void checkTables()
             hour[2] = '\0';
             strcpy(timestamp, reqMonitoring->startTime);
             tm2 = convertTime(tm2, timestamp);
-            tm2 = addToTime(tm2, atoi(hour), atoi(min));
+            addToTime(tm2, atoi(hour), atoi(min));
             /*WaitTime is reached, proceed with setting*/
-            if (compareTimeStamp(tm, tm2) != 1)
+            if (difftime(mktime(tm), mktime(tm2)) >= 0)
             {
                 index_oid[0] = reqMonitoring->requestID;
                 index.oids = (oid *)&index_oid;
@@ -1028,6 +1077,7 @@ void checkTables()
                     statStruct->maxValue = -999;
                     statStruct->avgValue = 0;
                     int stat = insertStatisticsRow(statStruct);
+                    free(statStruct->duration);
                     free(statStruct);
                     if (stat != 0)
                         printf("Statistics insertion failed\n");
@@ -1037,6 +1087,12 @@ void checkTables()
 
                 reqStruct = tableToStruct(reqMonitoring, reqStruct);
                 requestMonitoringDataTable_create_row(&index, reqStruct);
+                free(reqStruct->startTime);
+                free(reqStruct->endTime);
+                free(reqStruct->expireTime);
+                free(reqStruct->waitTime);
+                free(reqStruct->durationTime);
+                free(reqStruct->requestUser);
             }
             break;
         default:

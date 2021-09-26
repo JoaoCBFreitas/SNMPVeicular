@@ -30,13 +30,10 @@ int addToGenericTypes(genericTypeList *, long, char *);
   It will use the timestamp, message number and message name to create the checksum
 */
 char *createChecksum(char *);
-/*This function will add an time to a timestamp-Hour set between 0 and 23 and minutes set between 0 and 59*/
-struct tm *addToTime(struct tm *time, int hour, int minutes);
-/*This function will compare 2 timestamps, stored in struct tm* 
-  0=Timestamps are equal
-  1=time1 is before time2
-  2=time1 is after time2*/
-int compareTimeStamp(struct tm *time1, struct tm *time2);
+/*This function will add a hours and minutes to a struct tm time 
+ Hour set between 0 and 23
+ Minutes set between 0 and 59*/
+void addToTime(struct tm *time, int hour, int minutes);
 /*This function will deep copy a struct tm* */
 struct tm *deepCopyTM(struct tm *src, struct tm *dst);
 /*This function will convert a timestamp into a struct tm* */

@@ -94,8 +94,8 @@ void checkError()
         strncpy(min, req->errorExpireTime + 3, 2);
         min[2] = '\0';
         hour[2] = '\0';
-        tm2 = addToTime(tm2, atoi(hour), atoi(min));
-        if (compareTimeStamp(tm, tm2) != 1)
+        addToTime(tm2, atoi(hour), atoi(min));
+        if (difftime(mktime(tm), mktime(tm2)) >= 0)
         {
             /*ExpireTime has passed, delete row*/
             int delete = deleteErrorEntry(req->errorID);

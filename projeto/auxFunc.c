@@ -146,82 +146,13 @@ struct tm *deepCopyTM(struct tm *tm, struct tm *time)
     time->tm_gmtoff = tm->tm_gmtoff;
     return time;
 }
-int compareTimeStamp(struct tm *time1, struct tm *time2)
+void addToTime(struct tm *time, int hour, int minutes)
 {
-    if (time1->tm_year + 1900 == time2->tm_year + 1900)
-        if (time1->tm_mon + 1 == time2->tm_mon + 1)
-            if (time1->tm_mday == time2->tm_mday)
-                if (time1->tm_hour == time2->tm_hour)
-                    if (time1->tm_min == time2->tm_min)
-                        if (time1->tm_sec == time2->tm_sec)
-                            return 0;
-                        else if (time1->tm_sec > time2->tm_sec)
-                            return 2;
-                        else
-                            return 1;
-                    else if (time1->tm_min > time2->tm_min)
-                        return 2;
-                    else
-                        return 1;
-                else if (time1->tm_hour > time2->tm_hour)
-                    return 2;
-                else
-                    return 1;
-            else if (time1->tm_mday > time2->tm_mday)
-                return 2;
-            else
-                return 1;
-        else if (time1->tm_mon + 1 > time2->tm_mon + 1)
-            return 2;
-        else
-            return 1;
-    else if (time1->tm_year + 1900 > time2->tm_year + 1900)
-        return 2;
-    else
-        return 1;
-}
-struct tm *addToTime(struct tm *time, int hour, int minutes)
-{
-    if (hour > 23 || hour < 0 || minutes < 0 || minutes > 59)
-        exit(EXIT_FAILURE);
+    if (time == NULL)
+        return;
     time->tm_min += minutes;
-    if (time->tm_min > 59)
-    {
-        time->tm_min -= 60;
-        hour += 1;
-    }
     time->tm_hour += hour;
-    if (time->tm_hour > 23)
-    {
-        time->tm_hour -= 24;
-        time->tm_mday += 1;
-        if (time->tm_mon % 2 != 0 && time->tm_mday > 31)
-        {
-            time->tm_mday -= 31;
-            time->tm_mon += 1;
-        }
-        else if (time->tm_mon == 2 && time->tm_mday > 28 && ((time->tm_year + 1900) % 400 == 0) || ((time->tm_year + 1900) % 4 == 0))
-        {
-            time->tm_mday -= 29;
-            time->tm_mon += 1;
-        }
-        else if (time->tm_mon == 2 && time->tm_mday > 27)
-        {
-            time->tm_mday -= 28;
-            time->tm_mon += 1;
-        }
-        else
-        {
-            time->tm_mday -= 30;
-            time->tm_mon += 1;
-        }
-    }
-    if (time->tm_mon > 11)
-    {
-        time->tm_mon -= 12;
-        time->tm_year += 1;
-    }
-    return time;
+    mktime(time);
 }
 int isNumber(char s[])
 {
