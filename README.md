@@ -6,7 +6,7 @@ Prototype SNMP agent to be installed inside a vehicle OBU and allows outside ent
 
 ### Install snmp
 
-- sudo apt-get install snmpd snmp libsnmp-dev snmpd-mibs-downloader
+- sudo apt-get install snmpd snmp libsnmp-dev snmp-mibs-downloader
 - or through net-snmp website
 
 ###### For reference snmpd version that was used to run this project was 5.8
@@ -24,7 +24,7 @@ This agent and manager were created with SNMPv3 in mind, while you can still use
 Find where MIBs are installed in your system, as standard they are located within /home/$USER/.snmp/mibs  
 Copy OBU-MIB.txt to that directory
 
-- sudo cp OBU-MIB.txt /home/$USER/.snmp/mibs  
+- sudo cp OBU-MIB.txt /home/$USER/.snmp/mibs  /usr/share/snmp/mibs
   Load MIB into snmpd with the following command
 - export MIBS=+OBU-MIB  
   Otherwise, to make it load the MIB on start up simply add mibs +OBU-MIB to the following file $HOME/.snmp/snmp.conf
