@@ -24,7 +24,7 @@ This agent and manager were created with SNMPv3 in mind, while you can still use
 Find where MIBs are installed in your system, as standard they are located within /home/$USER/.snmp/mibs  
 Copy OBU-MIB.txt to that directory
 
-- sudo cp OBU-MIB.txt /home/$USER/.snmp/mibs  /usr/share/snmp/mibs
+- sudo cp OBU-MIB.txt /home/$USER/.snmp/mibs or /usr/share/snmp/mibs  
   Load MIB into snmpd with the following command
 - export MIBS=+OBU-MIB  
   Otherwise, to make it load the MIB on start up simply add mibs +OBU-MIB to the following file $HOME/.snmp/snmp.conf
