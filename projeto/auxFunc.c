@@ -150,8 +150,10 @@ void addToTime(struct tm *time, int hour, int minutes)
 {
     if (time == NULL)
         return;
+    printf("%02d/%02d + %d/%d\n",time->tm_hour,time->tm_min,hour,minutes);
     time->tm_min += minutes;
     time->tm_hour += hour;
+    printf("%02d/%02d\n",time->tm_hour,time->tm_min);
     mktime(time);
 }
 int isNumber(char s[])

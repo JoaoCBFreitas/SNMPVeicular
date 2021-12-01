@@ -49,11 +49,11 @@ With this done the project can be run with the following commands
 
 In the generator you can choose what file should be used to generate CAN messages while in the manager you can choose what commands to send to the agent and what sensors are to be monitored, optionally you can also achieve this via the terminal with the included snmpd manager.
 
-## Example snmp commands both in SNMPv2c and SNMPv3
+## Example snmp commands in SNMPv3
 
 ### Traverse a table
 
-- snmpwalk -v3 -a SHA -A SNMPVeicular -x AES -X SNMPV31cul4r -l authPriv -u snmpadmin localhost {targetTable}
+- snmpwalk -v3 -a SHA -A SNMPVeicular -x AES -X SNMPV31cul4r -l authPriv -u snmpadmin localhost OBU-MIB::{targetTable}
 
 ### Using snmptable command
 
@@ -67,7 +67,7 @@ Changing saving mode of a request
 
 Deleting a request
 
-- snmpset -Ir -v2c -c public localhost OBU-MIB::status.0 = 3
+- snmpset -Ir -v3 -a SHA -A SNMPVeicular -x AES -X SNMPV31cul4r -l authPriv -u snmpadmin localhost OBU-MIB::status.0 = 3
 
 ### Adding a new command to commandTable
 

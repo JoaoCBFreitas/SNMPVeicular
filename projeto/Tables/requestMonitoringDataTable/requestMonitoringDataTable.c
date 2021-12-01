@@ -587,6 +587,12 @@ void checkTables()
     {
         requestMonitoringDataTable_context *reqMonitoring = data;
         requestControlDataTable_context *reqControl = getControlTableID(reqMonitoring->requestControlID);
+        printf("ID: %ld Status:%ld \n",reqMonitoring->requestID,reqMonitoring->status);
+        printf("\t Start: %s\n",reqMonitoring->startTime);
+        printf("\t Wait: %s\n",reqMonitoring->waitTime);
+        printf("\t Duration: %s\n",reqMonitoring->durationTime);
+        printf("\t End: %s\n",reqMonitoring->endTime);
+        printf("\t Expire: %s\n",reqMonitoring->expireTime);
         if (reqMonitoring->status == 2)
         {
             int f = 0;

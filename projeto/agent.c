@@ -340,8 +340,7 @@ int main(int argc, char **argv)
     int fd[2];
     if (pipe(fd) < 0)
         exit(1);
-    /* nMessage will be used in the creation of checksum, incase 2 messages from same node arrive in close proximity, 
-    it's type is long due to it's higher maximum number*/
+    /* nMessage will be used in the creation of checksum, incase 2 messages from same node arrive in close proximity*/
     long long nMessage;
     canDecoder = fork();
     /* you're main loop here... */
@@ -353,7 +352,6 @@ int main(int argc, char **argv)
     }
     else
     {
-        /*sigaction is apparently more portable than signal*/
         struct sigaction act;
         act.sa_handler = stop_server;
         sigaction(SIGINT, &act, NULL);
@@ -362,8 +360,6 @@ int main(int argc, char **argv)
         while (keep_running)
         {
             checkTables();
-            /* if you use select(), see snmp_select_info() in snmp_api(3) */
-            /*     --- OR ---  */
             if (agent_check_and_process(0) > 0) /* 0 == don't block */
                 /*agent_check_and_process will return 1 when it receives a packet, 
                 there's no need to check actuator table if no packet is received*/
