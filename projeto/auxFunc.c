@@ -95,6 +95,8 @@ char *createChecksum(char *input)
 }
 struct tm *convertTime(struct tm *tm, char *timestamp)
 {
+    time_t t=time(NULL);
+    tm=localtime(&t);
     char *day = malloc(sizeof(char) * 3);
     char *mon = malloc(sizeof(char) * 3);
     char *year = malloc(sizeof(char) * 5);
@@ -122,7 +124,6 @@ struct tm *convertTime(struct tm *tm, char *timestamp)
     tm->tm_mday = atoi(day);
     tm->tm_mon = atoi(mon) - 1;
     tm->tm_year = atoi(year) - 1900;
-
     free(day);
     free(mon);
     free(year);
@@ -150,10 +151,8 @@ void addToTime(struct tm *time, int hour, int minutes)
 {
     if (time == NULL)
         return;
-    printf("%02d/%02d + %d/%d\n",time->tm_hour,time->tm_min,hour,minutes);
     time->tm_min += minutes;
     time->tm_hour += hour;
-    printf("%02d/%02d\n",time->tm_hour,time->tm_min);
     mktime(time);
 }
 int isNumber(char s[])
@@ -165,7 +164,7 @@ int isNumber(char s[])
 }
 int validateTime(char *time)
 {
-    /*Timestamps are in the 00:00:00 formate, so it should allways have a length of 8*/
+    /*Timestamps are in the 00:00:00 format, so it should allways have a length of 8*/
     if (strlen(time) != 8)
         return 1;
     char *hour = malloc(sizeof(char) * 3);

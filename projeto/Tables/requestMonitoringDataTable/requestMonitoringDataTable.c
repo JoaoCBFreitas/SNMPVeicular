@@ -241,10 +241,13 @@ int requestTimeChecker(char *startTime, long unsigned int requestMapID, long uns
     int f = 0;
     void *data;
     netsnmp_iterator *it;
+    time_t t = time(NULL);
     /*tmLowest will be used to store the 2nd lowest startTime (if it exists)*/
-    struct tm *tmLowest = (struct tm *)malloc(sizeof(struct tm *));
+    //struct tm *tmLowest = (struct tm *)malloc(sizeof(struct tm *));
+    struct tm* tmLowest=localtime(&t);
     /*aux will be used to store the startTime of the request that is currently being checked*/
-    struct tm *aux = (struct tm *)malloc(sizeof(struct tm *));
+    //struct tm *aux = (struct tm *)malloc(sizeof(struct tm *));
+    struct tm *aux=localtime(&t);
     it = CONTAINER_ITERATOR(cb.container);
     if (NULL == it)
         exit;
@@ -279,8 +282,6 @@ int requestTimeChecker(char *startTime, long unsigned int requestMapID, long uns
     if (found == 0 && f == 0)
         res = -1;
     ITERATOR_RELEASE(it);
-    free(aux);
-    free(tmLowest);
     return res;
 }
 /*This function will delete an entry from requestMonitoringDataTable*/
@@ -487,11 +488,6 @@ void checkSamples(char *signalname, double value, int signals, char *timestamp, 
                         reqStruct = tableToStruct(reqMonitoring, reqStruct);
                         reqStruct->lastSampleID = sampleExists;
                         reqStruct->nofSamples += 1;
-                        if (reqStruct->nofSamples >= reqStruct->maxNofSamples)
-                        {
-                            reqStruct->status = 0;
-                            printf("Request %d finished\n", reqStruct->reqID);
-                        }
                         data = ITERATOR_NEXT(it);
                         int inserted = insertMonitoringRow(reqStruct);
                         free(reqStruct->startTime);
@@ -524,11 +520,6 @@ void checkSamples(char *signalname, double value, int signals, char *timestamp, 
                         reqStruct = tableToStruct(reqMonitoring, reqStruct);
                         reqStruct->lastSampleID = firstSampleTableEmptyID;
                         reqStruct->nofSamples += 1;
-                        if (reqStruct->nofSamples >= reqStruct->maxNofSamples)
-                        {
-                            reqStruct->status = 0;
-                            printf("Request %d finished\n", reqStruct->reqID);
-                        }
                         data = ITERATOR_NEXT(it);
                         int inserted = insertMonitoringRow(reqStruct);
                         /*Update requestControlDataTable*/
@@ -576,8 +567,6 @@ void checkTables()
     oid index_oid[2];
     void *data;
     int delete;
-    time_t t = time(NULL);
-    struct tm *tm = localtime(&t);
     requestMonitoringStruct *reqStruct = (requestMonitoringStruct *)malloc(sizeof(requestMonitoringStruct));
     checkError();
     it = CONTAINER_ITERATOR(cb.container);
@@ -587,12 +576,6 @@ void checkTables()
     {
         requestMonitoringDataTable_context *reqMonitoring = data;
         requestControlDataTable_context *reqControl = getControlTableID(reqMonitoring->requestControlID);
-        printf("ID: %ld Status:%ld \n",reqMonitoring->requestID,reqMonitoring->status);
-        printf("\t Start: %s\n",reqMonitoring->startTime);
-        printf("\t Wait: %s\n",reqMonitoring->waitTime);
-        printf("\t Duration: %s\n",reqMonitoring->durationTime);
-        printf("\t End: %s\n",reqMonitoring->endTime);
-        printf("\t Expire: %s\n",reqMonitoring->expireTime);
         if (reqMonitoring->status == 2)
         {
             int f = 0;
@@ -617,9 +600,9 @@ void checkTables()
                 reqMonitoring->startTime_len = strlen(s);
             }
             /*tmAux will be used to validate startTime by comparing it to current time*/
-            struct tm *tmAux = (struct tm *)malloc(sizeof(struct tm));
+            struct tm *tmAux=localtime(&t);
             tmAux = convertTime(tmAux, reqMonitoring->startTime);
-            if (validateTime(reqMonitoring->startTime + 11) != 0 || difftime(mktime(tm), mktime(tmAux)) > 0)
+            if (validateTime(reqMonitoring->startTime + 11) != 0 || difftime(time(NULL), mktime(tmAux)) > 0)
             {
                 /*Invalid startTime,errorID=0*/
                 errorID = 0;
@@ -690,7 +673,6 @@ void checkTables()
             }
             else
                 reqMonitoring->status = 4;
-            free(tmAux);
         }
         if (reqControl == NULL || reqControl->requestControlMapID != reqMonitoring->requestMapID)
         {
@@ -805,7 +787,9 @@ void checkTables()
         }
         samplesTable_context *samplesTable;
         char *timestamp = malloc(sizeof(char) * reqMonitoring->endTime_len + 1);
-        struct tm *tm2 = (struct tm *)malloc(sizeof(struct tm));
+        time_t t=time(NULL);
+        struct tm *currenttm;
+        struct tm* tm2=localtime(&t);
         char *hour = malloc(sizeof(char) * 3);
         char *min = malloc(sizeof(char) * 3);
         switch (reqMonitoring->status)
@@ -819,7 +803,7 @@ void checkTables()
             min[2] = '\0';
             hour[2] = '\0';
             addToTime(tm2, atoi(hour), atoi(min));
-            if (difftime(mktime(tm), mktime(tm2)) >= 0)
+            if (difftime(time(NULL), mktime(tm2)) >= 0)
             {
                 /*Expire time is reached, set row to delete*/
                 reqStruct = tableToStruct(reqMonitoring, reqStruct);
@@ -837,11 +821,12 @@ void checkTables()
             /*Request is in On mode, compare current timestamp with endTime*/
             strcpy(timestamp, reqMonitoring->endTime);
             tm2 = convertTime(tm2, timestamp);
-            if (difftime(mktime(tm), mktime(tm2)) >= 0)
+            if (difftime(time(NULL), mktime(tm2)) >= 0 || reqMonitoring->nOfSamples >= reqMonitoring->maxNOfSamples)
             {
                 /*Duration time is reached, set row to off*/
                 reqStruct = tableToStruct(reqMonitoring, reqStruct);
                 reqStruct->status = 0;
+                printf("Request %d finished\n", reqStruct->reqID);
                 insertMonitoringRow(reqStruct);
                 free(reqStruct->startTime);
                 free(reqStruct->endTime);
@@ -935,8 +920,8 @@ void checkTables()
                     if (reqMonitoring->lastSampleID != 0)
                     {
                         samplesTable = getSampleEntry(reqMonitoring->lastSampleID);
-                        struct tm *tmSample = (struct tm *)malloc(sizeof(struct tm));
-                        struct tm *tmControl = (struct tm *)malloc(sizeof(struct tm));
+                        struct tm *tmSample=localtime(&t);
+                        struct tm *tmControl=localtime(&t);
                         tmControl = convertTime(tmControl, reqControl->commitTime);
                         tmSample = convertTime(tmSample, samplesTable->timeStamp);
                         /*Go through all samples until a sample that predates commitTime is found*/
@@ -969,8 +954,6 @@ void checkTables()
                             }
                         }
                         sampleZero(reqMonitoring->lastSampleID);
-                        free(tmSample);
-                        free(tmControl);
                     }
                 }
             }
@@ -1064,7 +1047,7 @@ void checkTables()
             tm2 = convertTime(tm2, timestamp);
             addToTime(tm2, atoi(hour), atoi(min));
             /*WaitTime is reached, proceed with setting*/
-            if (difftime(mktime(tm), mktime(tm2)) >= 0)
+            if (difftime(time(NULL), mktime(tm2)) >= 0)
             {
                 index_oid[0] = reqMonitoring->requestID;
                 index.oids = (oid *)&index_oid;
@@ -1108,7 +1091,6 @@ void checkTables()
         free(min);
         free(hour);
         free(timestamp);
-        free(tm2);
     }
     ITERATOR_RELEASE(it);
     free(reqStruct);
