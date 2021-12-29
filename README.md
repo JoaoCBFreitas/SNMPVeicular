@@ -1,6 +1,7 @@
 # SNMPVeicular
 
 Prototype SNMP agent to be installed inside a vehicle OBU and allows outside entities to poll data from the vehicles' sensors and change status of actuators.
+######Note: This prototype was made to work with OBU-MIB which is incomplete. Complete MIB is included in file MIBFULL.txt and to use it will require some work to be done to the prototype
 
 ## Installation
 
