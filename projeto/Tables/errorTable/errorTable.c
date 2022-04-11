@@ -81,21 +81,18 @@ void checkError()
     for (data = ITERATOR_FIRST(it); data; data = ITERATOR_NEXT(it))
     {
         errorTable_context *req = data;
-        time_t t = time(NULL);
-        struct tm *tm = localtime(&t);
         struct tm *tm2 = (struct tm *)malloc(sizeof(struct tm));
         char *timestamp = malloc(sizeof(char) * req->errorTimeStamp_len + 1);
         strcpy(timestamp, req->errorTimeStamp);
         tm2 = convertTime(tm2, timestamp);
-
         char *hour = malloc(sizeof(char) * 3);
         char *min = malloc(sizeof(char) * 3);
         strncpy(hour, req->errorExpireTime, 2);
         strncpy(min, req->errorExpireTime + 3, 2);
         min[2] = '\0';
-        hour[2] = '\0';
+        hour[2] = '\0';      
         addToTime(tm2, atoi(hour), atoi(min));
-        if (difftime(mktime(tm), mktime(tm2)) >= 0)
+        if (difftime(time(NULL),mktime(tm2)) >= 0)
         {
             /*ExpireTime has passed, delete row*/
             int delete = deleteErrorEntry(req->errorID);
@@ -106,7 +103,6 @@ void checkError()
         }
         free(min);
         free(hour);
-        free(tm2);
         free(timestamp);
     }
     ITERATOR_RELEASE(it);

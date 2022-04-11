@@ -674,58 +674,35 @@ void checkTables()
             else
                 reqMonitoring->status = 4;
         }
-        if (reqControl == NULL || reqControl->requestControlMapID != reqMonitoring->requestMapID)
-        {
-            /*check if there's already a requestControl for this object
-                if not create new row*/
-            int controlExists = checkControlExist(reqMonitoring->requestMapID);
-            if (controlExists == -1)
+        if (reqMonitoring->status == 4){
+            if (reqControl == NULL || reqControl->requestControlMapID != reqMonitoring->requestMapID)
             {
-                int id = firstControlEntry();
-                reqMonitoring->requestControlID = (unsigned long)id;
-                int insertControl = insertRowControl_Monitor(reqMonitoring);
-                reqControl = getControlTableID(reqMonitoring->requestID);
-                if (insertControl == 1)
+                /*check if there's already a requestControl for this object
+                    if not create new row*/
+                int controlExists = checkControlExist(reqMonitoring->requestMapID);
+                if (controlExists == -1)
                 {
-                    printf("Control insertion failed\n");
-                    exit;
+                    int id = firstControlEntry();
+                    reqMonitoring->requestControlID = (unsigned long)id;
+                    int insertControl = insertRowControl_Monitor(reqMonitoring);
+                    reqControl = getControlTableID(reqMonitoring->requestID);
+                    if (insertControl == 1)
+                    {
+                        printf("Control insertion failed\n");
+                        exit;
+                    }
                 }
             }
-        }
-        else
-        {
-            /*Request control is already in the system, update requestcontrol if necessary*/
-            if (reqMonitoring->status != 0 && reqControl->statusControl != 1)
+            else
             {
-                /*If this requestMonitoring entry is either "set", "ready" or "on" 
-                and the corresponding requestControlEntry is "inactive", change status of requestControlEntry to "active" */
-                requestStruct *aux = (requestStruct *)malloc(sizeof(requestStruct));
-                aux = reqControlConvert(reqControl, aux);
-                aux->status = 1;
-                int insertControl = insertControlRow(aux);
-                reqControl = getControlTableID(reqMonitoring->requestControlID);
-                if (insertControl != 0)
+                /*Request control is already in the system, update requestcontrol if necessary*/
+                if (reqMonitoring->status != 0 && reqControl->statusControl != 1)
                 {
-                    printf("Control update failed\n");
-                    exit;
-                }
-                free(aux->commitTime);
-                free(aux->endTime);
-                free(aux->duration);
-                free(aux->expireTime);
-                free(aux);
-            }
-            if (reqMonitoring->status == 0 && reqControl->statusControl == 1)
-            {
-                /*If this requestMonitoring entry is "Off" check if there's any other request on this object whose status is either "set", "ready" or "on".
-                If none are found change status of requestControlEntry to "inactive"*/
-                int active = checkActiveRequests(reqMonitoring->requestControlID, reqMonitoring->requestID);
-                if (active == 1)
-                {
-                    /*No active requestMonitoringEntry's found*/
+                    /*If this requestMonitoring entry is either "set", "ready" or "on" 
+                    and the corresponding requestControlEntry is "inactive", change status of requestControlEntry to "active" */
                     requestStruct *aux = (requestStruct *)malloc(sizeof(requestStruct));
                     aux = reqControlConvert(reqControl, aux);
-                    aux->status = 0;
+                    aux->status = 1;
                     int insertControl = insertControlRow(aux);
                     reqControl = getControlTableID(reqMonitoring->requestControlID);
                     if (insertControl != 0)
@@ -739,37 +716,37 @@ void checkTables()
                     free(aux->expireTime);
                     free(aux);
                 }
-            }
-            if (reqMonitoring->savingMode == 0 && reqControl->settingMode == 1)
-            {
-                /*If requestMonitoringEntry is set to "permanent" while requestControl is in "volatile" mode, change settingMode to "permanent"*/
-                requestStruct *aux = (requestStruct *)malloc(sizeof(requestStruct));
-                aux = reqControlConvert(reqControl, aux);
-                aux->settingMode = 0;
-                int insertControl = insertControlRow(aux);
-                reqControl = getControlTableID(reqMonitoring->requestControlID);
-                if (insertControl != 0)
+                if (reqMonitoring->status == 0 && reqControl->statusControl == 1)
                 {
-                    printf("Control update failed\n");
-                    exit;
+                    /*If this requestMonitoring entry is "Off" check if there's any other request on this object whose status is either "set", "ready" or "on".
+                    If none are found change status of requestControlEntry to "inactive"*/
+                    int active = checkActiveRequests(reqMonitoring->requestControlID, reqMonitoring->requestID);
+                    if (active == 1)
+                    {
+                        /*No active requestMonitoringEntry's found*/
+                        requestStruct *aux = (requestStruct *)malloc(sizeof(requestStruct));
+                        aux = reqControlConvert(reqControl, aux);
+                        aux->status = 0;
+                        int insertControl = insertControlRow(aux);
+                        reqControl = getControlTableID(reqMonitoring->requestControlID);
+                        if (insertControl != 0)
+                        {
+                            printf("Control update failed\n");
+                            exit;
+                        }
+                        free(aux->commitTime);
+                        free(aux->endTime);
+                        free(aux->duration);
+                        free(aux->expireTime);
+                        free(aux);
+                    }
                 }
-                free(aux->commitTime);
-                free(aux->endTime);
-                free(aux->duration);
-                free(aux->expireTime);
-                free(aux);
-            }
-            if (reqMonitoring->savingMode == 1 && reqControl->settingMode == 0)
-            {
-                /*If reqMonitoringEntry is "volatile" while requestControl is "permanent", check if there's any other request on this object with "permanent" saving mode
-                If there's none, change setting mode of requestControl to "volatile"*/
-                int permanent = checkPermanentRequests(reqMonitoring->requestControlID, reqMonitoring->requestID);
-                if (permanent == 1)
+                if (reqMonitoring->savingMode == 0 && reqControl->settingMode == 1)
                 {
-                    /*No permanent requestMonitoringEntry's found*/
+                    /*If requestMonitoringEntry is set to "permanent" while requestControl is in "volatile" mode, change settingMode to "permanent"*/
                     requestStruct *aux = (requestStruct *)malloc(sizeof(requestStruct));
                     aux = reqControlConvert(reqControl, aux);
-                    aux->settingMode = 1;
+                    aux->settingMode = 0;
                     int insertControl = insertControlRow(aux);
                     reqControl = getControlTableID(reqMonitoring->requestControlID);
                     if (insertControl != 0)
@@ -782,6 +759,31 @@ void checkTables()
                     free(aux->duration);
                     free(aux->expireTime);
                     free(aux);
+                }
+                if (reqMonitoring->savingMode == 1 && reqControl->settingMode == 0)
+                {
+                    /*If reqMonitoringEntry is "volatile" while requestControl is "permanent", check if there's any other request on this object with "permanent" saving mode
+                    If there's none, change setting mode of requestControl to "volatile"*/
+                    int permanent = checkPermanentRequests(reqMonitoring->requestControlID, reqMonitoring->requestID);
+                    if (permanent == 1)
+                    {
+                        /*No permanent requestMonitoringEntry's found*/
+                        requestStruct *aux = (requestStruct *)malloc(sizeof(requestStruct));
+                        aux = reqControlConvert(reqControl, aux);
+                        aux->settingMode = 1;
+                        int insertControl = insertControlRow(aux);
+                        reqControl = getControlTableID(reqMonitoring->requestControlID);
+                        if (insertControl != 0)
+                        {
+                            printf("Control update failed\n");
+                            exit;
+                        }
+                        free(aux->commitTime);
+                        free(aux->endTime);
+                        free(aux->duration);
+                        free(aux->expireTime);
+                        free(aux);
+                    }
                 }
             }
         }
@@ -848,112 +850,114 @@ void checkTables()
                 if so do nothing, if not:
                                          update commitTime to the 2nd lowest of all requestMonitoringEntrys that point to that requestControlEntry
                                          delete every sample that predate the new commitTime*/
-            if (strcmp(reqMonitoring->startTime, reqControl->commitTime) == 0)
-            {
-                /*Check for other requests with same startTime and same requestMapID*/
-                int reqTime = requestTimeChecker(reqMonitoring->startTime, reqMonitoring->requestMapID, reqMonitoring->requestID);
-                if (reqTime == -1)
+            if(reqControl!=NULL){
+                if (strcmp(reqMonitoring->startTime, reqControl->commitTime) == 0)
                 {
-                    /*There's only one request, delete everything*/
-                    delete = deleteControlEntry(reqMonitoring->requestControlID);
-                    if (delete == 1)
-                        printf("Deletion of requestControlDataEntry failed\n");
-                    if (reqStruct->lastSampleID != 0)
+                    /*Check for other requests with same startTime and same requestMapID*/
+                    int reqTime = requestTimeChecker(reqMonitoring->startTime, reqMonitoring->requestMapID, reqMonitoring->requestID);
+                    if (reqTime == -1)
                     {
-                        /*Since we are deleting every sample related to an object we should start with the ID from reqControl
-                        since if Req1 starts before Req2 starts and ends before Req2 ends, if we were to delete Req2 first it wouldn't
-                        delete the samples that were recorded between the endings of Req1 and Req2 and when we would attempt to delete Req1 it would 
-                        only delete the samples that were related to Req1, thus leaving some samples "hanging"
-                        Req1Starts-------------Req2Starts---------------Req1Ends----------Req2Ends
-                        */
-                        samplesTable = getSampleEntry(reqControl->valuesTableID);
-                        while (samplesTable != NULL)
+                        /*There's only one request, delete everything*/
+                        delete = deleteControlEntry(reqMonitoring->requestControlID);
+                        if (delete == 1)
+                            printf("Deletion of requestControlDataEntry failed\n");
+                        if (reqStruct->lastSampleID != 0)
                         {
-                            int aux = samplesTable->sampleID;
-                            samplesTable = getSampleEntry(samplesTable->previousSampleID);
-                            delete = deleteSamplesEntry(aux);
-                            if (delete != 0)
-                                printf("SampleEntry deletion Failed ID:%d\n", aux);
+                            /*Since we are deleting every sample related to an object we should start with the ID from reqControl
+                            since if Req1 starts before Req2 starts and ends before Req2 ends, if we were to delete Req2 first it wouldn't
+                            delete the samples that were recorded between the endings of Req1 and Req2 and when we would attempt to delete Req1 it would 
+                            only delete the samples that were related to Req1, thus leaving some samples "hanging"
+                            Req1Starts-------------Req2Starts---------------Req1Ends----------Req2Ends
+                            */
+                            samplesTable = getSampleEntry(reqControl->valuesTableID);
+                            while (samplesTable != NULL)
+                            {
+                                int aux = samplesTable->sampleID;
+                                samplesTable = getSampleEntry(samplesTable->previousSampleID);
+                                delete = deleteSamplesEntry(aux);
+                                if (delete != 0)
+                                    printf("SampleEntry deletion Failed ID:%d\n", aux);
+                            }
                         }
                     }
-                }
-                if (reqTime >= 0)
-                {
-                    /************Update requestControlEntry******************/
-                    requestMonitoringDataTable_context *reqAux;
-                    netsnmp_index index;
-                    oid index_oid[2];
-                    index_oid[0] = reqTime;
-                    index.oids = (oid *)&index_oid;
-                    index.len = 1;
-                    reqAux = NULL;
-                    /* Search for it first. */
-                    reqAux = CONTAINER_FIND(cb.container, &index);
-                    if (reqAux != NULL)
+                    if (reqTime >= 0)
                     {
-                        requestStruct *aux = (requestStruct *)malloc(sizeof(requestStruct));
-                        aux = reqControlConvert(reqControl, aux);
-                        strcpy(aux->commitTime, reqAux->startTime);
-                        strcpy(aux->duration, reqAux->durationTime);
-                        strcpy(aux->endTime, reqAux->endTime);
-                        strcpy(aux->expireTime, reqAux->expireTime);
-                        int insertControl = insertControlRow(aux);
-                        reqControl = getControlTableID(reqAux->requestControlID);
-                        if (insertControl != 0)
+                        /************Update requestControlEntry******************/
+                        requestMonitoringDataTable_context *reqAux;
+                        netsnmp_index index;
+                        oid index_oid[2];
+                        index_oid[0] = reqTime;
+                        index.oids = (oid *)&index_oid;
+                        index.len = 1;
+                        reqAux = NULL;
+                        /* Search for it first. */
+                        reqAux = CONTAINER_FIND(cb.container, &index);
+                        if (reqAux != NULL)
                         {
-                            printf("Control update failed\n");
+                            requestStruct *aux = (requestStruct *)malloc(sizeof(requestStruct));
+                            aux = reqControlConvert(reqControl, aux);
+                            strcpy(aux->commitTime, reqAux->startTime);
+                            strcpy(aux->duration, reqAux->durationTime);
+                            strcpy(aux->endTime, reqAux->endTime);
+                            strcpy(aux->expireTime, reqAux->expireTime);
+                            int insertControl = insertControlRow(aux);
+                            reqControl = getControlTableID(reqAux->requestControlID);
+                            if (insertControl != 0)
+                            {
+                                printf("Control update failed\n");
+                                exit;
+                            }
+                            free(aux->commitTime);
+                            free(aux->expireTime);
+                            free(aux->duration);
+                            free(aux->endTime);
+                            free(aux);
+                        }
+                        else
+                        {
+                            printf("Failed to obtain requestMonitoringDataEntry\n");
                             exit;
                         }
-                        free(aux->commitTime);
-                        free(aux->expireTime);
-                        free(aux->duration);
-                        free(aux->endTime);
-                        free(aux);
-                    }
-                    else
-                    {
-                        printf("Failed to obtain requestMonitoringDataEntry\n");
-                        exit;
-                    }
-                    /**************************************************/
-                    /********************Delete Samples****************/
-                    if (reqMonitoring->lastSampleID != 0)
-                    {
-                        samplesTable = getSampleEntry(reqMonitoring->lastSampleID);
-                        struct tm *tmSample=localtime(&t);
-                        struct tm *tmControl=localtime(&t);
-                        tmControl = convertTime(tmControl, reqControl->commitTime);
-                        tmSample = convertTime(tmSample, samplesTable->timeStamp);
-                        /*Go through all samples until a sample that predates commitTime is found*/
-                        while (samplesTable != NULL)
+                        /**************************************************/
+                        /********************Delete Samples****************/
+                        if (reqMonitoring->lastSampleID != 0)
                         {
-                            if (samplesTable->previousSampleID != 0)
+                            samplesTable = getSampleEntry(reqMonitoring->lastSampleID);
+                            struct tm *tmSample=localtime(&t);
+                            struct tm *tmControl=localtime(&t);
+                            tmControl = convertTime(tmControl, reqControl->commitTime);
+                            tmSample = convertTime(tmSample, samplesTable->timeStamp);
+                            /*Go through all samples until a sample that predates commitTime is found*/
+                            while (samplesTable != NULL)
                             {
-                                tmSample = convertTime(tmSample, samplesTable->timeStamp);
-                                if (difftime(mktime(tmSample), mktime(tmControl)) < 0)
+                                if (samplesTable->previousSampleID != 0)
+                                {
+                                    tmSample = convertTime(tmSample, samplesTable->timeStamp);
+                                    if (difftime(mktime(tmSample), mktime(tmControl)) < 0)
+                                        break;
+                                    samplesTable = getSampleEntry(samplesTable->previousSampleID);
+                                }
+                                else
                                     break;
-                                samplesTable = getSampleEntry(samplesTable->previousSampleID);
                             }
-                            else
-                                break;
-                        }
-                        /*Sample that predates commitTime is found, delete from this sample onwards*/
-                        while (samplesTable->previousSampleID != 0)
-                        {
-                            int aux = samplesTable->sampleID;
-                            samplesTable = getSampleEntry(samplesTable->previousSampleID);
-                            delete = deleteSamplesEntry(aux);
-                            if (delete != 0)
-                                printf("SampleEntry deletion Failed ID:%d\n", aux);
-                            if (samplesTable->previousSampleID == 0)
+                            /*Sample that predates commitTime is found, delete from this sample onwards*/
+                            while (samplesTable->previousSampleID != 0)
                             {
-                                delete = deleteSamplesEntry(samplesTable->sampleID);
+                                int aux = samplesTable->sampleID;
+                                samplesTable = getSampleEntry(samplesTable->previousSampleID);
+                                delete = deleteSamplesEntry(aux);
                                 if (delete != 0)
-                                    printf("SampleEntry deletion Failed ID:%ld\n", samplesTable->sampleID);
-                                break;
+                                    printf("SampleEntry deletion Failed ID:%d\n", aux);
+                                if (samplesTable->previousSampleID == 0)
+                                {
+                                    delete = deleteSamplesEntry(samplesTable->sampleID);
+                                    if (delete != 0)
+                                        printf("SampleEntry deletion Failed ID:%ld\n", samplesTable->sampleID);
+                                    break;
+                                }
                             }
+                            sampleZero(reqMonitoring->lastSampleID);
                         }
-                        sampleZero(reqMonitoring->lastSampleID);
                     }
                 }
             }
@@ -968,7 +972,7 @@ void checkTables()
             }
             /*Delete requestMonitoringDataEntry*/
             delete = deleteRequestEntry(reqStruct);
-            if (reqMonitoring->loopMode == 1)
+            if (reqStruct->loopmode == 1)
             {
                 reqStruct = tableToStruct(reqMonitoring, reqStruct);
                 /*This Entry has loopMode enabled, create new row*/
